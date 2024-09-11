@@ -3,7 +3,7 @@ import "@/styles/globals.css";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import ProviderWrapper from "./providers/dynamic";
-import Navbar from "./components/navbar";
+import Navbar from "../components/navbar";
 
 export const metadata: Metadata = {
   title: "RealBet.io",

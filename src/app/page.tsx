@@ -1,6 +1,6 @@
-import { getServerAuthSession } from "@/server/auth";
+import { auth } from "@/auth";
 
 export default async function HomePage() {
-  const session = await getServerAuthSession();
+  const session = await auth();
   return <main className="">Sup homie:{JSON.stringify(session)}</main>;
 }
