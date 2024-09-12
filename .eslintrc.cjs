@@ -1,34 +1,40 @@
 /** @type {import("eslint").Linter.Config} */
 const config = {
-  parser: "@typescript-eslint/parser",
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     project: true,
   },
-  plugins: ["@typescript-eslint"],
+  plugins: ['@typescript-eslint'],
   extends: [
-    "next/core-web-vitals",
-    "plugin:@typescript-eslint/recommended-type-checked",
-    "plugin:@typescript-eslint/stylistic-type-checked",
+    'next/core-web-vitals',
+    'plugin:@typescript-eslint/recommended-type-checked',
+    'plugin:@typescript-eslint/stylistic-type-checked',
+    'plugin:tailwindcss/recommended',
   ],
   rules: {
-    "@typescript-eslint/array-type": "off",
-    "@typescript-eslint/consistent-type-definitions": "off",
-    "@typescript-eslint/consistent-type-imports": [
-      "warn",
+    '@next/next/no-img-element': 'off',
+    'tailwindcss/no-custom-classname': 'off',
+    'tailwindcss/classnames-order': 'off',
+    'no-console': 'error',
+    curly: ['error', 'all'],
+    '@typescript-eslint/array-type': 'off',
+    '@typescript-eslint/consistent-type-definitions': 'off',
+    '@typescript-eslint/consistent-type-imports': [
+      'warn',
       {
-        prefer: "type-imports",
-        fixStyle: "inline-type-imports",
+        prefer: 'type-imports',
+        fixStyle: 'inline-type-imports',
       },
     ],
-    "@typescript-eslint/no-unused-vars": [
-      "warn",
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
       {
-        argsIgnorePattern: "^_",
+        argsIgnorePattern: '^_',
       },
     ],
-    "@typescript-eslint/require-await": "off",
-    "@typescript-eslint/no-misused-promises": [
-      "error",
+    '@typescript-eslint/require-await': 'off',
+    '@typescript-eslint/no-misused-promises': [
+      'error',
       {
         checksVoidReturn: {
           attributes: false,
@@ -36,6 +42,6 @@ const config = {
       },
     ],
   },
-  ignorePatterns: ["next.config.js"],
+  ignorePatterns: ['next.config.js'],
 };
 module.exports = config;

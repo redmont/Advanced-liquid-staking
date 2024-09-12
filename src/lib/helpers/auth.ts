@@ -1,6 +1,6 @@
-import { env } from "@/env";
-import jwt, { type JwtPayload } from "jsonwebtoken";
-import { JwksClient } from "jwks-rsa";
+import { env } from '@/env';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
+import { JwksClient } from 'jwks-rsa';
 
 export const getKey = async (
   _headers: unknown,
@@ -20,24 +20,20 @@ export const validateJWT = async (
     const decodedToken = await new Promise<JwtPayload | null>(
       (resolve, reject) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        jwt.verify(token, getKey, { algorithms: ["RS256"] }, (err, decoded) => {
+        jwt.verify(token, getKey, { algorithms: ['RS256'] }, (err, decoded) => {
           if (err) {
-            return reject(new Error("Token validation error"));
+            return reject(new Error('Token validation error'));
           }
-          if (decoded && typeof decoded === "object") {
+          if (decoded && typeof decoded === 'object') {
             resolve(decoded);
           } else {
-            reject(new Error("Invalid token structure"));
+            reject(new Error('Invalid token structure'));
           }
         });
       },
     );
     return decodedToken;
-  } catch (error) {
-    console.error(
-      "Token validation error:",
-      error instanceof Error ? error.message : "Unknown error",
-    );
+  } catch {
     return null;
   }
 };
