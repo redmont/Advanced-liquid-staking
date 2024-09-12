@@ -1,4 +1,3 @@
-import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,13 +8,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default async function HomePage() {
-  const session = await auth();
+export default async function Styleguide() {
   return (
     <main className="space-y-3 p-5">
-      <div className="space-x-3">
+      <div className="flex gap-3">
         <Button>Default</Button>
-        <Button variant="light">Secondary</Button>
+        <Button variant="light">Light</Button>
+        <Button variant="dark">Dark</Button>
       </div>
       <Card>
         <CardHeader>

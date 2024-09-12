@@ -1,8 +1,8 @@
 import "@/styles/globals.css";
+import "@fontsource-variable/inter";
 
-import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
-import ProviderWrapper from "./providers/dynamic";
+import ProviderWrapper from "../providers/dynamic";
 import Navbar from "../components/navbar";
 
 export const metadata: Metadata = {
@@ -15,8 +15,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${GeistSans.variable}`}>
-      <body>
+    <html lang="en" className="dark">
+      <body className="bg-background">
         <ProviderWrapper>
           <Navbar />
           {children}

@@ -1,8 +1,8 @@
 "use client";
 
 import { env } from "@/env";
-import { DynamicContextProvider, getAuthToken } from "../../lib/dynamic";
-import { EthereumWalletConnectors } from "../../lib/dynamic";
+import { DynamicContextProvider, getAuthToken } from "../lib/dynamic";
+import { EthereumWalletConnectors } from "../lib/dynamic";
 import { getCsrfToken, getSession } from "next-auth/react";
 
 const onAuthSuccess = async () => {

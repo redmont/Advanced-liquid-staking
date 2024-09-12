@@ -34,6 +34,10 @@ const JWTPayloadSchema = z.object({
   username: z.string().optional().default(""),
 });
 
+const CredentialsSchema = z.object({
+  token: z.string(),
+});
+
 export const config = {
   theme: {
     logo: "https://next-auth.js.org/img/logo/logo-sm.png",
@@ -47,10 +51,7 @@ export const config = {
       async authorize(
         credentials: Partial<Record<"token", unknown>>,
       ): Promise<User | null> {
-        const token = credentials.token as string; // Safely cast to string; ensure to handle undefined case
-        if (typeof token !== "string" || !token) {
-          throw new Error("Token is required");
-        }
+        const { token } = CredentialsSchema.parse(credentials);
         const jwtPayload = await validateJWT(token);
 
         if (jwtPayload) {
@@ -85,11 +86,6 @@ export const config = {
         };
       }
       return session;
-    },
-    authorized({ request, auth }) {
-      const { pathname } = request.nextUrl;
-      if (pathname === "/middleware-example") return !!auth;
-      return true;
     },
   },
 } satisfies NextAuthConfig;
