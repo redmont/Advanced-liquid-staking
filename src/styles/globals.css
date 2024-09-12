@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Tusker Grotesk';
+  src: url('../assets/fonts/TuskerGrotesk-5700Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     --background: 0 0% 0%;
@@ -18,12 +26,11 @@
     --popover-foreground: 0 0% 100%;
     --primary: 0 100% 81%;
     --primary-foreground: var(--background);
-    --secondary: 0 78.5% 60.8%;
-    --secondary-foreground: var(--background);
+
     --muted: 0 0% 30%;
     --muted-foreground: 0 10% 70%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 0 78.5% 60.8%;
+    --accent-foreground: var(--background);
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
     --border: var(--background-lightest);
@@ -36,7 +43,8 @@
     --chart-5: 27 87% 67%;
     --radius: 1.75rem;
     --radius-2: 1.5rem;
-    --font-inter-variable: "Inter Variable";
+    --font-inter-variable: 'Inter Variable';
+    --font-tusker-grotesk: 'Tusker Grotesk';
   }
 }
 

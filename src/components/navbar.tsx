@@ -42,7 +42,11 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
         <ul className="flex flex-col gap-3">
           <hr className="hidden h-px border-none bg-lighter lg:block" />
           <li>
-            <Button onClick={authHandler} variant="outline" className="w-full">
+            <Button
+              onClick={authHandler}
+              variant="outline"
+              className="w-full max-w-64"
+            >
               {isAuthenticated ? (
                 <>
                   <Wallet2 className="size-4 shrink-0" />
@@ -52,7 +56,9 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
                       primaryWallet?.address.length - 4,
                     )}
                   </span>
-                  <span>{primaryWallet?.address.slice(-4)}</span>
+                  <span className="-ml-1">
+                    {primaryWallet?.address.slice(-4)}
+                  </span>
                 </>
               ) : (
                 <>Connect Wallet</>
@@ -65,6 +71,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
             </div>
           </li>
           <hr className="hidden h-px border-none bg-lighter lg:block" />
+          <li></li>
         </ul>
       </div>
     </nav>
