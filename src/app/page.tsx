@@ -1,37 +1,5 @@
-import { auth } from "@/auth";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { redirect } from 'next/navigation';
 
 export default async function HomePage() {
-  const session = await auth();
-  return (
-    <main className="space-y-3 p-5">
-      <div className="space-x-3">
-        <Button>Default</Button>
-        <Button variant="light">Secondary</Button>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Card Title</CardTitle>
-          <CardDescription>Card Description</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p>Card Content</p>
-        </CardContent>
-        <CardFooter>
-          <p>Card Footer</p>
-        </CardFooter>
-      </Card>
-
-      <h1>H1</h1>
-      <h2>H2</h2>
-    </main>
-  );
+  return redirect('/styleguide');
 }
