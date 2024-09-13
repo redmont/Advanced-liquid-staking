@@ -1,5 +1,4 @@
 import '@/styles/globals.css';
-import '@fontsource-variable/inter';
 
 import { type Metadata } from 'next';
 import ProviderWrapper from '../providers/dynamic';
@@ -18,9 +17,9 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="bg-background">
         <ProviderWrapper>
-          <main className="max-w-full overflow-hidden lg:flex">
+          <main className="min-h-screen max-w-full overflow-hidden lg:flex">
             <Navbar className="shrink-0 lg:w-64" />
-            <div className="grow">{children}</div>
+            <div className="h-full lg:grow">{children}</div>
           </main>
         </ProviderWrapper>
       </body>

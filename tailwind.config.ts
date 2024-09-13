@@ -8,8 +8,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter-variable)', ...fontFamily.sans],
+        sans: ['var(--font-aeonik)', ...fontFamily.sans],
         tusker: ['var(--font-tusker-grotesk)', ...fontFamily.sans],
+        monoline: ['var(--font-monoline)', ...fontFamily.sans],
       },
       borderRadius: {
         lg: 'var(--radius)',

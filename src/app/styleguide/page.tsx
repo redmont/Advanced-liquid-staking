@@ -29,7 +29,7 @@ export default async function Styleguide() {
         <Button>Default</Button>
         <Button variant="light">Light</Button>
         <Button variant="dark">Dark</Button>
-        <Button variant="bordeless">Borderless</Button>
+        <Button variant="borderless">Borderless</Button>
         <Button disabled>Disabled</Button>
       </div>
       <Card>
@@ -54,27 +54,17 @@ export default async function Styleguide() {
       </div>
       <div className="flex gap-8">
         <div className="space-y-2">
-          <h2 className="font-tusker text-7xl uppercase">Tusker 7xl</h2>
-          <h2 className="font-tusker text-6xl uppercase">Tusker 6xl</h2>
-          <h2 className="font-tusker text-5xl uppercase">Tusker 5xl</h2>
-          <h2 className="font-tusker text-4xl uppercase">Tusker 4xl</h2>
-          <h2 className="font-tusker text-3xl uppercase">Tusker 3xl</h2>
-          <h2 className="font-tusker text-2xl uppercase">Tusker 2xl</h2>
-          <h2 className="font-tusker text-xl uppercase">Tusker xl</h2>
-          <h2 className="font-tusker text-lg uppercase">Tusker lg</h2>
-          <h2 className="font-tusker text-base uppercase">Tusker base</h2>
-          <h2 className="font-tusker text-sm uppercase">Tusker sm</h2>
-          <h2 className="font-tusker text-xs uppercase">Tusker xs</h2>
+          <h2 className="font-tusker text-7xl uppercase leading-tight">
+            Tusker
+          </h2>
         </div>
         <div>
-          <p className="text-4xl font-black">Inter Black</p>
-          <p className="text-4xl font-bold">Inter Bold</p>
-          <p className="text-4xl font-extrabold">Inter Extrabold</p>
-          <p className="text-4xl font-semibold">Inter Semibold</p>
-          <p className="text-4xl font-medium">Inter Medium</p>
-          <p className="text-4xl font-normal">Inter Normal</p>
-          <p className="text-4xl font-light">Inter Light</p>
-          <p className="text-4xl font-thin">Inter Thin</p>
+          <h2 className="text-4xl font-bold">Aonik Bold</h2>
+          <h2 className="text-4xl font-medium">Aonik Medium</h2>
+          <h2 className="text-4xl font-normal">Aonik Normal</h2>
+        </div>
+        <div>
+          <h2 className="font-monoline text-4xl">Monoline</h2>
         </div>
       </div>
     </div>
