@@ -68,13 +68,12 @@
     --popover-foreground: 0 0% 100%;
     --primary: 0 100% 81%;
     --primary-foreground: var(--background);
-
     --muted: 0 0% 30%;
     --muted-foreground: 0 10% 70%;
     --accent: 356 92% 60%;
     --accent-foreground: var(--background);
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 12 80% 38%;
+    --destructive-foreground: var(--foreground);
     --border: var(--background-lightest);
     --input: 240 5.9% 90%;
     --ring: 240 10% 20%;
@@ -83,8 +82,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 1.75rem;
-    --radius-2: 1.5rem;
+    --radius: 0.5rem;
     --font-aeonik: 'Aeonik';
     --font-tusker-grotesk: 'Tusker Grotesk';
     --font-monoline: 'LD MonoLine Solid';

@@ -22,13 +22,15 @@ export default async function Styleguide() {
         <h2 className="bg-lightest p-2 text-lightest-foreground">Lightest</h2>
         <h2 className="bg-primary p-2 text-primary-foreground">Primary</h2>
         <h2 className="bg-muted p-2 text-muted-foreground">Muted</h2>
-        <h2 className="bg-accent p-2 text-background">Accent</h2>
-        <h2 className="bg-destructive p-2 text-background">Destructive</h2>
+        <h2 className="bg-accent p-2 text-accent-foreground">Accent</h2>
+        <h2 className="bg-destructive p-2 text-destructive-foreground">
+          Destructive
+        </h2>
       </div>
       <div className="flex gap-3">
         <Button>Default</Button>
-        <Button variant="light">Light</Button>
-        <Button variant="dark">Dark</Button>
+        <Button variant="neutral">Neutral</Button>
+        <Button variant="outline">Outline</Button>
         <Button variant="borderless">Borderless</Button>
         <Button disabled>Disabled</Button>
       </div>

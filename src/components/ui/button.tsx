@@ -5,15 +5,16 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2  disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2  disabled:pointer-events-none disabled:opacity-50',
   {
     variants: {
       variant: {
-        default:
-          'bg-lighter hover:bg-lighter/75 border border-border text-lighter-foreground hover:text-lightest-foreground',
-        light: 'bg-foreground hover:bg-foreground/80 text-background',
+        default: 'bg-primary hover:bg-primary/75 text-primary-foreground',
+        neutral:
+          'bg-lighter border border-border text-light-foreground hover:bg-lighter/80',
         dark: 'bg-background hover:bg-white/5 text-foreground border-foreground border',
-        outline: 'border border-border bg-transparent text-foreground',
+        outline:
+          'bg-transparent text-primary border border-primary hover:bg-primary hover:text-primary-foreground',
         borderless: 'border-0 bg-light text-foreground hover:bg-light/80',
       },
       size: {
