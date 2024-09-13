@@ -19,8 +19,8 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const [isNavOpen, setNavOpen] = useState(false);
 
   return (
-    <nav className={className}>
-      <div className="lg:flex-start relative z-10 flex items-center justify-between gap-3 p-6 lg:p-8">
+    <nav className={cn('relative z-50', className)}>
+      <div className="lg:flex-start fixed z-30 flex w-full items-center justify-between gap-3 p-6 lg:p-8">
         <Burger
           className={cn('shrink-0 rounded-xl bg-light lg:hidden')}
           isNavOpen={isNavOpen}

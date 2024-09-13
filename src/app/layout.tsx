@@ -19,7 +19,7 @@ export default function RootLayout({
         <ProviderWrapper>
           <main className="min-h-screen max-w-full overflow-hidden lg:flex">
             <Navbar className="shrink-0 lg:w-64" />
-            <div className="h-full lg:grow">{children}</div>
+            <div className="h-full pt-20 lg:grow lg:pt-0">{children}</div>
           </main>
         </ProviderWrapper>
       </body>
