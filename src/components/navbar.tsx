@@ -20,7 +20,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
 
   return (
     <nav className={cn('relative z-50', className)}>
-      <div className="lg:flex-start fixed z-30 flex w-full items-center justify-between gap-3 p-6 lg:p-8">
+      <div className="lg:flex-start fixed z-30 flex w-full items-center justify-between gap-3 px-5 py-6 lg:p-8">
         <Burger
           className={cn('shrink-0 rounded-xl bg-light lg:hidden')}
           isNavOpen={isNavOpen}
