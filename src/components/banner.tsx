@@ -1,30 +1,40 @@
 'use client';
 
-import React, { type PropsWithChildren, useEffect, useRef } from 'react';
+import React, {
+  type PropsWithChildren,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { motion } from 'framer-motion';
 import backgroundImage from 'src/assets/images/vr-guy.png';
 import pepeAttack from 'src/assets/images/pepe-attack.png';
 
+const INITIAL_PARALLAX_VALUE = 10;
+
 const useParallaxEffect = (ref: React.RefObject<HTMLDivElement>) => {
+  const [scrollPosition, setScrollPosition] = useState(INITIAL_PARALLAX_VALUE);
+
   useEffect(() => {
     const handleScroll = () => {
       if (ref.current) {
-        const scrollPosition =
+        const scrollPositionOffset =
           (window.scrollY / window.innerHeight) * 100 * 0.25;
-
-        ref.current.style.backgroundPositionY = `${scrollPosition + 10}%`;
+        setScrollPosition(scrollPositionOffset + INITIAL_PARALLAX_VALUE);
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [ref]);
+
+  return scrollPosition;
 };
 
 const Banner: React.FC<PropsWithChildren> = ({ children }) => {
   const bannerRef = useRef<HTMLDivElement>(null);
 
-  useParallaxEffect(bannerRef);
+  const position = useParallaxEffect(bannerRef);
 
   return (
     <div
@@ -33,6 +43,7 @@ const Banner: React.FC<PropsWithChildren> = ({ children }) => {
       className="relative rounded-lg bg-[size:200%] bg-[position:center] bg-no-repeat px-12 py-8 sm:bg-[center_10%]"
       style={{
         backgroundImage: `url(${backgroundImage.src})`,
+        backgroundPositionY: `${position}%`,
       }}
     >
       <div className="absolute inset-0 rounded-lg bg-black opacity-50"></div>
