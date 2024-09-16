@@ -40,7 +40,7 @@ const Banner: React.FC<PropsWithChildren> = ({ children }) => {
     <div
       ref={bannerRef}
       // eslint-disable-next-line tailwindcss/no-contradicting-classname
-      className="relative rounded-lg bg-[size:200%] bg-[position:center] bg-no-repeat px-12 py-8 sm:bg-[center_10%]"
+      className="relative rounded-lg bg-[size:200%] bg-[position:center] bg-no-repeat px-4 py-8 sm:bg-[center_10%] sm:px-12"
       style={{
         backgroundImage: `url(${backgroundImage.src})`,
         backgroundPositionY: `${position}%`,
