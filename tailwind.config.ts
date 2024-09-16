@@ -67,6 +67,9 @@ export default {
           '5': 'hsl(var(--chart-5))',
         },
       },
+      boxShadow: {
+        dark: '3px 3px 3px rgba(0, 0, 0, 0.6)', // Darker and more pronounced shadow
+      },
       keyframes: {
         skeleton: {
           '0%, 100%': { backgroundColor: 'hsl(0 0% 6%)' },

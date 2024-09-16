@@ -374,12 +374,16 @@ export default function Token() {
               </span>
             )}
           </div>
-          <Button className="mt-6 min-w-48" loading={!sdkHasLoaded} size="xl">
-            Claim
-          </Button>
+          <div className="text-center">
+            <Button className="mt-6 min-w-48" loading={!sdkHasLoaded} size="xl">
+              Claim
+            </Button>
+          </div>
         </CardContent>
         <CardFooter>
-          <p>Airdrop claims will open following the $RWG TGE announcement.</p>
+          <p className="text-muted">
+            Airdrop claims will open following the $RWG TGE announcement*
+          </p>
         </CardFooter>
       </Card>
     </div>
