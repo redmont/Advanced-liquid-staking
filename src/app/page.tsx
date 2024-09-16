@@ -1,10 +1,14 @@
+'use client';
+
 import Banner from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import brawlersPoster from '@/assets/images/brawlers-poster.png';
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 
-export default async function HomePage() {
+export default function HomePage() {
+  const { sdkHasLoaded } = useDynamicContext();
   return (
     <main className="relative space-y-8 p-5">
       <Banner>
@@ -35,20 +39,21 @@ export default async function HomePage() {
       </Tabs>
       <div className="z-20 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         <Card
-          className="aspect-[6/7] overflow-hidden rounded-lg bg-cover"
-          style={{ backgroundImage: `url(${brawlersPoster.src})` }}
+          loading={!sdkHasLoaded}
+          className="aspect-[6/7] overflow-hidden bg-cover"
+          style={{
+            backgroundImage: sdkHasLoaded ? `url(${brawlersPoster.src})` : '',
+          }}
         />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
-        <Card className="aspect-[6/7]" />
+        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
+        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
+        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
+        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
+        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
+        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
+        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
+        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
+        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
       </div>
     </main>
   );

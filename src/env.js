@@ -1,5 +1,5 @@
-import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { createEnv } from '@t3-oss/env-nextjs';
+import { z } from 'zod';
 
 export const env = createEnv({
   /**
@@ -8,10 +8,10 @@ export const env = createEnv({
    */
   server: {
     NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
+      .enum(['development', 'test', 'production'])
+      .default('development'),
     NEXTAUTH_SECRET:
-      process.env.NODE_ENV === "production"
+      process.env.NODE_ENV === 'production'
         ? z.string()
         : z.string().optional(),
     NEXTAUTH_URL: z.preprocess(
@@ -30,6 +30,7 @@ export const env = createEnv({
    */
   client: {
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID: z.string(),
+    NEXT_PUBLIC_VERCEL_ENV: z.enum(['production', 'preview', 'development']),
   },
 
   /**
@@ -42,6 +43,7 @@ export const env = createEnv({
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID,
+    NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV ?? 'development',
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

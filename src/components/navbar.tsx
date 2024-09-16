@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { type FC, type PropsWithChildren, useState } from 'react';
 import Link from 'next/link';
 import Logo from '@/assets/images/logo.svg';
 import { Burger } from './ui/burger';
@@ -10,8 +10,31 @@ import {
   DynamicUserProfile,
   useDynamicContext,
 } from '@dynamic-labs/sdk-react-core';
-import { Wallet2 } from 'lucide-react';
+import { Gem, House, Paintbrush, Wallet2 } from 'lucide-react';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
+import { usePathname } from 'next/navigation';
+import { env } from '@/env';
+
+const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
+  className,
+  path,
+  children,
+}) => {
+  const pathname = usePathname();
+
+  return (
+    <Link
+      href={path}
+      className={cn(
+        'py-2 text-xl',
+        pathname === path && 'text-primary',
+        className,
+      )}
+    >
+      {children}
+    </Link>
+  );
+};
 
 const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const authHandler = useDynamicAuthClickHandler();
@@ -65,13 +88,40 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
               )}
             </Button>
             <DynamicUserProfile />
-            <div className="font-regular space-y-1 py-3 text-xl">
-              <p>{user?.username}</p>
-              <p className="text-primary">53,000 XP</p>
-            </div>
+            {isAuthenticated && (
+              <div className="font-regular space-y-1 py-3 text-xl">
+                <p>{user?.username}</p>
+                <p className="text-primary">53,000 XP</p>
+              </div>
+            )}
           </li>
-          <hr className="hidden h-px border-none bg-lighter lg:block" />
-          <li></li>
+          <hr className="mt-3 h-px border-none bg-lighter" />
+          <li>
+            <NextLink className="flex items-center gap-3 leading-none" path="/">
+              <House />
+              <span>Home</span>
+            </NextLink>
+          </li>
+          {env.NEXT_PUBLIC_VERCEL_ENV !== 'production' && (
+            <li>
+              <NextLink
+                className="flex items-center gap-3 leading-none"
+                path="/styleguide"
+              >
+                <Paintbrush />
+                <span>Styleguide</span>
+              </NextLink>
+            </li>
+          )}
+          <li>
+            <NextLink
+              className="flex items-center gap-3 leading-none"
+              path="/token"
+            >
+              <Gem />
+              <span>Token</span>
+            </NextLink>
+          </li>
         </ul>
       </div>
     </nav>

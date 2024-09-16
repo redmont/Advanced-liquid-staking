@@ -67,6 +67,16 @@ export default {
           '5': 'hsl(var(--chart-5))',
         },
       },
+      keyframes: {
+        skeleton: {
+          '0%, 100%': { backgroundColor: 'hsl(0 0% 6%)' },
+          '50%': { backgroundColor: 'hsl(0 0% 10%)' },
+        },
+      },
+      animation: {
+        pulse: 'pulse 1.25s infinite',
+        skeleton: 'skeleton 1.25s infinite',
+      },
     },
   },
   plugins: [tailwindcssAnimate],
