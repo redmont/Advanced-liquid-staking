@@ -111,9 +111,9 @@ export default function Styleguide() {
         <h2 className="mb-4 text-xl">Skeleton</h2>
         <div className="flex gap-3">
           <Skeleton className="size-20 rounded-full"></Skeleton>
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-6 w-64" variant="primary"></Skeleton>
-            <Skeleton className="h-4 w-48"></Skeleton>
+          <div className="flex flex-col">
+            <Skeleton className="mb-3 h-6 w-64" variant="primary"></Skeleton>
+            <Skeleton className="mb-2 h-4 w-48"></Skeleton>
             <Skeleton className="h-4 w-48"></Skeleton>
           </div>
         </div>
