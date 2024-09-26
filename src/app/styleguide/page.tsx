@@ -23,15 +23,29 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Progress, Indicator } from '@/components/ui/progress';
 
 export default function Styleguide() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress((prevProgress) => (prevProgress + 2) % 100);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const progress2 = (progress * 2) % 100;
+  const progress3 = 100 - progress;
+  const total = progress + progress2 + progress3;
 
   return (
-    <div className="space-y-8 p-8">
+    <div className="space-y-8 p-5">
       <div className="flex flex-wrap gap-3">
         <h2 className="border border-border bg-background p-2 text-foreground">
           Background
@@ -46,6 +60,50 @@ export default function Styleguide() {
         <h2 className="bg-destructive p-2 text-destructive-foreground">
           Destructive
         </h2>
+      </div>
+      <div>
+        <Progress className="mt-2" variant="primary" value={progress} />
+        <p className="text-sm">{progress}%</p>
+        <Progress className="mt-2" variant="lightest" value={progress2} />
+        <p className="text-sm">{progress2}%</p>
+        <Progress className="mt-2" variant="accent" value={progress3} />
+        <p className="text-sm">{progress3}%</p>
+
+        <Progress className="mt-2 leading-[0]">
+          <Indicator
+            variant="primary"
+            className="inline-block"
+            style={{
+              width: `${(progress / total) * 100}%`,
+            }}
+          />
+          <Indicator
+            variant="lightest"
+            className="inline-block"
+            style={{
+              width: `${(progress2 / total) * 100}%`,
+            }}
+          />
+          <Indicator
+            className="inline-block"
+            variant="white"
+            style={{ width: `${(progress3 / total) * 100}%` }}
+          />
+        </Progress>
+        <p className="flex flex-wrap gap-x-2 text-sm">
+          <span>
+            <span className="inline-block size-2 rounded-full bg-primary" />{' '}
+            {((progress / total) * 100).toFixed(0)}% Primary
+          </span>
+          <span>
+            <span className="inline-block size-2 rounded-full bg-lightest" />{' '}
+            {((progress2 / total) * 100).toFixed(0)}% Lightest
+          </span>
+          <span>
+            <span className="inline-block size-2 rounded-full bg-white" />{' '}
+            {((progress3 / total) * 100).toFixed(0)}% White
+          </span>
+        </p>
       </div>
       <div>
         <h2 className="mb-2 text-xl">Button States</h2>

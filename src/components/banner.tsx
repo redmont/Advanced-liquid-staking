@@ -1,39 +1,13 @@
 'use client';
 
-import React, {
-  type PropsWithChildren,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { type PropsWithChildren, useRef } from 'react';
 import { motion } from 'framer-motion';
 import backgroundImage from 'src/assets/images/vr-guy.png';
 import pepeAttack from 'src/assets/images/pepe-attack.png';
-
-const INITIAL_PARALLAX_VALUE = 10;
-
-const useParallaxEffect = (ref: React.RefObject<HTMLDivElement>) => {
-  const [scrollPosition, setScrollPosition] = useState(INITIAL_PARALLAX_VALUE);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (ref.current) {
-        const scrollPositionOffset =
-          (window.scrollY / window.innerHeight) * 100 * 0.25;
-        setScrollPosition(scrollPositionOffset + INITIAL_PARALLAX_VALUE);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [ref]);
-
-  return scrollPosition;
-};
+import useParallaxEffect from '@/hooks/useParallax';
 
 const Banner: React.FC<PropsWithChildren> = ({ children }) => {
   const bannerRef = useRef<HTMLDivElement>(null);
-
   const position = useParallaxEffect(bannerRef);
 
   return (

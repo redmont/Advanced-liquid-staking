@@ -19,7 +19,10 @@ function Skeleton({
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & { variant?: 'default' | 'primary' }) {
   return (
-    <div className={cn(skeletonVariants({ variant }), className)} {...props} />
+    <span
+      className={cn('block', skeletonVariants({ variant }), className)}
+      {...props}
+    />
   );
 }
 

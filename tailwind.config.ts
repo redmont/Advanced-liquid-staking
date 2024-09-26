@@ -70,6 +70,9 @@ export default {
       boxShadow: {
         dark: '3px 3px 3px rgba(0, 0, 0, 0.6)', // Darker and more pronounced shadow
       },
+      dropShadow: {
+        primary: '0 0 10px hsl(var(--primary) / 0.35)', // Glow-like drop shadow with primary color
+      },
       keyframes: {
         skeleton: {
           '0%, 100%': { backgroundColor: 'hsl(0 0% 6%)' },

@@ -18,7 +18,6 @@ const progressVariants = cva(
       },
       variant: {
         primary: 'bg-primary/20',
-        secondary: 'bg-secondary/20',
         lightest: 'bg-lightest/20',
         foreground: 'bg-foreground/20',
         accent: 'bg-accent/20',
@@ -34,8 +33,9 @@ const progressVariants = cva(
 const indicatorVariants = cva('size-full flex-1 transition-all', {
   variants: {
     variant: {
+      white: 'bg-white',
       primary: 'bg-primary',
-      secondary: 'bg-secondary',
+      lighter: 'bg-lighter',
       lightest: 'bg-lightest',
       foreground: 'bg-foreground',
       accent: 'bg-accent',
@@ -45,6 +45,30 @@ const indicatorVariants = cva('size-full flex-1 transition-all', {
     variant: 'lightest',
   },
 });
+
+export interface IndicatorProps
+  extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Indicator>,
+    VariantProps<typeof indicatorVariants> {
+  value?: number;
+}
+
+const Indicator = React.forwardRef<
+  React.ElementRef<typeof ProgressPrimitive.Indicator>,
+  IndicatorProps
+>(({ className, value, variant, ...props }, ref) => (
+  <ProgressPrimitive.Indicator
+    ref={ref}
+    className={cn(
+      'flex items-center justify-center',
+      indicatorVariants({ variant }),
+      className,
+    )}
+    style={value ? { transform: `translateX(-${100 - (value ?? 0)}%)` } : {}}
+    {...props}
+  />
+));
+
+Indicator.displayName = ProgressPrimitive.Indicator.displayName;
 
 export interface ProgressProps
   extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>,
@@ -61,12 +85,15 @@ const Progress = React.forwardRef<
     className={cn(progressVariants({ size, variant }), className)}
     {...props}
   >
-    <ProgressPrimitive.Indicator
-      className={indicatorVariants({ variant })}
-      style={{ transform: `translateX(-${100 - (value ?? 0)}%)` }}
-    />
+    {props.children ?? (
+      <Indicator
+        variant={variant}
+        value={value}
+        className={indicatorVariants({ variant })}
+      />
+    )}
   </ProgressPrimitive.Root>
 ));
 Progress.displayName = ProgressPrimitive.Root.displayName;
 
-export { Progress };
+export { Progress, Indicator };

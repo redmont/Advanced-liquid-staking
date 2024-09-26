@@ -1,6 +1,11 @@
 'use client';
 
-import React, { type FC, type PropsWithChildren, useState } from 'react';
+import React, {
+  type FC,
+  type PropsWithChildren,
+  useRef,
+  useState,
+} from 'react';
 import Link from 'next/link';
 import Logo from '@/assets/images/logo.svg';
 import { Burger } from './ui/burger';
@@ -10,10 +15,11 @@ import {
   DynamicUserProfile,
   useDynamicContext,
 } from '@dynamic-labs/sdk-react-core';
-import { Gem, House, Paintbrush, Wallet2 } from 'lucide-react';
+import { House, PackagePlus, Paintbrush, Wallet2, Coins } from 'lucide-react';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { usePathname } from 'next/navigation';
 import { env } from '@/env';
+import useClickOutside from '@/hooks/useClickOutside';
 
 const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
   className,
@@ -40,17 +46,24 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const authHandler = useDynamicAuthClickHandler();
   const { primaryWallet, isAuthenticated, user } = useDynamicContext();
   const [isNavOpen, setNavOpen] = useState(false);
+  const navRef = useRef<HTMLDivElement>(null);
+  useClickOutside(navRef, () => setNavOpen(false));
 
   return (
-    <nav className={cn('relative z-50', className)}>
-      <div className="lg:flex-start fixed z-30 flex w-full items-center justify-between gap-3 px-5 py-6 lg:p-8">
+    <nav ref={navRef} className={cn('relative z-50', className)}>
+      <div className="lg:flex-start fixed top-12 z-30 flex h-0 w-full items-center justify-between gap-3 px-5 lg:top-5 lg:p-8 lg:py-6">
         <Burger
-          className={cn('shrink-0 rounded-xl bg-light shadow-dark lg:hidden')}
+          className={cn('shrink-0 rounded-xl bg-light lg:hidden', {
+            'shadow-dark': !isNavOpen,
+          })}
           isNavOpen={isNavOpen}
           setNavOpen={setNavOpen}
         />
         <Link className="text-white hover:text-gray-300" href="/">
-          <Logo aria-label="Real World Gaming Logo" />
+          <Logo
+            className="transition-colors hover:text-primary hover:drop-shadow-primary"
+            aria-label="Real World Gaming Logo"
+          />
         </Link>
       </div>
       <div
@@ -96,16 +109,10 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
             )}
           </li>
           <hr className="mt-3 h-px border-none bg-lighter" />
-          <li>
-            <NextLink className="flex items-center gap-3 leading-none" path="/">
-              <House />
-              <span>Home</span>
-            </NextLink>
-          </li>
           {env.NEXT_PUBLIC_VERCEL_ENV !== 'production' && (
             <li>
               <NextLink
-                className="flex items-center gap-3 leading-none"
+                className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
                 path="/styleguide"
               >
                 <Paintbrush />
@@ -115,10 +122,28 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
           )}
           <li>
             <NextLink
-              className="flex items-center gap-3 leading-none"
+              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+              path="/"
+            >
+              <House />
+              <span>Home</span>
+            </NextLink>
+          </li>
+          <li>
+            <NextLink
+              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+              path="/staking"
+            >
+              <PackagePlus />
+              <span>Staking</span>
+            </NextLink>
+          </li>
+          <li>
+            <NextLink
+              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
               path="/token"
             >
-              <Gem />
+              <Coins />
               <span>Token</span>
             </NextLink>
           </li>
