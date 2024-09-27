@@ -6,7 +6,7 @@ import backgroundImage from 'src/assets/images/vr-guy.png';
 import pepeAttack from 'src/assets/images/pepe-attack.png';
 import useParallaxEffect from '@/hooks/useParallax';
 
-const Banner: React.FC = ({ children }) => {
+const Banner: React.FC<PropsWithChildren> = ({ children }) => {
   const bannerRef = useRef<HTMLDivElement>(null);
   const position = useParallaxEffect(bannerRef);
 

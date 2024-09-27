@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 const INITIAL_PARALLAX_VALUE = 10;
 
 const useParallaxEffect = (
-  ref: React.RefObject,
+  ref: React.RefObject<HTMLDivElement>,
   initialValue = INITIAL_PARALLAX_VALUE,
 ) => {
   const [scrollPosition, setScrollPosition] = useState(initialValue);

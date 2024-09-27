@@ -47,51 +47,53 @@ const indicatorVariants = cva('size-full flex-1 transition-all', {
 });
 
 export interface IndicatorProps
-  extends React.ComponentPropsWithoutRef,
-    VariantProps {
+  extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Indicator>,
+    VariantProps<typeof indicatorVariants> {
   value?: number;
 }
 
-const Indicator = React.forwardRef<React.ElementRef, IndicatorProps>(
-  ({ className, value, variant, ...props }, ref) => (
-    <ProgressPrimitive.Indicator
-      ref={ref}
-      className={cn(
-        'flex items-center justify-center',
-        indicatorVariants({ variant }),
-        className,
-      )}
-      style={value ? { transform: `translateX(-${100 - (value ?? 0)}%)` } : {}}
-      {...props}
-    />
-  ),
-);
+const Indicator = React.forwardRef<
+  React.ElementRef<typeof ProgressPrimitive.Indicator>,
+  IndicatorProps
+>(({ className, value, variant, ...props }, ref) => (
+  <ProgressPrimitive.Indicator
+    ref={ref}
+    className={cn(
+      'flex items-center justify-center',
+      indicatorVariants({ variant }),
+      className,
+    )}
+    style={value ? { transform: `translateX(-${100 - (value ?? 0)}%)` } : {}}
+    {...props}
+  />
+));
 
 Indicator.displayName = ProgressPrimitive.Indicator.displayName;
 
 export interface ProgressProps
-  extends React.ComponentPropsWithoutRef,
-    VariantProps {
+  extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>,
+    VariantProps<typeof progressVariants> {
   value?: number;
 }
 
-const Progress = React.forwardRef<React.ElementRef, ProgressProps>(
-  ({ className, value, size, variant, ...props }, ref) => (
-    <ProgressPrimitive.Root
-      ref={ref}
-      className={cn(progressVariants({ size, variant }), className)}
-      {...props}
-    >
-      {props.children ?? (
-        <Indicator
-          variant={variant}
-          value={value}
-          className={indicatorVariants({ variant })}
-        />
-      )}
-    </ProgressPrimitive.Root>
-  ),
-);
+const Progress = React.forwardRef<
+  React.ElementRef<typeof ProgressPrimitive.Root>,
+  ProgressProps
+>(({ className, value, size, variant, ...props }, ref) => (
+  <ProgressPrimitive.Root
+    ref={ref}
+    className={cn(progressVariants({ size, variant }), className)}
+    {...props}
+  >
+    {props.children ?? (
+      <Indicator
+        variant={variant}
+        value={value}
+        className={indicatorVariants({ variant })}
+      />
+    )}
+  </ProgressPrimitive.Root>
+));
 Progress.displayName = ProgressPrimitive.Root.displayName;
 
 export { Progress, Indicator };

@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import backgroundImage from '@/assets/images/vr-guy.png';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import useParallaxEffect from '@/hooks/useParallax';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -26,7 +26,7 @@ import { Indicator, Progress } from '@/components/ui/progress';
 
 const durations = ['15 days', '30 days', '90 days'] as const;
 type Duration = (typeof durations)[number];
-const rewardRate: Record = {
+const rewardRate: Record<Duration, number> = {
   '15 days': 1,
   '30 days': 1.25,
   '90 days': 1.5,
@@ -37,13 +37,13 @@ const StakeFormSchema = z.object({
   duration: z.enum(durations),
 });
 
-type StakeValues = z.infer;
+type StakeValues = z.infer<typeof StakeFormSchema>;
 
 const UnstakeFormSchema = z.object({
   amount: z.number({ message: 'Amount must be a number' }),
 });
 
-type UnstakeValues = z.infer;
+type UnstakeValues = z.infer<typeof UnstakeFormSchema>;
 
 const staked = 10000;
 const unlockable = 5000;

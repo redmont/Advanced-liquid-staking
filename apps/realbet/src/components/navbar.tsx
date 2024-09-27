@@ -21,7 +21,11 @@ import { usePathname } from 'next/navigation';
 import { env } from '@/env';
 import useClickOutside from '@/hooks/useClickOutside';
 
-const NextLink: FC = ({ className, path, children }) => {
+const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
+  className,
+  path,
+  children,
+}) => {
   const pathname = usePathname();
 
   return (
@@ -38,7 +42,7 @@ const NextLink: FC = ({ className, path, children }) => {
   );
 };
 
-const Navbar: React.FC = ({ className }) => {
+const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const authHandler = useDynamicAuthClickHandler();
   const { primaryWallet, isAuthenticated, user } = useDynamicContext();
   const [isNavOpen, setNavOpen] = useState(false);

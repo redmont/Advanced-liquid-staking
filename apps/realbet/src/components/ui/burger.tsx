@@ -5,7 +5,7 @@ const Burger = forwardRef<
   HTMLButtonElement,
   {
     isNavOpen: boolean;
-    setNavOpen: Dispatch;
+    setNavOpen: Dispatch<SetStateAction<boolean>>;
     className?: string;
   }
 >(({ isNavOpen, setNavOpen, className }, ref) => (

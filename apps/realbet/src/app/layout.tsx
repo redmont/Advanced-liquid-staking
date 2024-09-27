@@ -3,7 +3,6 @@ import '@/styles/globals.css';
 import { type Metadata } from 'next';
 import ProviderWrapper from '../providers/dynamic';
 import Navbar from '../components/navbar';
-import { type PropsWithChildren } from 'react';
 
 export const metadata: Metadata = {
   title: 'RealBet.io',
@@ -11,7 +10,9 @@ export const metadata: Metadata = {
   icons: [{ rel: 'icon', url: '/favicon.ico' }],
 };
 
-export default function RootLayout({ children }: Readonly) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="dark">
       <body className="bg-background">
