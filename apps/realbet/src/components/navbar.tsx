@@ -61,7 +61,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
         />
         <Link className="text-white hover:text-gray-300" href="/">
           <Logo
-            className="transition-colors hover:text-primary hover:drop-shadow-primary"
+            className="w-[106px] transition-colors hover:text-primary hover:drop-shadow-primary"
             aria-label="Real World Gaming Logo"
           />
         </Link>

@@ -27,6 +27,8 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
+import { useToken } from '@/hooks/useToken';
+import { formatUnits } from 'viem';
 
 const formatBalance = (balance: number) =>
   new Intl.NumberFormat('en-US', {
@@ -34,64 +36,29 @@ const formatBalance = (balance: number) =>
     currency: 'USD', // Adjust this according to your currency code if it's not USD
   }).format(balance);
 
-const formatToken = (amount: number) => amount.toLocaleString();
-
 const nextUnlockDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
+const rank = 'Diamond League';
+const rakebackTier = 'Diamond';
+const xp = 0;
+const claimable = 0n;
+const progress = 0;
+const unvested = 0n;
+const vested = 0n;
 
 export default function Token() {
-  const { sdkHasLoaded, isAuthenticated } = useDynamicContext();
+  const token = useToken();
+  const { sdkHasLoaded, primaryWallet } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
-
-  const {
-    vested,
-    unvested,
-    claimable,
-    total,
-    xp,
-    rank,
-    rakebackTier,
-    progress,
-  } = useMemo(() => {
-    if (!sdkHasLoaded || !isAuthenticated) {
-      return {
-        vested: 0,
-        unvested: 0,
-        claimable: 0,
-        total: 0,
-        xp: 0,
-        rank: 'Total Noob',
-        rakebackTier: 'Noob',
-        progress: 0,
-      };
-    }
-
-    const nextUnlockDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
-    const vested = 8592.65;
-    const unvested = 500.23;
-    const claimable = 85.92;
-    const total = vested + unvested;
-    const xp = 53000;
-    const rank = 'Diamond League';
-    const rakebackTier = 'Diamond';
-
-    return {
-      nextUnlockDate,
-      vested,
-      unvested,
-      claimable,
-      total,
-      xp,
-      rank,
-      rakebackTier,
-      progress: (vested / (vested + unvested)) * 100,
-    };
-  }, [sdkHasLoaded, isAuthenticated]);
+  const isAuthenticated = useMemo(
+    () => !!primaryWallet?.connector,
+    [primaryWallet?.connector],
+  );
 
   return (
     <div className="space-y-8 p-8">
       <Card>
         <CardHeader>
-          <CardTitle className="uppercase">REAL Balance</CardTitle>
+          <CardTitle className="uppercase">{token.symbol} Balance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center justify-between gap-5">
@@ -104,25 +71,18 @@ export default function Token() {
                   {!sdkHasLoaded ? (
                     <Skeleton className="-mb-1 inline-block h-6 w-24 rounded-full" />
                   ) : (
-                    <span className="text-2xl font-bold">
-                      {formatToken(total)}
+                    <span className="text-5xl font-bold">
+                      {formatUnits(token.balance, token.decimals)}
                     </span>
                   )}{' '}
-                  <span className="text-md font-bol text-primary">REAL</span>
-                </div>
-                <div className="font-bold">
-                  {!sdkHasLoaded ? (
-                    <Skeleton className="inline-block h-4 w-16 rounded-full" />
-                  ) : (
-                    <span className="text-md font-bold text-muted">
-                      {formatBalance(vested)}
-                    </span>
-                  )}
+                  <span className="text-3xl font-bold text-primary">
+                    {token.symbol}
+                  </span>
                 </div>
               </div>
             </div>
             <Button loading={!sdkHasLoaded} variant="neutral" size="xl">
-              Buy REAL
+              Buy {token.symbol}
             </Button>
           </div>
         </CardContent>
@@ -172,7 +132,7 @@ export default function Token() {
                 {!sdkHasLoaded ? (
                   <Skeleton className="inline-block h-4 w-24" />
                 ) : (
-                  <span className="">{formatToken(claimable)}</span>
+                  <span className="">{formatUnits(0n, token.decimals)}</span>
                 )}
               </span>
             </div>
@@ -186,7 +146,7 @@ export default function Token() {
                   {!sdkHasLoaded ? (
                     <Skeleton className="inline-block h-4 w-24" />
                   ) : (
-                    <span className="">{formatToken(claimable)}</span>
+                    <span className="">{formatUnits(0n, token.decimals)}</span>
                   )}
                 </span>
                 <Button
@@ -228,7 +188,7 @@ export default function Token() {
                 {!sdkHasLoaded ? (
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
-                  <span className="">{formatToken(vested)}</span>
+                  <span className="">{formatUnits(0n, token.decimals)}</span>
                 )}
               </span>
             </div>
@@ -242,7 +202,7 @@ export default function Token() {
                   {!sdkHasLoaded ? (
                     <Skeleton className="h-6 w-24 rounded-full" />
                   ) : (
-                    <span className="">{formatToken(unvested)}</span>
+                    <span className="">{formatUnits(0n, token.decimals)}</span>
                   )}
                 </span>
                 <Button
@@ -271,7 +231,8 @@ export default function Token() {
                 <>
                   <span>{progress.toFixed(0)}% vested</span>
                   <span className="text-sm text-muted">
-                    {formatToken(vested)} / {formatToken(vested + unvested)}
+                    {formatUnits(0n, token.decimals)} /{' '}
+                    {formatUnits(0n, token.decimals)}
                   </span>
                 </>
               )}
@@ -383,9 +344,11 @@ export default function Token() {
               </span>
             )}
           </div>
-          <Button className="mt-6 min-w-48" loading={!sdkHasLoaded} size="xl">
-            Claim
-          </Button>
+          <div className="mt-6 text-right">
+            <Button className="w-48" loading={!sdkHasLoaded} size="xl">
+              Claim
+            </Button>
+          </div>
         </CardContent>
         <CardFooter>
           <p>Airdrop claims will open following the $REAL TGE announcement.</p>

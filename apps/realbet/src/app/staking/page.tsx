@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Indicator, Progress } from '@/components/ui/progress';
+import { useToken } from '@/hooks/useToken';
 
 const durations = ['15 days', '30 days', '90 days'] as const;
 type Duration = (typeof durations)[number];
@@ -53,6 +54,7 @@ const locked30 = 2500;
 const locked60 = 1500;
 
 export default function Stake() {
+  const { symbol } = useToken();
   const { sdkHasLoaded } = useDynamicContext();
   const parallaxRef = useRef<HTMLDivElement>(null);
   const parallax = useParallaxEffect(parallaxRef);
@@ -75,7 +77,7 @@ export default function Stake() {
   return (
     <div className="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
       <Card className="flex flex-col items-center justify-center gap-1 p-5">
-        <h2>Total REAL Staked</h2>
+        <h2>Total {symbol} Staked</h2>
         <p className="flex items-center gap-3 text-xl">
           <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
             <RealIcon className="inline size-5" />

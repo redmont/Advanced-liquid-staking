@@ -3,6 +3,8 @@ import '@/styles/globals.css';
 import { type Metadata } from 'next';
 import Providers from '../providers';
 import Navbar from '../components/navbar';
+import { Suspense } from 'react';
+import Spinner from '@/components/spinner';
 
 export const metadata: Metadata = {
   title: 'RealBet.io',
@@ -17,9 +19,19 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="bg-background">
         <Providers>
-          <main className="min-h-screen max-w-full overflow-hidden lg:flex">
+          <main className="flex min-h-screen max-w-full flex-col overflow-hidden lg:flex-row">
             <Navbar className="shrink-0 lg:w-64" />
-            <div className="h-full pt-20 lg:grow lg:pt-0">{children}</div>
+            <div className="grow pt-20 lg:pt-0">
+              <Suspense
+                fallback={
+                  <div className="flex h-full flex-col items-center justify-center">
+                    <Spinner />
+                  </div>
+                }
+              >
+                {children}
+              </Suspense>
+            </div>
           </main>
         </Providers>
       </body>
