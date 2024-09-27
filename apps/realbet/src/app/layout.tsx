@@ -3,6 +3,7 @@ import '@/styles/globals.css';
 import { type Metadata } from 'next';
 import ProviderWrapper from '../providers/dynamic';
 import Navbar from '../components/navbar';
+import { type PropsWithChildren } from 'react';
 
 export const metadata: Metadata = {
   title: 'RealBet.io',
