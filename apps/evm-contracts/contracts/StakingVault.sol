@@ -19,7 +19,7 @@ contract StakingVault {
     }
 
     address public admin;
-    IERC20 public token; // The ERC20 token the vault will interact with
+    IERC20 public token;
     mapping(address => Deposit[]) public deposits;
     Tier[] public tiers;
     mapping(address => uint256) public claimableEarnings;
@@ -59,7 +59,6 @@ contract StakingVault {
         tiers[_tierId] = Tier(lockupTime, multiplier);
     }
 
-    // Deposit assets with a chosen lockup time from a valid tier
     function deposit(uint256 amount, uint256 tierId) external {
         require(tiers[tierId].lockupTime > 0, "Invalid tier");
         deposits[msg.sender].push(Deposit(amount, uint64(block.timestamp), tiers[tierId].lockupTime));
@@ -67,11 +66,9 @@ contract StakingVault {
         require(token.transferFrom(msg.sender, address(this), amount), "Transfer failed");
     }
 
-    // Withdraw assets if enough unlockable balance is available
     function withdraw(uint256 amount, address to) external {
         require(to != address(0), "Invalid address");
 
-        // Withdraw logic
         for (uint256 i = 0; i < deposits[msg.sender].length && amount > 0; i++) {
             Deposit storage dep = deposits[msg.sender][i];
 
@@ -90,11 +87,9 @@ contract StakingVault {
             revert("Insufficient balance");
         }
 
-        // Send assets to the specified address
         require(token.transfer(to, amount), "Transfer failed");
     }
 
-    // Calculate total shares for an account based on multipliers
     function shares(address account) public view returns (uint256 totalShares) {
         for (uint256 i = 0; i < deposits[account].length; i++) {
             Deposit memory dep = deposits[account][i];
@@ -105,7 +100,6 @@ contract StakingVault {
         }
     }
 
-    // Internal helper to get tier by deposit age
     function getTierByDepositAge(uint64 age) internal view returns (Tier memory) {
         for (uint256 i = tiers.length; i != 0; i--) {
             if (tiers[i].lockupTime <= age) {
@@ -115,7 +109,6 @@ contract StakingVault {
         return Tier(0, 1000);
     }
 
-    // Allow admin to change the contract admin
     function setAdmin(address newAdmin) external onlyAdmin {
         require(newAdmin != address(0), "Invalid address");
         admin = newAdmin;
@@ -143,7 +136,6 @@ contract StakingVault {
     }
 
     function sharesPerUser() public view returns (address[] memory users, uint256[] memory userShares) {
-        // Distribute earnings to each user based on their share
         for (uint256 i = 0; i < totalUsers.length; i++) {
             address user = totalUsers[i];
 
