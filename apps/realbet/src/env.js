@@ -31,6 +31,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID: z.string(),
     NEXT_PUBLIC_VERCEL_ENV: z.enum(['production', 'preview', 'development']),
+    NEXT_PUBLIC_ALCHEMY_API_KEY: z.string(),
   },
 
   /**
@@ -44,6 +45,9 @@ export const env = createEnv({
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID,
     NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV ?? 'development',
+    NEXT_PUBLIC_ALCHEMY_API_KEY:
+      process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ??
+      'vlIJU80HdfL61kafixpO45fFrvqVPJx9',
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
@@ -56,3 +60,5 @@ export const env = createEnv({
    */
   emptyStringAsUndefined: true,
 });
+
+export const isDev = env.NEXT_PUBLIC_VERCEL_ENV !== 'production';

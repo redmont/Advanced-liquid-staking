@@ -1,7 +1,7 @@
 'use client';
 
 import { Wallet2 } from 'lucide-react';
-import REALIcon from '@/assets/images/R.svg';
+import RealIcon from '@/assets/images/R.svg';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -96,9 +96,9 @@ export default function Token() {
         <CardContent>
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div className="flex items-center gap-5">
-              <div className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <REALIcon className="size-6 text-black" />
-              </div>
+              <span className="mt-1 inline-flex size-12 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-2 text-primary">
+                <RealIcon className="size-full" />
+              </span>
               <div>
                 <div className="font-bold">
                   {!sdkHasLoaded ? (
@@ -166,7 +166,9 @@ export default function Token() {
             <div>
               <h3 className="text-md mb-2">Total Rakeback:</h3>
               <span className="inline-flex items-center gap-1 text-2xl">
-                <REALIcon className="inline size-5" />
+                <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                  <RealIcon className="size-full" />
+                </span>
                 {!sdkHasLoaded ? (
                   <Skeleton className="inline-block h-4 w-24" />
                 ) : (
@@ -178,7 +180,9 @@ export default function Token() {
               <h3 className="text-md mb-2">Available to Claim</h3>
               <span className="inline-flex items-center gap-5">
                 <span className="inline-flex items-center gap-1 text-2xl">
-                  <REALIcon className="inline size-5" />
+                  <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                    <RealIcon className="size-full" />
+                  </span>
                   {!sdkHasLoaded ? (
                     <Skeleton className="inline-block h-4 w-24" />
                   ) : (
@@ -218,7 +222,9 @@ export default function Token() {
             <div>
               <h3 className="mb-2 text-xl">Vested</h3>
               <span className="inline-flex items-center gap-1 text-2xl">
-                <REALIcon className="inline size-5" />
+                <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                  <RealIcon className="size-full" />
+                </span>
                 {!sdkHasLoaded ? (
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
@@ -230,7 +236,9 @@ export default function Token() {
               <h3 className="mb-2 text-xl">Available to vest</h3>
               <div className="flex items-center gap-5">
                 <span className="inline-flex items-center gap-1 text-2xl">
-                  <REALIcon className="inline size-5" />
+                  <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                    <RealIcon className="size-full" />
+                  </span>
                   {!sdkHasLoaded ? (
                     <Skeleton className="h-6 w-24 rounded-full" />
                   ) : (

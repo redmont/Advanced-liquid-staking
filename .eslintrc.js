@@ -8,15 +8,10 @@ module.exports = {
     'node_modules/',
     'dist/',
   ],
-  extends: [
-    '@repo/eslint-config/library.js',
-    'eslint:recommended',
-    'prettier',
-    'eslint-config-turbo',
-  ],
+  extends: ['eslint:recommended', 'prettier', 'eslint-config-turbo'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: true,
+    project: './tsconfig.json', // Provide the path to your TypeScript configuration file
   },
   plugins: ['only-warn'],
   globals: {
@@ -29,7 +24,7 @@ module.exports = {
   settings: {
     'import/resolver': {
       typescript: {
-        project,
+        project: './tsconfig.json', // Again, specify the path to your TypeScript configuration file
       },
     },
   },

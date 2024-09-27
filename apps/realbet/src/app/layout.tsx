@@ -1,7 +1,7 @@
 import '@/styles/globals.css';
 
 import { type Metadata } from 'next';
-import ProviderWrapper from '../providers/dynamic';
+import Providers from '../providers';
 import Navbar from '../components/navbar';
 
 export const metadata: Metadata = {
@@ -16,12 +16,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-background">
-        <ProviderWrapper>
+        <Providers>
           <main className="min-h-screen max-w-full overflow-hidden lg:flex">
             <Navbar className="shrink-0 lg:w-64" />
             <div className="h-full pt-20 lg:grow lg:pt-0">{children}</div>
           </main>
-        </ProviderWrapper>
+        </Providers>
       </body>
     </html>
   );
