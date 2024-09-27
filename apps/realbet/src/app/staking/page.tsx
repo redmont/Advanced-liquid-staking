@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import backgroundImage from '@/assets/images/vr-guy.png';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import useParallaxEffect from '@/hooks/useParallax';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
