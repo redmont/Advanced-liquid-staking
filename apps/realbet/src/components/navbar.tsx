@@ -14,6 +14,7 @@ import { Button } from './ui/button';
 import {
   DynamicUserProfile,
   useDynamicContext,
+  useIsLoggedIn,
 } from '@dynamic-labs/sdk-react-core';
 import { House, PackagePlus, Paintbrush, Wallet2, Coins } from 'lucide-react';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
@@ -43,8 +44,9 @@ const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
 };
 
 const Navbar: React.FC<{ className?: string }> = ({ className }) => {
+  const isAuthenticated = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
-  const { primaryWallet, isAuthenticated, user } = useDynamicContext();
+  const { primaryWallet, user } = useDynamicContext();
   const [isNavOpen, setNavOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   useClickOutside(navRef, () => setNavOpen(false));

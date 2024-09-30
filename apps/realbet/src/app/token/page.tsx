@@ -1,8 +1,9 @@
 'use client';
 
+import React from 'react';
+
 import { Wallet2 } from 'lucide-react';
 import RealIcon from '@/assets/images/R.svg';
-
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,7 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import badge from '@/assets/images/progress/badge.png';
-import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import dayjs from '@/dayjs';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,7 +29,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useMemo } from 'react';
 import { useToken } from '@/hooks/useToken';
-import { formatUnits } from 'viem';
+import { formatUnits, parseUnits } from 'viem';
 
 const formatBalance = (balance: number) =>
   new Intl.NumberFormat('en-US', {
@@ -43,16 +44,12 @@ const xp = 0;
 const claimable = 0n;
 const progress = 0;
 const unvested = 0n;
-const vested = 0n;
 
 export default function Token() {
+  const isAuthenticated = useIsLoggedIn();
   const token = useToken();
   const { sdkHasLoaded, primaryWallet } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
-  const isAuthenticated = useMemo(
-    () => !!primaryWallet?.connector,
-    [primaryWallet?.connector],
-  );
 
   return (
     <div className="space-y-8 p-8">
@@ -68,7 +65,7 @@ export default function Token() {
               </span>
               <div>
                 <div className="font-bold">
-                  {!sdkHasLoaded ? (
+                  {token.isLoading ? (
                     <Skeleton className="-mb-1 inline-block h-6 w-24 rounded-full" />
                   ) : (
                     <span className="text-5xl font-bold">
@@ -81,7 +78,14 @@ export default function Token() {
                 </div>
               </div>
             </div>
-            <Button loading={!sdkHasLoaded} variant="neutral" size="xl">
+            <Button
+              loading={!sdkHasLoaded || token.mint.isPending}
+              onClick={() =>
+                token.mint.mutate(parseUnits('100', token.decimals ?? 18))
+              }
+              variant="neutral"
+              size="xl"
+            >
               Buy {token.symbol}
             </Button>
           </div>
@@ -129,7 +133,7 @@ export default function Token() {
                 <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                   <RealIcon className="size-full" />
                 </span>
-                {!sdkHasLoaded ? (
+                {token.isLoading ? (
                   <Skeleton className="inline-block h-4 w-24" />
                 ) : (
                   <span className="">{formatUnits(0n, token.decimals)}</span>
@@ -143,7 +147,7 @@ export default function Token() {
                   <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                     <RealIcon className="size-full" />
                   </span>
-                  {!sdkHasLoaded ? (
+                  {token.isLoading ? (
                     <Skeleton className="inline-block h-4 w-24" />
                   ) : (
                     <span className="">{formatUnits(0n, token.decimals)}</span>
@@ -185,7 +189,7 @@ export default function Token() {
                 <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                   <RealIcon className="size-full" />
                 </span>
-                {!sdkHasLoaded ? (
+                {token.isLoading ? (
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
                   <span className="">{formatUnits(0n, token.decimals)}</span>
@@ -199,7 +203,7 @@ export default function Token() {
                   <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                     <RealIcon className="size-full" />
                   </span>
-                  {!sdkHasLoaded ? (
+                  {token.isLoading ? (
                     <Skeleton className="h-6 w-24 rounded-full" />
                   ) : (
                     <span className="">{formatUnits(0n, token.decimals)}</span>
@@ -222,7 +226,7 @@ export default function Token() {
               <Progress variant="foreground" value={progress} />
             )}
             <div className="mt-2 flex justify-between text-sm text-foreground">
-              {!sdkHasLoaded ? (
+              {token.isLoading ? (
                 <>
                   <Skeleton className="inline-block h-4 w-32" />
                   <Skeleton className="inline-block h-4 w-32" />

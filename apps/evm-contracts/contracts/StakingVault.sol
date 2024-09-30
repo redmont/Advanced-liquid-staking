@@ -9,7 +9,8 @@ interface IERC20 {
 contract StakingVault {
     struct Tier {
         uint64 lockupTime;
-        uint32 multiplier; // precision: 1000
+        uint32 multiplier;
+        uint8 multiplierDecimals;
     }
 
     struct Deposit {
@@ -34,9 +35,9 @@ contract StakingVault {
         admin = msg.sender;
         token = IERC20(tokenAddress);
 
-        tiers.push(Tier(15 days, 1000));
-        tiers.push(Tier(30 days, 1250));
-        tiers.push(Tier(60 days, 1500));
+        tiers.push(Tier(15 days, 1000, 3));
+        tiers.push(Tier(30 days, 1250, 3));
+        tiers.push(Tier(60 days, 1500, 3));
     }
 
     function addUser(address user) internal {
@@ -52,11 +53,16 @@ contract StakingVault {
         }
     }
 
-    function setTier(uint256 _tierId, uint64 lockupTime, uint32 multiplier) external onlyAdmin {
+    function setTier(
+        uint256 _tierId,
+        uint64 lockupTime,
+        uint32 multiplier,
+        uint8 multiplierDecimals
+    ) external onlyAdmin {
         require(multiplier > 0, "Multiplier must be greater than 0");
         require(lockupTime > 0, "Lockup time must be greater than 0");
 
-        tiers[_tierId] = Tier(lockupTime, multiplier);
+        tiers[_tierId] = Tier(lockupTime, multiplier, multiplierDecimals);
     }
 
     function deposit(uint256 amount, uint256 tierId) external {
@@ -96,7 +102,7 @@ contract StakingVault {
             uint64 age = uint64(block.timestamp) - dep.timestamp;
             Tier memory tier = getTierByDepositAge(age);
 
-            totalShares += (dep.amount * tier.multiplier) / 1000;
+            totalShares += (dep.amount * tier.multiplier) / (10 ** tier.multiplierDecimals);
         }
     }
 
@@ -106,7 +112,7 @@ contract StakingVault {
                 return tiers[i];
             }
         }
-        return Tier(0, 1000);
+        return Tier(0, 1000, 3);
     }
 
     function setAdmin(address newAdmin) external onlyAdmin {

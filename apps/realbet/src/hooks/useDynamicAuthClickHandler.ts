@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
-import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 
 export const useDynamicAuthClickHandler = () => {
-  const { setShowAuthFlow, isAuthenticated, setShowDynamicUserProfile } =
-    useDynamicContext();
+  const isAuthenticated = useIsLoggedIn();
+  const { setShowAuthFlow, setShowDynamicUserProfile } = useDynamicContext();
 
   return useCallback(() => {
     if (isAuthenticated) {

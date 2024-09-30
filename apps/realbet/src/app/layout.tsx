@@ -4,7 +4,6 @@ import { type Metadata } from 'next';
 import Providers from '../providers';
 import Navbar from '../components/navbar';
 import { Suspense } from 'react';
-import Spinner from '@/components/spinner';
 
 export const metadata: Metadata = {
   title: 'RealBet.io',
@@ -25,7 +24,9 @@ export default function RootLayout({
               <Suspense
                 fallback={
                   <div className="flex h-full flex-col items-center justify-center">
-                    <Spinner />
+                    <div className="animate-pulse py-16 font-monoline text-4xl text-accent xl:text-5xl">
+                      Loading...
+                    </div>
                   </div>
                 }
               >

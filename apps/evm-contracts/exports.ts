@@ -8,7 +8,7 @@ export default {
       abi: token.abi,
     },
   },
-  StakingVault: {
+  TestStakingVault: {
     11155111: {
       address: "0xE89639bA8D47151CAc144fADe93C7FF6c71Fa1F4",
       abi: vault.abi,
