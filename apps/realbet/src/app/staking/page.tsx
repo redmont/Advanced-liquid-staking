@@ -27,21 +27,12 @@ import { useToken } from '@/hooks/useToken';
 import { useVault } from '@/hooks/useVault';
 import { formatUnits, parseUnits } from 'viem';
 import AnimatedNumber from '@/components/ui/animated-number';
+import { formatBalance } from '@/utils';
+import { waitForTransactionReceipt } from '@wagmi/core';
+import config from '@/config/wagmi';
 
 const durations = ['15 days', '30 days', '90 days'] as const;
 const rewardRates = [1, 1.25, 1.5];
-const StakeFormSchema = z.object({
-  amount: z.number({ message: 'Amount must be a number' }).positive(),
-  duration: z.enum(['0', '1', '2']),
-});
-
-type StakeValues = z.infer<typeof StakeFormSchema>;
-
-const UnstakeFormSchema = z.object({
-  amount: z.number({ message: 'Amount must be a number' }),
-});
-
-type UnstakeValues = z.infer<typeof UnstakeFormSchema>;
 
 const unlockable = 5000;
 const locked15 = 1000;
@@ -56,9 +47,24 @@ export default function Stake() {
   const parallaxRef = useRef<HTMLDivElement>(null);
   const parallax = useParallaxEffect(parallaxRef);
 
+  const StakeFormSchema = z.object({
+    amount: z
+      .string()
+      .transform((number) => parseUnits(number, token.decimals)),
+    duration: z.enum(['0', '1', '2']),
+  });
+
+  type StakeValues = z.infer<typeof StakeFormSchema>;
+
+  const UnstakeFormSchema = z.object({
+    amount: z.number({ message: 'Amount must be a number' }),
+  });
+
+  type UnstakeValues = z.infer<typeof UnstakeFormSchema>;
+
   const stakeForm = useForm<StakeValues>({
     defaultValues: {
-      amount: 0,
+      amount: 0n,
       duration: '0',
     },
     resolver: zodResolver(StakeFormSchema),
@@ -71,37 +77,68 @@ export default function Stake() {
     resolver: zodResolver(UnstakeFormSchema),
   });
 
-  const [balanceFloat, stakedAmountFloat] = useMemo(
-    () => [
-      parseFloat(formatUnits(token.balance ?? 0n, token.decimals ?? 18)),
-      parseFloat(formatUnits(vault.deposited ?? 0n, token.decimals ?? 18)),
-    ],
-    [token.balance, token.decimals, vault.deposited],
+  const stakedAmountFloat = useMemo(
+    () => parseFloat(formatBalance(vault.deposited ?? 0n, token.decimals)),
+    [vault.deposited, token.decimals],
   );
 
   const onStake = async (values: StakeValues) => {
     if (!isAuthenticated) {
-      setShowAuthFlow(true);
-    } else {
-      await vault.stake({
-        amount: parseUnits(values.amount.toString(), token.decimals),
-        tier: values.duration,
-      });
+      return setShowAuthFlow(true);
     }
+
+    if (values.amount > vault.allowance) {
+      try {
+        const tx = await vault.increaseAllowance(values.amount);
+        if (!tx) {
+          stakeForm.setError('amount', { message: 'Insufficient allowance' });
+          return;
+        }
+        await waitForTransactionReceipt(config, { hash: tx });
+      } catch (error) {
+        stakeForm.setError('amount', {
+          message: 'Error when attempting to increase allowance',
+        });
+        return;
+      }
+    }
+
+    if (values.amount > token.balance) {
+      stakeForm.setError('amount', { message: 'Insufficient balance' });
+      return;
+    }
+
+    const tx = await vault.stake({
+      amount: values.amount,
+      tier: values.duration,
+    });
+
+    if (!tx) {
+      stakeForm.setError('amount', { message: 'Error when staking' });
+      return;
+    }
+
+    await waitForTransactionReceipt(config, { hash: tx });
   };
 
   const onUnstake = async (values: UnstakeValues) => {
     if (!isAuthenticated) {
-      setShowAuthFlow(true);
-    } else {
-      await vault.unstake({
-        amount: parseUnits(values.amount.toString(), token.decimals),
-      });
+      return setShowAuthFlow(true);
     }
+
+    await vault.unstake({
+      amount: parseUnits(values.amount.toString(), token.decimals),
+    });
   };
 
+  const stakeFormLoading =
+    !sdkHasLoaded ||
+    stakeForm.formState.isSubmitting ||
+    vault.isLoading ||
+    token.isLoading;
+
   return (
-    <div className="grid grid-cols-1 gap-5 p-5 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-3 p-3 sm:gap-5 sm:p-5 md:grid-cols-2">
       <Card className="flex flex-col items-center justify-center gap-1 p-5">
         <h2>Total {token.symbol} Staked</h2>
         <p className="flex items-center gap-3 text-xl">
@@ -112,7 +149,7 @@ export default function Stake() {
             <Skeleton className="inline h-7 w-24" />
           ) : (
             <span className="mb-1 text-3xl font-medium leading-none">
-              {vault.deposited.toLocaleString()}
+              {formatBalance(vault.deposited, token.decimals)}
             </span>
           )}
         </p>
@@ -127,7 +164,7 @@ export default function Stake() {
             <Skeleton className="inline-block h-7 w-24 text-3xl" />
           ) : (
             <span className="mb-1 text-3xl font-medium leading-none">
-              {vault.shares.toLocaleString()}
+              {formatBalance(vault.shares, token.decimals)}
             </span>
           )}
         </p>
@@ -141,15 +178,16 @@ export default function Stake() {
               name="amount"
               render={({ field, formState }) => (
                 <FormItem>
-                  <FormLabel>Amount to stake:</FormLabel>
+                  <FormLabel
+                    className={cn('block', { 'text-muted': stakeFormLoading })}
+                  >
+                    Stakeable Balance:{' '}
+                    {formatBalance(token.balance, token.decimals)}{' '}
+                    {token.symbol}
+                  </FormLabel>
                   <FormControl>
                     <Input
-                      loading={
-                        !sdkHasLoaded ||
-                        stakeForm.formState.isSubmitting ||
-                        vault.isLoading ||
-                        token.isLoading
-                      }
+                      loading={stakeFormLoading}
                       startAdornment={
                         <span className="inline-flex items-center gap-1 text-sm">
                           <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
@@ -162,7 +200,9 @@ export default function Stake() {
                         <Button
                           type="button"
                           onClick={() => {
-                            field.onChange(balanceFloat);
+                            field.onChange(
+                              formatUnits(token.balance, token.decimals),
+                            );
                           }}
                           variant="ghost"
                           size="sm"
@@ -174,26 +214,31 @@ export default function Stake() {
                       className={cn({
                         'border-destructive': formState.errors.amount,
                       })}
-                      type="number"
-                      min={0}
-                      max={balanceFloat}
-                      step={1}
                       placeholder="0"
-                      {...field}
+                      value={field.value.toString()}
                       onChange={(e) => {
-                        const value = e.target.valueAsNumber;
-                        if (value > balanceFloat) {
-                          field.onChange(balanceFloat);
-                        } else {
-                          field.onChange(value);
+                        try {
+                          const value = parseUnits(
+                            e.target.value,
+                            token.decimals,
+                          );
+                          if (value > token.balance) {
+                            field.onChange(
+                              formatUnits(token.balance, token.decimals),
+                            );
+                          } else {
+                            field.onChange(e.target.value);
+                          }
+                        } catch (error) {
+                          field.onChange(field.value);
                         }
                       }}
                     />
                   </FormControl>
+                  <FormMessage />
                   <FormDescription>
                     Stake {token.symbol} to earn {vault.shareSymbol}
                   </FormDescription>
-                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -257,7 +302,7 @@ export default function Stake() {
           <h2 className="text-2xl font-semibold">Current multiplier</h2>
           <p className="text-7xl leading-none sm:text-8xl">
             {vault.isLoading ? (
-              <Skeleton className="mt-2 inline-block h-7 w-24" />
+              <Skeleton className="mt-4 inline-block h-20 w-48 rounded-full" />
             ) : (
               <span className="mb-1 font-semibold leading-none">
                 <AnimatedNumber

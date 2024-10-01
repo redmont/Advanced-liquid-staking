@@ -45,7 +45,7 @@ export default function Styleguide() {
   const total = progress + progress2 + progress3;
 
   return (
-    <div className="space-y-8 p-5">
+    <div className="space-y-8 p-3 sm:p-5">
       <div className="flex flex-wrap gap-3">
         <h2 className="border border-border bg-background p-2 text-foreground">
           Background

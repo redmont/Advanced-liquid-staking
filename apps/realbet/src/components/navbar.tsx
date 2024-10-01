@@ -3,6 +3,7 @@
 import React, {
   type FC,
   type PropsWithChildren,
+  useEffect,
   useRef,
   useState,
 } from 'react';
@@ -44,6 +45,8 @@ const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
 };
 
 const Navbar: React.FC<{ className?: string }> = ({ className }) => {
+  const pathname = usePathname();
+
   const isAuthenticated = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
   const { primaryWallet, user } = useDynamicContext();
@@ -51,9 +54,13 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const navRef = useRef<HTMLDivElement>(null);
   useClickOutside(navRef, () => setNavOpen(false));
 
+  useEffect(() => {
+    setNavOpen(false);
+  }, [pathname]);
+
   return (
     <nav ref={navRef} className={cn('relative z-50', className)}>
-      <div className="lg:flex-start fixed top-12 z-30 flex h-0 w-full items-center justify-between gap-3 px-5 lg:top-5 lg:p-8 lg:py-6">
+      <div className="lg:flex-start fixed top-12 z-30 flex h-0 w-full items-center justify-between gap-3 px-3 sm:px-5 lg:top-5 lg:p-8 lg:py-6">
         <Burger
           className={cn('shrink-0 rounded-xl bg-light lg:hidden', {
             'shadow-dark': !isNavOpen,

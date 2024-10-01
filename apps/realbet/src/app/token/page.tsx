@@ -27,15 +27,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { useMemo } from 'react';
 import { useToken } from '@/hooks/useToken';
 import { formatUnits, parseUnits } from 'viem';
-
-const formatBalance = (balance: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD', // Adjust this according to your currency code if it's not USD
-  }).format(balance);
+import { formatBalance } from '@/utils';
 
 const nextUnlockDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
 const rank = 'Diamond League';
@@ -48,19 +42,19 @@ const unvested = 0n;
 export default function Token() {
   const isAuthenticated = useIsLoggedIn();
   const token = useToken();
-  const { sdkHasLoaded, primaryWallet } = useDynamicContext();
+  const { sdkHasLoaded } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
 
   return (
-    <div className="space-y-8 p-8">
+    <div className="space-y-8 p-3 sm:p-5">
       <Card>
         <CardHeader>
           <CardTitle className="uppercase">{token.symbol} Balance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center justify-between gap-5">
-            <div className="flex items-center gap-5">
-              <span className="mt-1 inline-flex size-12 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-2 text-primary">
+            <div className="flex items-center gap-3 sm:gap-5">
+              <span className="mt-1 inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1 text-primary sm:size-12 sm:p-2">
                 <RealIcon className="size-full" />
               </span>
               <div>
@@ -68,11 +62,11 @@ export default function Token() {
                   {token.isLoading ? (
                     <Skeleton className="-mb-1 inline-block h-6 w-24 rounded-full" />
                   ) : (
-                    <span className="text-5xl font-bold">
-                      {formatUnits(token.balance, token.decimals)}
+                    <span className="text-2xl font-bold sm:text-5xl">
+                      {formatBalance(token.balance, token.decimals)}
                     </span>
                   )}{' '}
-                  <span className="text-3xl font-bold text-primary">
+                  <span className="text-lg font-bold text-primary sm:text-3xl">
                     {token.symbol}
                   </span>
                 </div>

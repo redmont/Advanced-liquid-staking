@@ -39,7 +39,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           type={type}
           className={cn(
-            '[&::-webkit-outer-spin-button] h-9 w-full flex-1 bg-transparent px-3 py-1 text-sm [appearance:textfield] file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus:border-none focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none',
+            '[&::-webkit-outer-spin-button] h-9 w-full flex-1 bg-transparent px-3 py-1 text-sm text-input [appearance:textfield] file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus:border-none focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-inner-spin-button]:appearance-none',
             'focus:border-none focus-visible:border-none', // Added classes to remove border on focus
             loading && 'opacity-50', // lower the opacity to indicate loading state
           )}

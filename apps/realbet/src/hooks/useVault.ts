@@ -7,8 +7,8 @@ import { useWriteContract } from 'wagmi';
 import { useMemo } from 'react';
 
 export const useVault = () => {
-  const { primaryWallet } = useDynamicContext();
-  const { vault } = useContracts();
+  const { primaryWallet, setShowAuthFlow } = useDynamicContext();
+  const { vault, token } = useContracts();
   const { writeContractAsync } = useWriteContract();
 
   const deposits = useQuery({
@@ -22,6 +22,8 @@ export const useVault = () => {
         args: [primaryWallet?.address],
       }) as Promise<[bigint[], bigint[], bigint[]]>,
   });
+
+  console.log(deposits.data);
 
   const totalDeposited = useMemo(
     () =>
@@ -65,6 +67,40 @@ export const useVault = () => {
     });
   };
 
+  const allowance = useQuery({
+    enabled: !!primaryWallet && !!vault && !!token,
+    queryKey: [
+      'allowance',
+      vault?.address,
+      primaryWallet?.address,
+      token?.address,
+    ],
+    queryFn: () =>
+      readContract(config, {
+        abi: token!.abi,
+        address: token!.address,
+        functionName: 'allowance',
+        args: [primaryWallet!.address, vault!.address],
+      }) as Promise<bigint>,
+  });
+
+  const increaseAllowance = async (amount: bigint) => {
+    if (!primaryWallet) {
+      setShowAuthFlow(true);
+      return;
+    }
+    if (!vault || !token) {
+      throw new Error('Vault and token contract required');
+    }
+
+    return writeContractAsync({
+      address: token.address,
+      abi: token.abi,
+      functionName: 'approve',
+      args: [vault.address, amount],
+    });
+  };
+
   const unstake = ({ amount }: { amount: bigint }) => {
     if (!vault) {
       throw new Error('Vault contract required');
@@ -81,12 +117,14 @@ export const useVault = () => {
   };
 
   return {
-    isLoading: shares.isLoading || deposits.isLoading,
+    isLoading: shares.isLoading || deposits.isLoading || allowance.isLoading,
     shares: shares.data ?? 0n,
+    allowance: allowance.data ?? 0n,
     deposited: totalDeposited ?? 0n,
     unlockable: unlockable ?? 0n,
     stake,
     unstake,
+    increaseAllowance,
     shareSymbol: 'sREAL',
   };
 };

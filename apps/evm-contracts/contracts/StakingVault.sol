@@ -6,7 +6,11 @@ interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
+import "hardhat/console.sol";
+
 contract StakingVault {
+    error ERC20InsufficientBalance(address, uint256, uint256);
+
     struct Tier {
         uint64 lockupTime;
         uint32 multiplier;
@@ -16,7 +20,8 @@ contract StakingVault {
     struct Deposit {
         uint256 amount;
         uint64 timestamp;
-        uint64 lockupTime;
+        uint64 unlockTime;
+        Tier tier;
     }
 
     address public admin;
@@ -35,9 +40,11 @@ contract StakingVault {
         admin = msg.sender;
         token = IERC20(tokenAddress);
 
-        tiers.push(Tier(15 days, 1000, 3));
-        tiers.push(Tier(30 days, 1250, 3));
-        tiers.push(Tier(60 days, 1500, 3));
+        tiers.push(Tier(30 days, 100, 3));
+        tiers.push(Tier(60 days, 500, 3));
+        tiers.push(Tier(365 days, 1100, 3));
+        tiers.push(Tier(730 days, 1500, 3));
+        tiers.push(Tier(1460 days, 2100, 3));
     }
 
     function addUser(address user) internal {
@@ -65,11 +72,20 @@ contract StakingVault {
         tiers[_tierId] = Tier(lockupTime, multiplier, multiplierDecimals);
     }
 
-    function deposit(uint256 amount, uint256 tierId) external {
-        require(tiers[tierId].lockupTime > 0, "Invalid tier");
-        deposits[msg.sender].push(Deposit(amount, uint64(block.timestamp), tiers[tierId].lockupTime));
+    function deposit(uint256 _amount, uint256 tier) public {
+        require(tiers[tier].lockupTime > 0, "Invalid tier");
+        require(_amount > 0, "Amount required");
+
+        deposits[msg.sender].push(
+            Deposit({
+                amount: _amount,
+                timestamp: uint64(block.timestamp),
+                unlockTime: uint64(block.timestamp + tiers[tier].lockupTime),
+                tier: tiers[tier]
+            })
+        );
         addUser(msg.sender);
-        require(token.transferFrom(msg.sender, address(this), amount), "Transfer failed");
+        require(token.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
     }
 
     function withdraw(uint256 amount, address to) external {
@@ -78,7 +94,7 @@ contract StakingVault {
         for (uint256 i = 0; i < deposits[msg.sender].length && amount > 0; i++) {
             Deposit storage dep = deposits[msg.sender][i];
 
-            if (block.timestamp >= dep.timestamp + dep.lockupTime) {
+            if (block.timestamp >= dep.unlockTime) {
                 uint256 withdrawable = dep.amount;
                 if (withdrawable > amount) {
                     withdrawable = amount;
@@ -99,20 +115,9 @@ contract StakingVault {
     function shares(address account) public view returns (uint256 totalShares) {
         for (uint256 i = 0; i < deposits[account].length; i++) {
             Deposit memory dep = deposits[account][i];
-            uint64 age = uint64(block.timestamp) - dep.timestamp;
-            Tier memory tier = getTierByDepositAge(age);
 
-            totalShares += (dep.amount * tier.multiplier) / (10 ** tier.multiplierDecimals);
+            totalShares += (dep.amount * dep.tier.multiplier) / (10 ** dep.tier.multiplierDecimals);
         }
-    }
-
-    function getTierByDepositAge(uint64 age) internal view returns (Tier memory) {
-        for (uint256 i = tiers.length; i != 0; i--) {
-            if (tiers[i].lockupTime <= age) {
-                return tiers[i];
-            }
-        }
-        return Tier(0, 1000, 3);
     }
 
     function setAdmin(address newAdmin) external onlyAdmin {
@@ -122,16 +127,17 @@ contract StakingVault {
 
     function getDeposits(
         address account
-    ) external view returns (uint256[] memory amounts, uint64[] memory timestamps, uint64[] memory lockupTimes) {
+    ) external view returns (uint256[] memory amounts, uint64[] memory timestamps, uint64[] memory unlockTimes) {
         uint256 depositCount = deposits[account].length;
         amounts = new uint256[](depositCount);
         timestamps = new uint64[](depositCount);
+        unlockTimes = new uint64[](depositCount);
 
         for (uint256 i = 0; i < depositCount; i++) {
             Deposit memory dep = deposits[account][i];
             amounts[i] = dep.amount;
             timestamps[i] = dep.timestamp;
-            lockupTimes[i] = dep.lockupTime;
+            unlockTimes[i] = dep.unlockTime;
         }
     }
 
