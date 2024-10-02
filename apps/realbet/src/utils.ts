@@ -1,4 +1,5 @@
 import { formatUnits, parseUnits } from 'viem';
+import dayjs from '@/dayjs';
 
 export const formatBalance = (
   balance: bigint,
@@ -25,3 +26,17 @@ export const formatBalance = (
 
 export const parseBalance = (balance: string, decimals: number) =>
   parseUnits(balance, decimals);
+
+export const balanceToFloat = (balance: bigint, decimals: number) =>
+  parseFloat(formatUnits(balance, decimals));
+
+export const toDaysOrMonths = (lockupTime: number) => {
+  const d = dayjs.duration(lockupTime, 'seconds');
+  if (d.asMonths() < 1) {
+    return `${d.asDays().toFixed(0)} days`;
+  }
+  return `${d.asMonths().toFixed(0)} months`;
+};
+
+export const toDurationSeconds = (datetime: number) =>
+  datetime - new Date().getTime() / 1000;

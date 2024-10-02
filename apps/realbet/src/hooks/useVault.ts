@@ -22,6 +22,14 @@ const TiersSchema = z.array(
     })),
 );
 
+const DepositSchema = z.object({
+  amount: z.bigint(),
+  timestamp: z.bigint().transform((n) => parseInt(n.toString())),
+  unlockTime: z.bigint().transform((n) => parseInt(n.toString())),
+});
+
+export type Deposit = z.infer<typeof DepositSchema>;
+
 export const useVault = () => {
   const {
     queries: { balance },
@@ -34,20 +42,20 @@ export const useVault = () => {
     enabled: !!primaryWallet && !!vault,
     queryKey: ['getDeposits', vault?.address, primaryWallet?.address],
     queryFn: async () => {
-      const [amounts, timestamps, unlockTimes] = await (readContract(config, {
+      const amounts = await (readContract(config, {
         abi: vault!.abi,
         address: vault!.address,
         functionName: 'getDeposits',
         args: [primaryWallet?.address],
-      }) as Promise<[bigint[], bigint[], bigint[]]>);
+      }) as Promise<unknown[]>);
 
-      return amounts.map((amount, i) => ({
-        amount,
-        timestamp: timestamps[i],
-        unlockTime: unlockTimes[i],
-      }));
+      console.log(amounts, 'AMOUNTS');
+
+      return amounts.map((deposit) => DepositSchema.parse(deposit));
     },
   });
+
+  console.log(deposits.error, 'DEPS');
 
   const tiers = useQuery({
     enabled: !!vault,
@@ -62,6 +70,8 @@ export const useVault = () => {
       return TiersSchema.parse(tiers);
     },
   });
+
+  console.log(deposits.data, 'DEPS');
 
   const totalDeposited = useMemo(
     () =>
@@ -185,6 +195,11 @@ export const useVault = () => {
   });
 
   return {
+    queries: {
+      shares,
+      allowance,
+      deposits,
+    },
     isLoading:
       shares.isLoading ||
       deposits.isLoading ||
@@ -192,6 +207,7 @@ export const useVault = () => {
       tiers.isLoading,
     shares: shares.data ?? 0n,
     allowance: allowance.data ?? 0n,
+    deposits: deposits.data ?? ([] as Deposit[]),
     deposited: totalDeposited ?? 0n,
     unlockable: unlockable ?? 0n,
     tiers,

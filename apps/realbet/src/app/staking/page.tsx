@@ -26,13 +26,14 @@ import { Indicator, Progress } from '@/components/ui/progress';
 import { useToken } from '@/hooks/useToken';
 import { useVault } from '@/hooks/useVault';
 import { formatUnits, parseUnits } from 'viem';
-import { formatBalance } from '@/utils';
+import { formatBalance, toDaysOrMonths } from '@/utils';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
 import dayjs from '@/dayjs';
 import React from 'react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import AnimatedNumber from '@/components/ui/animated-number';
+import DepositsIndicator from './components/deposits-indicator';
 
 const unlockable = 5000;
 const locked15 = 1000;
@@ -91,14 +92,6 @@ const gradientTierButtonClasses = [
             'text-accent bg-transparent border border-accent hover:bg-accent hover:text-black focus:ring-accent',
         },
 ];
-
-const toDaysOrMonths = (lockupTime: number) => {
-  const d = dayjs.duration(lockupTime, 'seconds');
-  if (d.asMonths() < 1) {
-    return `${d.asDays().toFixed(0)} days`;
-  }
-  return `${d.asMonths().toFixed(0)} months`;
-};
 
 export default function Stake() {
   const [stakingStatus, setStakingStatus] = useState('');
@@ -209,7 +202,7 @@ export default function Stake() {
         return;
       }
 
-      setStakingStatus('Staking REAL...');
+      setStakingStatus(`Staking ${vault.shareSymbol}...`);
       await vault.stake
         .mutateAsync({
           amount: values.amount,
@@ -433,7 +426,7 @@ export default function Stake() {
             ) : (
               <span className="my-1 flex items-center gap-3 text-nowrap font-semibold">
                 <span className="leading-none">
-                  + ~{anticipatedSharesAnimated}
+                  ~{anticipatedSharesAnimated}
                 </span>{' '}
                 <span className="mt-1 inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-accent bg-black p-1 text-accent sm:size-12 sm:p-1.5">
                   <RealIcon className="inline size-full" />
@@ -465,75 +458,7 @@ export default function Stake() {
           </h2>
         </div>
         <div>
-          <Progress className="leading-[0]">
-            <Indicator
-              variant="accent"
-              className="inline-block"
-              style={{
-                width: `${stakedAmountFloat !== 0 && (unstakeForm.watch('amount') / stakedAmountFloat) * 100}%`,
-              }}
-            />
-            <Indicator
-              variant="primary"
-              className="inline-block"
-              style={{
-                width: `${stakedAmountFloat !== 0 && ((unlockable - unstakeForm.watch('amount')) / stakedAmountFloat) * 100}%`,
-              }}
-            />
-            <Indicator
-              className="inline-block"
-              variant="white"
-              style={{
-                width: `${stakedAmountFloat !== 0 && (locked15 / stakedAmountFloat) * 100}%`,
-              }}
-            />
-            <Indicator
-              className="inline-block"
-              variant="lightest"
-              style={{
-                width: `${stakedAmountFloat !== 0 && (locked30 / stakedAmountFloat) * 100}%`,
-              }}
-            />
-            <Indicator
-              className="inline-block"
-              variant="lighter"
-              style={{
-                width: `${stakedAmountFloat !== 0 && (locked60 / stakedAmountFloat) * 100}%`,
-              }}
-            />
-          </Progress>
-          <p className="mt-1 flex flex-wrap gap-x-2 text-xs">
-            {unstakeForm.watch('amount') > 0 && (
-              <span>
-                <span className="inline-block size-2 rounded-full bg-accent" />{' '}
-                To unstake
-              </span>
-            )}
-            <span>
-              <span className="inline-block size-2 rounded-full bg-primary" />{' '}
-              {stakedAmountFloat &&
-                ((unlockable / stakedAmountFloat) * 100).toFixed(0)}
-              % Unlockable
-            </span>
-            <span>
-              <span className="inline-block size-2 rounded-full bg-white" />{' '}
-              {stakedAmountFloat &&
-                ((locked15 / stakedAmountFloat) * 100).toFixed(0)}
-              % Locked for 15+ days
-            </span>
-            <span>
-              <span className="inline-block size-2 rounded-full bg-lightest" />{' '}
-              {stakedAmountFloat &&
-                ((locked30 / stakedAmountFloat) * 100).toFixed(0)}
-              % Locked for 30+ days
-            </span>
-            <span>
-              <span className="inline-block size-2 rounded-full bg-lighter" />{' '}
-              {stakedAmountFloat &&
-                ((locked60 / stakedAmountFloat) * 100).toFixed(0)}
-              % Locked for 60+ days
-            </span>
-          </p>
+          <DepositsIndicator />
         </div>
         <Form {...unstakeForm}>
           <form className="space-y-5">

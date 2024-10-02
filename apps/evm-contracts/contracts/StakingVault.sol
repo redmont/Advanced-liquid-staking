@@ -7,7 +7,14 @@ interface IERC20 {
 }
 
 contract StakingVault {
-    error ERC20InsufficientBalance(address, uint256, uint256);
+    error ERC20InsufficientBalance(address from, uint256 available, uint256 required);
+    error NotAdmin();
+    error InvalidTier();
+    error AmountRequired();
+    error TransferFailed();
+    error InvalidAddress();
+    error LockupTimeMustBeGreaterThanZero();
+    error InsufficientBalance();
 
     struct Tier {
         uint64 lockupTime;
@@ -30,7 +37,9 @@ contract StakingVault {
     address[] public totalUsers;
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, "Not admin");
+        if (msg.sender != admin) {
+            revert NotAdmin();
+        }
         _;
     }
 
@@ -68,15 +77,23 @@ contract StakingVault {
         uint32 multiplier,
         uint8 multiplierDecimals
     ) external onlyAdmin {
-        require(multiplier > 0, "Multiplier must be greater than 0");
-        require(lockupTime > 0, "Lockup time must be greater than 0");
+        if (multiplier == 0) {
+            revert InvalidTier();
+        }
+        if (lockupTime == 0) {
+            revert LockupTimeMustBeGreaterThanZero();
+        }
 
         tiers[_tierId] = Tier(lockupTime, multiplier, multiplierDecimals);
     }
 
     function deposit(uint256 _amount, uint256 tier) public {
-        require(tiers[tier].lockupTime > 0, "Invalid tier");
-        require(_amount > 0, "Amount required");
+        if (tiers[tier].lockupTime == 0) {
+            revert InvalidTier();
+        }
+        if (_amount == 0) {
+            revert AmountRequired();
+        }
 
         deposits[msg.sender].push(
             Deposit({
@@ -88,11 +105,17 @@ contract StakingVault {
         );
         addUser(msg.sender);
 
-        require(token.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
+        if (!token.transferFrom(msg.sender, address(this), _amount)) {
+            revert TransferFailed();
+        }
     }
 
     function withdraw(uint256 amount, address to) external {
-        require(to != address(0), "Invalid address");
+        if (to == address(0)) {
+            revert InvalidAddress();
+        }
+
+        uint256 amountToTransfer = amount;
 
         for (uint256 i = 0; i < deposits[msg.sender].length && amount > 0; i++) {
             Deposit storage dep = deposits[msg.sender][i];
@@ -109,10 +132,12 @@ contract StakingVault {
         }
 
         if (amount > 0) {
-            revert("Insufficient balance");
+            revert InsufficientBalance();
         }
 
-        require(token.transfer(to, amount), "Transfer failed");
+        if (!token.transfer(to, amountToTransfer)) {
+            revert TransferFailed();
+        }
     }
 
     function shares(address account) public view returns (uint256 totalShares) {
@@ -124,7 +149,9 @@ contract StakingVault {
     }
 
     function setAdmin(address newAdmin) external onlyAdmin {
-        require(newAdmin != address(0), "Invalid address");
+        if (newAdmin == address(0)) {
+            revert InvalidAddress();
+        }
         admin = newAdmin;
     }
 
