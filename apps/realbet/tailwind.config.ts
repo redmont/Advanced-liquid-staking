@@ -5,26 +5,6 @@ import tailwindcssAnimate from 'tailwindcss-animate';
 export default {
   darkMode: ['class'],
   content: ['./src/**/*.tsx'],
-  safelist: [
-    'bg-primary-intermediate-1',
-    'bg-primary-intermediate-2',
-    'bg-primary-intermediate-3',
-    'text-primary-intermediate-1',
-    'text-primary-intermediate-2',
-    'text-primary-intermediate-3',
-    'border-primary-intermediate-1',
-    'border-primary-intermediate-2',
-    'border-primary-intermediate-3',
-    'hover:bg-primary',
-    'hover:bg-primary-intermediate-1',
-    'hover:bg-primary-intermediate-2',
-    'hover:bg-primary-intermediate-3',
-    'hover:bg-accent',
-    'focus:ring-primary-intermediate-1',
-    'focus:ring-primary-intermediate-2',
-    'focus:ring-primary-intermediate-3',
-    'focus:ring-accent',
-  ],
   theme: {
     extend: {
       fontFamily: {

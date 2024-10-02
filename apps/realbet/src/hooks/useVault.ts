@@ -6,6 +6,7 @@ import { useContracts } from './useContracts';
 import { useWriteContract } from 'wagmi';
 import { useMemo } from 'react';
 import { z } from 'zod';
+import { useToken } from './useToken';
 
 const TiersSchema = z.array(
   z
@@ -15,13 +16,16 @@ const TiersSchema = z.array(
       multiplierDecimals: z.number(),
     })
     .transform((tier) => ({
-      lockupTime: tier.lockupTime,
       // prettier-ignore
-      multiplier: tier.multiplier / (10 ** tier.multiplierDecimals),
+      decimalMult: tier.multiplier / (10 ** tier.multiplierDecimals),
+      ...tier,
     })),
 );
 
 export const useVault = () => {
+  const {
+    queries: { balance },
+  } = useToken();
   const { primaryWallet, setShowAuthFlow } = useDynamicContext();
   const { vault, token } = useContracts();
   const { writeContractAsync } = useWriteContract();
@@ -113,6 +117,7 @@ export const useVault = () => {
     onSuccess: () => {
       deposits.refetch();
       shares.refetch();
+      balance.refetch();
     },
   });
 
@@ -175,6 +180,7 @@ export const useVault = () => {
     onSuccess: () => {
       deposits.refetch();
       shares.refetch();
+      balance.refetch();
     },
   });
 

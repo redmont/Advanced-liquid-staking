@@ -73,6 +73,11 @@ export const useToken = () => {
   });
 
   return {
+    queries: {
+      symbol,
+      balance,
+      decimals,
+    },
     isLoading:
       contractsAreLoading ||
       symbol.isLoading ||

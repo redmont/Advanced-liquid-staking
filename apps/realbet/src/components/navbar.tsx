@@ -112,8 +112,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
             <DynamicUserProfile />
             {isAuthenticated && (
               <div className="font-regular space-y-1 py-3 text-xl">
-                <p>{user?.username}</p>
-                <p className="text-primary">53,000 XP</p>
+                <p className="text-primary">{user?.username}</p>
               </div>
             )}
           </li>

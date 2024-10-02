@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import backgroundImage from '@/assets/images/vr-guy.png';
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import useParallaxEffect from '@/hooks/useParallax';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -26,37 +26,71 @@ import { Indicator, Progress } from '@/components/ui/progress';
 import { useToken } from '@/hooks/useToken';
 import { useVault } from '@/hooks/useVault';
 import { formatUnits, parseUnits } from 'viem';
-import AnimatedNumber from '@/components/ui/animated-number';
 import { formatBalance } from '@/utils';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
 import dayjs from '@/dayjs';
 import React from 'react';
+import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
+import AnimatedNumber from '@/components/ui/animated-number';
 
 const unlockable = 5000;
 const locked15 = 1000;
 const locked30 = 2500;
 const locked60 = 1500;
 
-const colorGrade = [
-  'primary',
-  'primary-intermediate-1',
-  'primary-intermediate-2',
-  'primary-intermediate-3',
-  'accent',
-] as const;
-
-const gradientTierButtonClasses: ((active: boolean) => Partial<ButtonProps>)[] =
-  new Array(colorGrade.length).fill(0).map(
-    (_, index) => (active: boolean) =>
-      active
-        ? {
-            className: `bg-${colorGrade[index]} border-none hover:bg-${colorGrade[index]} hover:text-black focus:ring-${colorGrade[index]}`,
-          }
-        : {
-            className: `text-${colorGrade[index]} bg-transparent border border-${colorGrade[index]} hover:bg-${colorGrade[index]} hover:text-black focus:ring-${colorGrade[index]}`,
-          },
-  );
+const gradientTierButtonClasses = [
+  (active: boolean) =>
+    active
+      ? {
+          className:
+            'bg-primary border-none hover:bg-primary hover:text-black focus:ring-primary',
+        }
+      : {
+          className:
+            'text-primary bg-transparent border border-primary hover:bg-primary hover:text-black focus:ring-primary',
+        },
+  (active: boolean) =>
+    active
+      ? {
+          className:
+            'bg-primary-intermediate-1 border-none hover:bg-primary-intermediate-1 hover:text-black focus:ring-primary-intermediate-1',
+        }
+      : {
+          className:
+            'text-primary-intermediate-1 bg-transparent border border-primary-intermediate-1 hover:bg-primary-intermediate-1 hover:text-black focus:ring-primary-intermediate-1',
+        },
+  (active: boolean) =>
+    active
+      ? {
+          className:
+            'bg-primary-intermediate-2 border-none hover:bg-primary-intermediate-2 hover:text-black focus:ring-primary-intermediate-2',
+        }
+      : {
+          className:
+            'text-primary-intermediate-2 bg-transparent border border-primary-intermediate-2 hover:bg-primary-intermediate-2 hover:text-black focus:ring-primary-intermediate-2',
+        },
+  (active: boolean) =>
+    active
+      ? {
+          className:
+            'bg-primary-intermediate-3 border-none hover:bg-primary-intermediate-3 hover:text-black focus:ring-primary-intermediate-3',
+        }
+      : {
+          className:
+            'text-primary-intermediate-3 bg-transparent border border-primary-intermediate-3 hover:bg-primary-intermediate-3 hover:text-black focus:ring-primary-intermediate-3',
+        },
+  (active: boolean) =>
+    active
+      ? {
+          className:
+            'bg-accent border-none hover:bg-accent hover:text-black focus:ring-accent',
+        }
+      : {
+          className:
+            'text-accent bg-transparent border border-accent hover:bg-accent hover:text-black focus:ring-accent',
+        },
+];
 
 const toDaysOrMonths = (lockupTime: number) => {
   const d = dayjs.duration(lockupTime, 'seconds');
@@ -115,52 +149,91 @@ export default function Stake() {
     [vault.deposited, token.decimals],
   );
 
-  const onStake = async (values: StakeValues) => {
-    if (!isAuthenticated) {
-      return setShowAuthFlow(true);
-    }
+  const currentMultiplier = useAnimatedNumber(
+    vault.deposited
+      ? parseFloat(vault.shares.toString()) /
+          parseFloat(vault.deposited.toString())
+      : 0,
+    { decimals: 2, duration: 750 },
+  );
 
-    if (values.amount > vault.allowance) {
-      setStakingStatus('Approving allowance...');
-      try {
-        const tx = await vault.increaseAllowance.mutateAsync(values.amount);
-        if (!tx) {
-          stakeForm.setError('amount', { message: 'Insufficient allowance' });
+  const selectedTier = useMemo(
+    () => vault.tiers.data?.[parseInt(stakeForm.watch('duration'))],
+    [vault.tiers.data, stakeForm.watch('duration')],
+  );
+
+  const anticipatedShares = useMemo(
+    () =>
+      selectedTier
+        ? parseFloat(stakeForm.watch('amount').toString()) *
+          selectedTier.decimalMult
+        : 0,
+    [selectedTier, stakeForm.watch('amount'), token.decimals],
+  );
+
+  const anticipatedSharesAnimated = useAnimatedNumber(anticipatedShares, {
+    decimals: 2,
+    duration: 300,
+  });
+
+  const onStake = useCallback(
+    async (values: StakeValues) => {
+      if (!isAuthenticated) {
+        return setShowAuthFlow(true);
+      }
+
+      if (values.amount === 0n) {
+        return stakeForm.setError('amount', { message: 'Amount required' });
+      }
+
+      if (values.amount > vault.allowance) {
+        setStakingStatus('Approving allowance...');
+        try {
+          const tx = await vault.increaseAllowance.mutateAsync(values.amount);
+          if (!tx) {
+            stakeForm.setError('amount', { message: 'Insufficient allowance' });
+            return;
+          }
+          await waitForTransactionReceipt(config, { hash: tx });
+        } catch (error) {
+          setStakingStatus('');
+          stakeForm.setError('amount', {
+            message: 'Error when attempting to increase allowance',
+          });
           return;
         }
-        await waitForTransactionReceipt(config, { hash: tx });
-      } catch (error) {
-        setStakingStatus('');
-        stakeForm.setError('amount', {
-          message: 'Error when attempting to increase allowance',
-        });
+      }
+
+      if (values.amount > token.balance) {
+        stakeForm.setError('amount', { message: 'Insufficient balance' });
         return;
       }
-    }
 
-    if (values.amount > token.balance) {
-      stakeForm.setError('amount', { message: 'Insufficient balance' });
-      return;
-    }
+      setStakingStatus('Staking REAL...');
+      await vault.stake
+        .mutateAsync({
+          amount: values.amount,
+          tier: values.duration,
+        })
+        .finally(() => {
+          setStakingStatus('');
+        });
+    },
+    [isAuthenticated, setShowAuthFlow, token.decimals, vault.stake],
+  );
 
-    setStakingStatus('Staking REAL...');
-    await vault.stake.mutateAsync({
-      amount: values.amount,
-      tier: values.duration,
-    });
+  const onUnstake = useCallback(
+    async (values: UnstakeValues) => {
+      if (!isAuthenticated) {
+        return setShowAuthFlow(true);
+      }
 
-    setStakingStatus('');
-  };
-
-  const onUnstake = async (values: UnstakeValues) => {
-    if (!isAuthenticated) {
-      return setShowAuthFlow(true);
-    }
-
-    await vault.unstake.mutateAsync({
-      amount: parseUnits(values.amount.toString(), token.decimals),
-    });
-  };
+      await vault.unstake.mutateAsync({
+        amount: parseUnits(values.amount.toString(), token.decimals),
+      });
+    },
+    [isAuthenticated, setShowAuthFlow, token.decimals, vault.unstake],
+  );
 
   const stakeFormLoading =
     !sdkHasLoaded ||
@@ -172,32 +245,36 @@ export default function Stake() {
     <div className="grid grid-cols-1 gap-3 p-3 sm:gap-5 sm:p-5 md:grid-cols-2">
       <Card className="flex flex-col items-center justify-center gap-1 p-5">
         <h2>Total {token.symbol} Staked</h2>
-        <p className="flex items-center gap-3 text-xl">
+        <p
+          className={cn('flex items-center gap-3 text-xl', {
+            'animate-pulse': !sdkHasLoaded || vault.isLoading,
+          })}
+        >
           <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
             <RealIcon className="inline size-5" />
           </span>
-          {vault.isLoading ? (
-            <Skeleton className="inline h-7 w-24" />
-          ) : (
-            <span className="mb-1 text-3xl font-medium leading-none">
-              {formatBalance(vault.deposited, token.decimals)}
-            </span>
-          )}
+          <span className="mb-1 text-3xl font-medium leading-none">
+            <AnimatedNumber
+              value={formatBalance(vault.deposited, token.decimals)}
+            />
+          </span>
         </p>
       </Card>
       <Card className="flex flex-col items-center justify-center gap-1 p-5">
         <h2>{vault.shareSymbol} - Effective Voting Power</h2>
-        <p className="flex items-center gap-3 text-xl">
+        <p
+          className={cn('flex items-center gap-3 text-xl', {
+            'animate-pulse': !sdkHasLoaded || vault.isLoading,
+          })}
+        >
           <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-accent bg-black p-1.5 text-accent">
             <RealIcon className="inline size-5" />
           </span>
-          {vault.isLoading ? (
-            <Skeleton className="inline-block h-7 w-24 text-3xl" />
-          ) : (
-            <span className="mb-1 text-3xl font-medium leading-none">
-              {formatBalance(vault.shares, token.decimals)}
-            </span>
-          )}
+          <span className="mb-1 text-3xl font-medium leading-none">
+            <AnimatedNumber
+              value={formatBalance(vault.shares, token.decimals)}
+            />
+          </span>
         </p>
       </Card>
       <Card className="space-y-5 p-5">
@@ -255,6 +332,9 @@ export default function Stake() {
                             token.decimals,
                           );
                           if (value > token.balance) {
+                            stakeForm.setError('amount', {
+                              message: 'Insufficient balance',
+                            });
                             field.onChange(
                               formatUnits(token.balance, token.decimals),
                             );
@@ -308,7 +388,7 @@ export default function Stake() {
                               )}
                             >
                               {toDaysOrMonths(tier.lockupTime)} (
-                              {tier.multiplier}
+                              {tier.decimalMult}
                               x)
                             </Button>
                           ))
@@ -346,22 +426,18 @@ export default function Stake() {
       >
         <div className="absolute inset-0 z-10 bg-black opacity-50" />
         <div className="relative z-10 text-center">
-          <h2 className="text-2xl font-semibold">Current multiplier</h2>
-          <p className="text-7xl leading-none sm:text-8xl">
+          <h2 className="text-2xl font-semibold">You'll get</h2>
+          <p className="text-4xl leading-none sm:text-6xl">
             {vault.isLoading ? (
               <Skeleton className="mt-4 inline-block h-20 w-48 rounded-full" />
             ) : (
-              <span className="mb-1 font-semibold leading-none">
-                <AnimatedNumber
-                  value={Number(
-                    vault.deposited
-                      ? parseFloat(vault.shares.toString()) /
-                          parseFloat(vault.deposited.toString())
-                      : 0,
-                  )}
-                  decimals={2}
-                />
-                x
+              <span className="my-1 flex items-center gap-3 text-nowrap font-semibold">
+                <span className="leading-none">
+                  + ~{anticipatedSharesAnimated}
+                </span>{' '}
+                <span className="mt-1 inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-accent bg-black p-1 text-accent sm:size-12 sm:p-1.5">
+                  <RealIcon className="inline size-full" />
+                </span>
               </span>
             )}
           </p>
@@ -370,6 +446,23 @@ export default function Stake() {
       <Card className="space-y-5 p-5 md:col-span-2">
         <div className="flex items-center justify-between">
           <h2 className="text-xl">Locked REAL</h2>
+          <h2 className="text-xl">
+            Current Multiplier:{' '}
+            <span
+              className={cn('font-semibold', {
+                'text-primary': parseFloat(currentMultiplier) >= 1,
+                'text-primary-intermediate-1':
+                  parseFloat(currentMultiplier) >= 1.25,
+                'text-primary-intermediate-2':
+                  parseFloat(currentMultiplier) >= 1.5,
+                'text-primary-intermediate-3':
+                  parseFloat(currentMultiplier) >= 1.75,
+                'text-accent': parseFloat(currentMultiplier) >= 2,
+              })}
+            >
+              {currentMultiplier}x
+            </span>
+          </h2>
         </div>
         <div>
           <Progress className="leading-[0]">
