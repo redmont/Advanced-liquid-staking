@@ -80,7 +80,7 @@ export default function Token() {
               variant="neutral"
               size="xl"
             >
-              Buy {token.symbol}
+              {token.mint.isPending ? 'Buying' : 'Buy'} {token.symbol}
             </Button>
           </div>
         </CardContent>

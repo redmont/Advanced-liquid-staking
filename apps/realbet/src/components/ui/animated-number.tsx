@@ -27,6 +27,7 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
       const progressPercentage = Math.min(progress / duration, 1);
 
       const currentNumber = progressPercentage * value;
+
       setDisplayValue(currentNumber);
 
       if (progress < duration) {

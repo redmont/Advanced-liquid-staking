@@ -54,6 +54,9 @@
 
 @layer base {
   :root {
+    --primary-intermediate-1: 350 90% 75%;
+    --primary-intermediate-2: 356 92% 70%;
+    --primary-intermediate-3: 360 94% 65%;
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
     --background-light: 0 0% 6.7%;

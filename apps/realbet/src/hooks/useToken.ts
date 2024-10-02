@@ -1,7 +1,7 @@
 import { isDev } from '@/env';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { readContract } from '@wagmi/core';
+import { readContract, waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
 import { useWriteContract } from 'wagmi';
 import { useContracts } from './useContracts';
@@ -58,12 +58,17 @@ export const useToken = () => {
         return;
       }
 
-      await writeContractAsync({
+      const tx = await writeContractAsync({
         address: token!.address,
         abi: token!.abi,
         functionName: 'mint',
         args: [amount],
       });
+
+      await waitForTransactionReceipt(config, { hash: tx });
+    },
+    onSuccess: () => {
+      balance.refetch();
     },
   });
 

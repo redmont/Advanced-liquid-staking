@@ -1,10 +1,25 @@
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
-import { useQuery } from '@tanstack/react-query';
-import { readContract } from '@wagmi/core';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { readContract, waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
 import { useContracts } from './useContracts';
 import { useWriteContract } from 'wagmi';
 import { useMemo } from 'react';
+import { z } from 'zod';
+
+const TiersSchema = z.array(
+  z
+    .object({
+      lockupTime: z.bigint().transform((n) => parseInt(n.toString())),
+      multiplier: z.number(),
+      multiplierDecimals: z.number(),
+    })
+    .transform((tier) => ({
+      lockupTime: tier.lockupTime,
+      // prettier-ignore
+      multiplier: tier.multiplier / (10 ** tier.multiplierDecimals),
+    })),
+);
 
 export const useVault = () => {
   const { primaryWallet, setShowAuthFlow } = useDynamicContext();
@@ -14,26 +29,57 @@ export const useVault = () => {
   const deposits = useQuery({
     enabled: !!primaryWallet && !!vault,
     queryKey: ['getDeposits', vault?.address, primaryWallet?.address],
-    queryFn: () =>
-      readContract(config, {
+    queryFn: async () => {
+      const [amounts, timestamps, unlockTimes] = await (readContract(config, {
         abi: vault!.abi,
         address: vault!.address,
         functionName: 'getDeposits',
         args: [primaryWallet?.address],
-      }) as Promise<[bigint[], bigint[], bigint[]]>,
+      }) as Promise<[bigint[], bigint[], bigint[]]>);
+
+      return amounts.map((amount, i) => ({
+        amount,
+        timestamp: timestamps[i],
+        unlockTime: unlockTimes[i],
+      }));
+    },
   });
 
-  console.log(deposits.data);
+  const tiers = useQuery({
+    enabled: !!vault,
+    queryKey: ['tiers', vault?.address],
+    queryFn: async () => {
+      const tiers = await readContract(config, {
+        abi: vault!.abi,
+        address: vault!.address,
+        functionName: 'getTiers',
+      });
+
+      return TiersSchema.parse(tiers);
+    },
+  });
 
   const totalDeposited = useMemo(
     () =>
-      deposits.data ? deposits.data[0].reduce((a, b) => a + b, 0n) : undefined,
+      deposits.data
+        ? deposits.data.reduce((a, b) => a + b.amount, 0n)
+        : undefined,
     [deposits.data],
   );
 
   const unlockable = useMemo(
     () =>
-      deposits.data ? deposits.data[0].reduce((a, b) => a + b, 0n) : undefined,
+      deposits.data
+        ? deposits.data.reduce(
+            (a, b) =>
+              b.unlockTime &&
+              new Date(parseInt(b.unlockTime?.toString() ?? '0') * 1000) >
+                new Date()
+                ? a + b.amount
+                : 0n,
+            0n,
+          )
+        : undefined,
     [deposits.data],
   );
 
@@ -49,23 +95,26 @@ export const useVault = () => {
       }) as Promise<bigint>,
   });
 
-  const stake = ({
-    amount,
-    tier,
-  }: {
-    amount: bigint;
-    tier: '0' | '1' | '2';
-  }) => {
-    if (!vault) {
-      throw new Error('Vault contract required');
-    }
-    return writeContractAsync({
-      address: vault.address,
-      abi: vault.abi,
-      functionName: 'deposit',
-      args: [amount, BigInt(tier)],
-    });
-  };
+  const stake = useMutation({
+    mutationFn: async ({ amount, tier }: { amount: bigint; tier: string }) => {
+      if (!vault) {
+        throw new Error('Vault contract required');
+      }
+
+      const tx = await writeContractAsync({
+        address: vault.address,
+        abi: vault.abi,
+        functionName: 'deposit',
+        args: [amount, BigInt(tier)],
+      });
+
+      await waitForTransactionReceipt(config, { hash: tx });
+    },
+    onSuccess: () => {
+      deposits.refetch();
+      shares.refetch();
+    },
+  });
 
   const allowance = useQuery({
     enabled: !!primaryWallet && !!vault && !!token,
@@ -84,44 +133,62 @@ export const useVault = () => {
       }) as Promise<bigint>,
   });
 
-  const increaseAllowance = async (amount: bigint) => {
-    if (!primaryWallet) {
-      setShowAuthFlow(true);
-      return;
-    }
-    if (!vault || !token) {
-      throw new Error('Vault and token contract required');
-    }
+  const increaseAllowance = useMutation({
+    mutationFn: async (amount: bigint) => {
+      if (!primaryWallet) {
+        setShowAuthFlow(true);
+        return;
+      }
+      if (!vault || !token) {
+        throw new Error('Vault and token contract required');
+      }
 
-    return writeContractAsync({
-      address: token.address,
-      abi: token.abi,
-      functionName: 'approve',
-      args: [vault.address, amount],
-    });
-  };
+      return writeContractAsync({
+        address: token.address,
+        abi: token.abi,
+        functionName: 'approve',
+        args: [vault.address, amount],
+      });
+    },
+    onSuccess: async (tx) => {
+      allowance.refetch();
+    },
+  });
 
-  const unstake = ({ amount }: { amount: bigint }) => {
-    if (!vault) {
-      throw new Error('Vault contract required');
-    }
-    if (!primaryWallet) {
-      throw new Error('Wallet required');
-    }
-    return writeContractAsync({
-      address: vault.address,
-      abi: vault.abi,
-      functionName: 'withdraw',
-      args: [amount, primaryWallet.address],
-    });
-  };
+  const unstake = useMutation({
+    mutationFn: async ({ amount }: { amount: bigint }) => {
+      if (!vault) {
+        throw new Error('Vault contract required');
+      }
+      if (!primaryWallet) {
+        throw new Error('Wallet required');
+      }
+      const tx = await writeContractAsync({
+        address: vault.address,
+        abi: vault.abi,
+        functionName: 'withdraw',
+        args: [amount, primaryWallet.address],
+      });
+
+      await waitForTransactionReceipt(config, { hash: tx });
+    },
+    onSuccess: () => {
+      deposits.refetch();
+      shares.refetch();
+    },
+  });
 
   return {
-    isLoading: shares.isLoading || deposits.isLoading || allowance.isLoading,
+    isLoading:
+      shares.isLoading ||
+      deposits.isLoading ||
+      allowance.isLoading ||
+      tiers.isLoading,
     shares: shares.data ?? 0n,
     allowance: allowance.data ?? 0n,
     deposited: totalDeposited ?? 0n,
     unlockable: unlockable ?? 0n,
+    tiers,
     stake,
     unstake,
     increaseAllowance,

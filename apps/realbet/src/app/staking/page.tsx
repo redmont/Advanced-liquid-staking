@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card';
 import RealIcon from '@/assets/images/R.svg';
 import { useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
-import { Button } from '@/components/ui/button';
+import { Button, ButtonProps } from '@/components/ui/button';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import backgroundImage from '@/assets/images/vr-guy.png';
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import useParallaxEffect from '@/hooks/useParallax';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -30,16 +30,44 @@ import AnimatedNumber from '@/components/ui/animated-number';
 import { formatBalance } from '@/utils';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
-
-const durations = ['15 days', '30 days', '90 days'] as const;
-const rewardRates = [1, 1.25, 1.5];
+import dayjs from '@/dayjs';
+import React from 'react';
 
 const unlockable = 5000;
 const locked15 = 1000;
 const locked30 = 2500;
 const locked60 = 1500;
 
+const colorGrade = [
+  'primary',
+  'primary-intermediate-1',
+  'primary-intermediate-2',
+  'primary-intermediate-3',
+  'accent',
+] as const;
+
+const gradientTierButtonClasses: ((active: boolean) => Partial<ButtonProps>)[] =
+  new Array(colorGrade.length).fill(0).map(
+    (_, index) => (active: boolean) =>
+      active
+        ? {
+            className: `bg-${colorGrade[index]} border-none hover:bg-${colorGrade[index]} hover:text-black focus:ring-${colorGrade[index]}`,
+          }
+        : {
+            className: `text-${colorGrade[index]} bg-transparent border border-${colorGrade[index]} hover:bg-${colorGrade[index]} hover:text-black focus:ring-${colorGrade[index]}`,
+          },
+  );
+
+const toDaysOrMonths = (lockupTime: number) => {
+  const d = dayjs.duration(lockupTime, 'seconds');
+  if (d.asMonths() < 1) {
+    return `${d.asDays().toFixed(0)} days`;
+  }
+  return `${d.asMonths().toFixed(0)} months`;
+};
+
 export default function Stake() {
+  const [stakingStatus, setStakingStatus] = useState('');
   const isAuthenticated = useIsLoggedIn();
   const token = useToken();
   const vault = useVault();
@@ -49,9 +77,14 @@ export default function Stake() {
 
   const StakeFormSchema = z.object({
     amount: z
-      .string()
+      .string({ message: 'Amount is required' })
       .transform((number) => parseUnits(number, token.decimals)),
-    duration: z.enum(['0', '1', '2']),
+    duration: z
+      .string()
+      .refine(
+        (d) => !!vault.tiers.data?.[parseInt(d)],
+        'Something went wrong selecting the tier.',
+      ),
   });
 
   type StakeValues = z.infer<typeof StakeFormSchema>;
@@ -88,14 +121,16 @@ export default function Stake() {
     }
 
     if (values.amount > vault.allowance) {
+      setStakingStatus('Approving allowance...');
       try {
-        const tx = await vault.increaseAllowance(values.amount);
+        const tx = await vault.increaseAllowance.mutateAsync(values.amount);
         if (!tx) {
           stakeForm.setError('amount', { message: 'Insufficient allowance' });
           return;
         }
         await waitForTransactionReceipt(config, { hash: tx });
       } catch (error) {
+        setStakingStatus('');
         stakeForm.setError('amount', {
           message: 'Error when attempting to increase allowance',
         });
@@ -108,17 +143,13 @@ export default function Stake() {
       return;
     }
 
-    const tx = await vault.stake({
+    setStakingStatus('Staking REAL...');
+    await vault.stake.mutateAsync({
       amount: values.amount,
       tier: values.duration,
     });
 
-    if (!tx) {
-      stakeForm.setError('amount', { message: 'Error when staking' });
-      return;
-    }
-
-    await waitForTransactionReceipt(config, { hash: tx });
+    setStakingStatus('');
   };
 
   const onUnstake = async (values: UnstakeValues) => {
@@ -126,7 +157,7 @@ export default function Stake() {
       return setShowAuthFlow(true);
     }
 
-    await vault.unstake({
+    await vault.unstake.mutateAsync({
       amount: parseUnits(values.amount.toString(), token.decimals),
     });
   };
@@ -171,6 +202,7 @@ export default function Stake() {
       </Card>
       <Card className="space-y-5 p-5">
         <h2 className="text-xl">Stake {token.symbol}</h2>
+        <h3 className="text-primary empty:hidden">{stakingStatus}</h3>
         <Form {...stakeForm}>
           <form onSubmit={stakeForm.handleSubmit(onStake)}>
             <FormField
@@ -246,27 +278,41 @@ export default function Stake() {
               <FormField
                 control={stakeForm.control}
                 name="duration"
-                render={({ field, formState }) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Choose staking duration:</FormLabel>
+                    <FormLabel
+                      className={cn({ 'text-muted': stakeFormLoading })}
+                    >
+                      Choose staking duration:
+                    </FormLabel>
                     <FormControl>
                       <div className="flex flex-wrap gap-2">
-                        {durations.map((_, index) => (
-                          <Button
-                            type="button"
-                            key={index}
-                            disabled={formState.disabled}
-                            variant={
-                              parseInt(field.value) === index
-                                ? 'default'
-                                : 'outline'
-                            }
-                            size="sm"
-                            onClick={() => field.onChange(index.toString())}
-                          >
-                            {durations[index]} ({rewardRates[index]}x)
-                          </Button>
-                        ))}
+                        {!vault.tiers.data ? (
+                          <>
+                            <Skeleton className="h-8 w-24 rounded-lg bg-primary" />
+                            <Skeleton className="h-8 w-24 rounded-lg bg-primary-intermediate-1" />
+                            <Skeleton className="h-8 w-24 rounded-lg bg-primary-intermediate-2" />
+                            <Skeleton className="h-8 w-24 rounded-lg bg-primary-intermediate-3" />
+                            <Skeleton className="h-8 w-24 rounded-lg bg-accent" />
+                          </>
+                        ) : (
+                          vault.tiers.data?.map((tier, index) => (
+                            <Button
+                              type="button"
+                              key={index}
+                              loading={stakeFormLoading}
+                              size="sm"
+                              onClick={() => field.onChange(index.toString())}
+                              {...gradientTierButtonClasses[index]?.(
+                                parseInt(field.value) === index,
+                              )}
+                            >
+                              {toDaysOrMonths(tier.lockupTime)} (
+                              {tier.multiplier}
+                              x)
+                            </Button>
+                          ))
+                        )}
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -275,6 +321,7 @@ export default function Stake() {
               />
             </div>
             <Button
+              loading={stakeFormLoading}
               type="submit"
               className="mt-5 w-full"
               size="lg"
@@ -307,7 +354,10 @@ export default function Stake() {
               <span className="mb-1 font-semibold leading-none">
                 <AnimatedNumber
                   value={Number(
-                    vault.deposited ? vault.shares / vault.deposited : 0,
+                    vault.deposited
+                      ? parseFloat(vault.shares.toString()) /
+                          parseFloat(vault.deposited.toString())
+                      : 0,
                   )}
                   decimals={2}
                 />

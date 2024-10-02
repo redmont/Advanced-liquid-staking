@@ -6,8 +6,6 @@ interface IERC20 {
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
-import "hardhat/console.sol";
-
 contract StakingVault {
     error ERC20InsufficientBalance(address, uint256, uint256);
 
@@ -45,6 +43,10 @@ contract StakingVault {
         tiers.push(Tier(365 days, 1100, 3));
         tiers.push(Tier(730 days, 1500, 3));
         tiers.push(Tier(1460 days, 2100, 3));
+    }
+
+    function getTiers() external view returns (Tier[] memory) {
+        return tiers;
     }
 
     function addUser(address user) internal {
