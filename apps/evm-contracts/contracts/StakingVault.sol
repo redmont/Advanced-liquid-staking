@@ -87,6 +87,7 @@ contract StakingVault {
             })
         );
         addUser(msg.sender);
+
         require(token.transferFrom(msg.sender, address(this), _amount), "Transfer failed");
     }
 
@@ -127,20 +128,8 @@ contract StakingVault {
         admin = newAdmin;
     }
 
-    function getDeposits(
-        address account
-    ) external view returns (uint256[] memory amounts, uint64[] memory timestamps, uint64[] memory unlockTimes) {
-        uint256 depositCount = deposits[account].length;
-        amounts = new uint256[](depositCount);
-        timestamps = new uint64[](depositCount);
-        unlockTimes = new uint64[](depositCount);
-
-        for (uint256 i = 0; i < depositCount; i++) {
-            Deposit memory dep = deposits[account][i];
-            amounts[i] = dep.amount;
-            timestamps[i] = dep.timestamp;
-            unlockTimes[i] = dep.unlockTime;
-        }
+    function getDeposits(address account) external view returns (Deposit[] memory) {
+        return deposits[account];
     }
 
     function getTotalShares() public view returns (uint256 _totalShares) {
