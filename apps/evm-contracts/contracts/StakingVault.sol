@@ -31,9 +31,9 @@ contract StakingVault {
 
     address public admin;
     IERC20 public token;
-    mapping(address => Deposit[]) public deposits;
+    mapping(address user => Deposit[] deposited) public deposits;
     Tier[] public tiers;
-    mapping(address => uint256) public claimableEarnings;
+    mapping(address user => uint256 claimable) public claimableEarnings;
     address[] public totalUsers;
 
     modifier onlyAdmin() {
