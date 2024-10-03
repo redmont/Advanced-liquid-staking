@@ -49,13 +49,9 @@ export const useVault = () => {
         args: [primaryWallet?.address],
       }) as Promise<unknown[]>);
 
-      console.log(amounts, 'AMOUNTS');
-
       return amounts.map((deposit) => DepositSchema.parse(deposit));
     },
   });
-
-  console.log(deposits.error, 'DEPS');
 
   const tiers = useQuery({
     enabled: !!vault,
@@ -70,8 +66,6 @@ export const useVault = () => {
       return TiersSchema.parse(tiers);
     },
   });
-
-  console.log(deposits.data, 'DEPS');
 
   const totalDeposited = useMemo(
     () =>
