@@ -31,7 +31,7 @@ import { useToken } from '@/hooks/useToken';
 import { formatUnits, parseUnits } from 'viem';
 import { formatBalance } from '@/utils';
 
-const nextUnlockDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
+const nextUnlockDate = new Date('2023-01-01');
 const rank = 'Diamond League';
 const rakebackTier = 'Diamond';
 const xp = 0;

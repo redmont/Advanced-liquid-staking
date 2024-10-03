@@ -3,7 +3,7 @@
 import { Card } from '@/components/ui/card';
 import RealIcon from '@/assets/images/R.svg';
 import { useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
-import { Button, ButtonProps } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,23 +22,18 @@ import useParallaxEffect from '@/hooks/useParallax';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { Indicator, Progress } from '@/components/ui/progress';
 import { useToken } from '@/hooks/useToken';
 import { useVault } from '@/hooks/useVault';
 import { formatUnits, parseUnits } from 'viem';
 import { formatBalance, toDaysOrMonths } from '@/utils';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
-import dayjs from '@/dayjs';
 import React from 'react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import AnimatedNumber from '@/components/ui/animated-number';
 import DepositsIndicator from './components/deposits-indicator';
 
 const unlockable = 5000;
-const locked15 = 1000;
-const locked30 = 2500;
-const locked60 = 1500;
 
 const gradientTierButtonClasses = [
   (active: boolean) =>
@@ -136,11 +131,6 @@ export default function Stake() {
     },
     resolver: zodResolver(UnstakeFormSchema),
   });
-
-  const stakedAmountFloat = useMemo(
-    () => parseFloat(formatBalance(vault.deposited ?? 0n, token.decimals)),
-    [vault.deposited, token.decimals],
-  );
 
   const currentMultiplier = useAnimatedNumber(
     vault.deposited
@@ -360,6 +350,9 @@ export default function Stake() {
                     </FormLabel>
                     <FormControl>
                       <div className="flex flex-wrap gap-2">
+                        <p className="text-destructive empty:hidden">
+                          {vault.tiers.error?.message}
+                        </p>
                         {vault.tiers.isLoading ? (
                           <>
                             <Skeleton className="h-8 w-24 rounded-lg bg-primary" />
