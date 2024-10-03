@@ -360,7 +360,7 @@ export default function Stake() {
                     </FormLabel>
                     <FormControl>
                       <div className="flex flex-wrap gap-2">
-                        {!vault.tiers.data ? (
+                        {vault.tiers.isLoading ? (
                           <>
                             <Skeleton className="h-8 w-24 rounded-lg bg-primary" />
                             <Skeleton className="h-8 w-24 rounded-lg bg-primary-intermediate-1" />
