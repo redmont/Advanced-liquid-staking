@@ -78,6 +78,10 @@ export default {
       dropShadow: {
         primary: '0 0 10px hsl(var(--primary) / 0.35)', // Glow-like drop shadow with primary color
       },
+      backgroundImage: {
+        vignette:
+          'radial-gradient(circle, rgba(0, 0, 0, 0.8) 20%, rgba(0, 0, 0, 1) 100%)',
+      },
       keyframes: {
         skeleton: {
           '0%, 100%': { backgroundColor: 'hsl(0 0% 6%)' },

@@ -20,7 +20,7 @@ export default function RootLayout({
         <Providers>
           <main className="flex min-h-screen max-w-full flex-col overflow-hidden lg:flex-row">
             <Navbar className="shrink-0 lg:w-64" />
-            <div className="grow pt-20 lg:pt-0">
+            <div className="flex grow flex-col pt-20 lg:pt-0">
               <Suspense
                 fallback={
                   <div className="flex h-full flex-col items-center justify-center">

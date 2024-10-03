@@ -32,6 +32,7 @@ import React from 'react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import AnimatedNumber from '@/components/ui/animated-number';
 import DepositsIndicator from './components/deposits-indicator';
+import ErrorComponent from '@/components/error';
 
 const unlockable = 5000;
 
@@ -223,6 +224,10 @@ export default function Stake() {
     stakeForm.formState.isSubmitting ||
     vault.isLoading ||
     token.isLoading;
+
+  if (vault.errors.length > 0 || token.errors.length > 0) {
+    return <ErrorComponent />;
+  }
 
   return (
     <div className="grid grid-cols-1 gap-3 p-3 sm:gap-5 sm:p-5 md:grid-cols-2">

@@ -10,7 +10,7 @@ import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 export default function HomePage() {
   const { sdkHasLoaded } = useDynamicContext();
   return (
-    <main className="relative space-y-8 p-5">
+    <main className="relative space-y-5 p-5">
       <Banner>
         <div className="space-y-4">
           <h3 className="inline bg-accent px-2 font-monoline text-3xl text-accent-foreground xl:text-4xl">

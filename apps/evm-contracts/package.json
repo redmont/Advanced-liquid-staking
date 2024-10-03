@@ -1,7 +1,7 @@
 {
   "name": "@bltzr-gg/realbet-evm-contracts",
   "description": "Realbet EVM contracts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": {
     "name": "bltzr-gg",
     "url": "https://github.com/bltzr-gg"

@@ -189,6 +189,7 @@ export const useVault = () => {
   });
 
   return {
+    errors: [shares.error, allowance.error, deposits.error].filter((e) => !!e),
     queries: {
       shares,
       allowance,

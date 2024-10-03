@@ -73,6 +73,7 @@ export const useToken = () => {
   });
 
   return {
+    errors: [symbol.error, balance.error, decimals.error].filter((e) => !!e),
     queries: {
       symbol,
       balance,

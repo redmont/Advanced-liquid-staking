@@ -30,6 +30,7 @@ import { cn } from '@/lib/utils';
 import { useToken } from '@/hooks/useToken';
 import { formatUnits, parseUnits } from 'viem';
 import { formatBalance } from '@/utils';
+import ErrorComponent from '@/components/error';
 
 const nextUnlockDate = new Date('2023-01-01');
 const rank = 'Diamond League';
@@ -45,8 +46,12 @@ export default function Token() {
   const { sdkHasLoaded } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
 
+  if (token.errors.length > 0) {
+    return <ErrorComponent />;
+  }
+
   return (
-    <div className="space-y-8 p-3 sm:p-5">
+    <div className="space-y-5 p-3 sm:p-5">
       <Card>
         <CardHeader>
           <CardTitle className="uppercase">{token.symbol} Balance</CardTitle>
