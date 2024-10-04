@@ -8,24 +8,25 @@ import { useMemo } from 'react';
 import { z } from 'zod';
 import { useToken } from './useToken';
 
-const TiersSchema = z.array(
-  z
-    .object({
-      lockupTime: z.bigint().transform((n) => parseInt(n.toString())),
-      multiplier: z.number(),
-      multiplierDecimals: z.number(),
-    })
-    .transform((tier) => ({
-      // prettier-ignore
-      decimalMult: tier.multiplier / (10 ** tier.multiplierDecimals),
-      ...tier,
-    })),
-);
+const TierSchema = z
+  .object({
+    lockupTime: z.bigint().transform((n) => parseInt(n.toString())),
+    multiplier: z.number(),
+    multiplierDecimals: z.number(),
+  })
+  .transform((tier) => ({
+    // prettier-ignore
+    decimalMult: tier.multiplier / (10 ** tier.multiplierDecimals),
+    ...tier,
+  }));
+
+const TiersSchema = z.array(TierSchema);
 
 const DepositSchema = z.object({
   amount: z.bigint(),
   timestamp: z.bigint().transform((n) => parseInt(n.toString())),
   unlockTime: z.bigint().transform((n) => parseInt(n.toString())),
+  tier: TierSchema,
 });
 
 export type Deposit = z.infer<typeof DepositSchema>;
@@ -49,7 +50,9 @@ export const useVault = () => {
         args: [primaryWallet?.address],
       }) as Promise<unknown[]>);
 
-      return amounts.map((deposit) => DepositSchema.parse(deposit));
+      return amounts
+        .map((deposit) => DepositSchema.parse(deposit))
+        .sort((a, b) => a.timestamp - b.timestamp);
     },
   });
 
@@ -80,11 +83,7 @@ export const useVault = () => {
       deposits.data
         ? deposits.data.reduce(
             (a, b) =>
-              b.unlockTime &&
-              new Date(parseInt(b.unlockTime?.toString() ?? '0') * 1000) >
-                new Date()
-                ? a + b.amount
-                : 0n,
+              new Date(b.unlockTime * 1000) < new Date() ? a + b.amount : 0n,
             0n,
           )
         : undefined,
@@ -190,19 +189,9 @@ export const useVault = () => {
 
   return {
     errors: [shares.error, allowance.error, deposits.error].filter((e) => !!e),
-    queries: {
-      shares,
-      allowance,
-      deposits,
-    },
-    isLoading:
-      shares.isLoading ||
-      deposits.isLoading ||
-      allowance.isLoading ||
-      tiers.isLoading,
-    shares: shares.data ?? 0n,
-    allowance: allowance.data ?? 0n,
-    deposits: deposits.data ?? ([] as Deposit[]),
+    shares,
+    allowance,
+    deposits,
     deposited: totalDeposited ?? 0n,
     unlockable: unlockable ?? 0n,
     tiers,

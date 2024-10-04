@@ -30,12 +30,17 @@ export const parseBalance = (balance: string, decimals: number) =>
 export const balanceToFloat = (balance: bigint, decimals: number) =>
   parseFloat(formatUnits(balance, decimals));
 
-export const toDaysOrMonths = (lockupTime: number) => {
+export const secondsToDaysOrMonths = (
+  lockupTime: number,
+  remainder?: boolean,
+) => {
   const d = dayjs.duration(lockupTime, 'seconds');
   if (d.asMonths() < 1) {
-    return `${d.asDays().toFixed(0)} days`;
+    return `${d.asDays()} days`;
   }
-  return `${d.asMonths().toFixed(0)} months`;
+  return remainder
+    ? `${Math.floor(d.asMonths())} months, ${d.days()} days`
+    : `${d.asMonths().toFixed(0)} months`;
 };
 
 export const toDurationSeconds = (datetime: number) =>

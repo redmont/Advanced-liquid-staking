@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 import { useToken } from '@/hooks/useToken';
 import { useVault } from '@/hooks/useVault';
 import { formatUnits, parseUnits } from 'viem';
-import { formatBalance, toDaysOrMonths } from '@/utils';
+import { formatBalance, secondsToDaysOrMonths } from '@/utils';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
 import React from 'react';
@@ -33,8 +33,9 @@ import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import AnimatedNumber from '@/components/ui/animated-number';
 import DepositsIndicator from './components/deposits-indicator';
 import ErrorComponent from '@/components/error';
-
-const unlockable = 5000;
+import { Progress } from '@/components/ui/progress';
+import dayjs from '@/dayjs';
+import { Scrollable } from '@/components/ui/scrollable';
 
 const gradientTierButtonClasses = [
   (active: boolean) =>
@@ -113,7 +114,9 @@ export default function Stake() {
   type StakeValues = z.infer<typeof StakeFormSchema>;
 
   const UnstakeFormSchema = z.object({
-    amount: z.number({ message: 'Amount must be a number' }),
+    amount: z
+      .string({ message: 'Amount is required' })
+      .transform((number) => parseUnits(number, token.decimals)),
   });
 
   type UnstakeValues = z.infer<typeof UnstakeFormSchema>;
@@ -128,7 +131,7 @@ export default function Stake() {
 
   const unstakeForm = useForm<UnstakeValues>({
     defaultValues: {
-      amount: 0,
+      amount: 0n,
     },
     resolver: zodResolver(UnstakeFormSchema),
   });
@@ -170,7 +173,11 @@ export default function Stake() {
         return stakeForm.setError('amount', { message: 'Amount required' });
       }
 
-      if (values.amount > vault.allowance) {
+      if (!vault.allowance.isSuccess) {
+        throw new Error('Something went wrong fetching allowance');
+      }
+
+      if (values.amount > vault.allowance.data) {
         setStakingStatus('Approving allowance...');
         try {
           const tx = await vault.increaseAllowance.mutateAsync(values.amount);
@@ -222,7 +229,8 @@ export default function Stake() {
   const stakeFormLoading =
     !sdkHasLoaded ||
     stakeForm.formState.isSubmitting ||
-    vault.isLoading ||
+    vault.allowance.isLoading ||
+    vault.deposits.isLoading ||
     token.isLoading;
 
   if (vault.errors.length > 0 || token.errors.length > 0) {
@@ -235,7 +243,7 @@ export default function Stake() {
         <h2>Total {token.symbol} Staked</h2>
         <p
           className={cn('flex items-center gap-3 text-xl', {
-            'animate-pulse': !sdkHasLoaded || vault.isLoading,
+            'animate-pulse': !sdkHasLoaded || vault.deposits.isLoading,
           })}
         >
           <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
@@ -252,7 +260,7 @@ export default function Stake() {
         <h2>{vault.shareSymbol} - Effective Voting Power</h2>
         <p
           className={cn('flex items-center gap-3 text-xl', {
-            'animate-pulse': !sdkHasLoaded || vault.isLoading,
+            'animate-pulse': !sdkHasLoaded || vault.shares.isLoading,
           })}
         >
           <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-accent bg-black p-1.5 text-accent">
@@ -260,7 +268,7 @@ export default function Stake() {
           </span>
           <span className="mb-1 text-3xl font-medium leading-none">
             <AnimatedNumber
-              value={formatBalance(vault.shares, token.decimals)}
+              value={formatBalance(vault.shares.data ?? 0n, token.decimals)}
             />
           </span>
         </p>
@@ -378,7 +386,7 @@ export default function Stake() {
                                 parseInt(field.value) === index,
                               )}
                             >
-                              {toDaysOrMonths(tier.lockupTime)} (
+                              {secondsToDaysOrMonths(tier.lockupTime)} (
                               {tier.decimalMult}
                               x)
                             </Button>
@@ -419,7 +427,7 @@ export default function Stake() {
         <div className="relative z-10 text-center">
           <h2 className="text-2xl font-semibold">You'll get</h2>
           <p className="text-4xl leading-none sm:text-6xl">
-            {vault.isLoading ? (
+            {vault.tiers.isLoading ? (
               <Skeleton className="mt-4 inline-block h-20 w-48 rounded-full" />
             ) : (
               <span className="my-1 flex items-center gap-3 text-nowrap font-semibold">
@@ -458,70 +466,173 @@ export default function Stake() {
         <div>
           <DepositsIndicator />
         </div>
-        <Form {...unstakeForm}>
-          <form className="space-y-5">
-            <FormField
-              control={unstakeForm.control}
-              name="amount"
-              disabled={!sdkHasLoaded}
-              render={({ field, formState }) => (
-                <FormItem>
-                  <FormLabel>Amount to unstake:</FormLabel>
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <FormControl className="grow">
-                      <Input
-                        startAdornment={
-                          <span className="inline-flex items-center gap-1 text-sm">
-                            <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
-                              <RealIcon className="size-full" />
+        {vault.unlockable > 0n && (
+          <Form {...unstakeForm}>
+            <form onSubmit={unstakeForm.handleSubmit(onUnstake)}>
+              <FormField
+                control={unstakeForm.control}
+                name="amount"
+                disabled={!sdkHasLoaded}
+                render={({ field, formState }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Unlockable Amount:{' '}
+                      {formatBalance(vault.unlockable, token.decimals)}{' '}
+                      {token.symbol}
+                    </FormLabel>
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <FormControl className="grow">
+                        <Input
+                          loading={stakeFormLoading}
+                          startAdornment={
+                            <span className="inline-flex items-center gap-1 text-sm">
+                              <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                                <RealIcon className="size-full" />
+                              </span>
+                              {token.symbol}
                             </span>
-                            REAL
-                          </span>
-                        }
-                        endAdornment={
-                          <Button
-                            type="button"
-                            onClick={() => field.onChange(unlockable)}
-                            variant="ghost"
-                            size="sm"
-                            className="mr-1 text-sm"
-                          >
-                            Max
-                          </Button>
-                        }
-                        className={cn({
-                          'border-destructive': formState.errors.amount,
-                        })}
-                        type="number"
-                        min={0}
-                        max={unlockable}
-                        step={1}
-                        placeholder="0"
-                        {...field}
-                        onChange={(e) => {
-                          const value = e.target.valueAsNumber;
-                          if (value > unlockable) {
-                            field.onChange(unlockable);
-                          } else {
-                            field.onChange(value);
                           }
-                        }}
-                      />
-                    </FormControl>
-                    <Button type="submit" loading={!sdkHasLoaded} size="xl">
-                      Unstake
-                    </Button>
-                  </div>
-                  <FormDescription>
-                    Unstake REAL to withdraw your staked REAL
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
+                          endAdornment={
+                            <Button
+                              type="button"
+                              onClick={() => {
+                                field.onChange(
+                                  formatUnits(vault.unlockable, token.decimals),
+                                );
+                              }}
+                              variant="ghost"
+                              size="sm"
+                              className="mr-1 text-sm"
+                            >
+                              Max
+                            </Button>
+                          }
+                          className={cn({
+                            'border-destructive': formState.errors.amount,
+                          })}
+                          placeholder="0"
+                          value={field.value.toString()}
+                          onChange={(e) => {
+                            try {
+                              const value = parseUnits(
+                                e.target.value,
+                                token.decimals,
+                              );
+                              if (value > vault.unlockable) {
+                                stakeForm.setError('amount', {
+                                  message: 'Insufficient balance',
+                                });
+                                field.onChange(
+                                  formatUnits(vault.unlockable, token.decimals),
+                                );
+                              } else {
+                                field.onChange(e.target.value);
+                              }
+                            } catch (error) {
+                              field.onChange(field.value);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <Button type="submit" loading={!sdkHasLoaded} size="xl">
+                        Unstake
+                      </Button>
+                    </div>
+                    <FormDescription>
+                      Unstake REAL to withdraw your staked REAL
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        )}
       </Card>
+      {vault.deposits.isSuccess && vault.deposits.data.length > 0 && (
+        <>
+          <div className="text-2xl text-lightest md:hidden">
+            Previous Stakes
+          </div>
+          <div className="hidden w-full flex-col gap-3 md:col-span-2 md:grid md:grid-cols-6 md:gap-5">
+            <div className="grid-cols-subgrid gap-5 px-5 text-xl text-lightest md:col-span-6 md:grid">
+              <h3 className="hidden xl:block">Event type</h3>
+              <h3>Amount</h3>
+              <h3>Lock Term</h3>
+              <h3>Reward</h3>
+              <h3>Remaining</h3>
+              <h3>Progress</h3>
+            </div>
+          </div>
+          <Scrollable className="-mr-3 max-h-[32rem] pr-3 md:col-span-2 md:max-h-[25rem]">
+            <div className="flex flex-col gap-3 md:grid md:grid-cols-6 md:gap-5">
+              {vault.deposits.data.map((deposit) => {
+                const now = new Date().getTime() / 1000;
+                const remaining = deposit.unlockTime - now;
+                const progress =
+                  ((now - deposit.timestamp) / deposit.tier.lockupTime) * 100;
+                return (
+                  <Card
+                    className={cn(
+                      'items-center gap-5 px-5 py-3 text-center md:col-span-6 md:grid md:grid-cols-subgrid md:text-left',
+                      {
+                        'border bg-lighter/80': remaining <= 0,
+                      },
+                    )}
+                  >
+                    <div className="hidden items-center justify-center gap-3 text-xl leading-none md:justify-start xl:flex">
+                      <span className="inline-flex size-12 shrink-0 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
+                        <RealIcon className="inline size-full" />
+                      </span>{' '}
+                      {token.symbol} Stake
+                    </div>
+                    <div className="text-lg font-medium">
+                      {formatBalance(deposit.amount, token.decimals)}{' '}
+                      {token.symbol}
+                    </div>
+                    <div className="text-lg">
+                      {secondsToDaysOrMonths(deposit.tier.lockupTime)}
+                    </div>
+                    <div
+                      className={cn('text-xl font-medium', {
+                        'text-primary': deposit.tier.decimalMult < 0.5,
+                        'text-primary-intermediate-1':
+                          deposit.tier.decimalMult >= 0.5 &&
+                          deposit.tier.decimalMult < 1,
+                        'text-primary-intermediate-2':
+                          deposit.tier.decimalMult >= 1 &&
+                          deposit.tier.decimalMult < 1.5,
+                        'text-primary-intermediate-3':
+                          deposit.tier.decimalMult >= 1.5 &&
+                          deposit.tier.decimalMult < 2,
+                        'text-accent': deposit.tier.decimalMult >= 2,
+                      })}
+                    >
+                      {deposit.tier.decimalMult}x
+                    </div>
+                    <div
+                      className={cn('text-lg', {
+                        'text-accent': remaining <= 0,
+                      })}
+                    >
+                      {remaining <= 0
+                        ? 'Unlocked'
+                        : `Unlocks in ${dayjs.duration(remaining, 'seconds').humanize()}`}{' '}
+                    </div>
+                    <div>
+                      <Progress
+                        className="mt-1.5 h-3"
+                        value={progress}
+                        variant={remaining <= 0 ? 'accent' : 'lightest'}
+                      />
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </Scrollable>
+        </>
+      )}
     </div>
   );
 }

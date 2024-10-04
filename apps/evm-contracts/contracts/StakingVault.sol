@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import { Ownable2Step, Ownable } from "@openzeppelin/contracts/access/Ownable2Step.sol";
+
 interface IERC20 {
     function transfer(address recipient, uint256 amount) external returns (bool);
     function transferFrom(address sender, address recipient, uint256 amount) external returns (bool);
 }
 
-contract StakingVault {
+contract StakingVault is Ownable2Step {
     error ERC20InsufficientBalance(address from, uint256 available, uint256 required);
-    error NotAdmin();
     error InvalidTier();
     error AmountRequired();
     error TransferFailed();
@@ -29,22 +30,13 @@ contract StakingVault {
         Tier tier;
     }
 
-    address public admin;
     IERC20 public token;
     mapping(address user => Deposit[] deposited) public deposits;
     Tier[] public tiers;
     mapping(address user => uint256 claimable) public claimableEarnings;
     address[] public totalUsers;
 
-    modifier onlyAdmin() {
-        if (msg.sender != admin) {
-            revert NotAdmin();
-        }
-        _;
-    }
-
-    constructor(address tokenAddress) {
-        admin = msg.sender;
+    constructor(address tokenAddress) Ownable(msg.sender) {
         token = IERC20(tokenAddress);
 
         tiers.push(Tier(30 days, 100, 3));
@@ -76,7 +68,7 @@ contract StakingVault {
         uint64 lockupTime,
         uint32 multiplier,
         uint8 multiplierDecimals
-    ) external onlyAdmin {
+    ) external onlyOwner {
         if (multiplier == 0) {
             revert InvalidTier();
         }
@@ -148,13 +140,6 @@ contract StakingVault {
         }
     }
 
-    function setAdmin(address newAdmin) external onlyAdmin {
-        if (newAdmin == address(0)) {
-            revert InvalidAddress();
-        }
-        admin = newAdmin;
-    }
-
     function getDeposits(address account) external view returns (Deposit[] memory) {
         return deposits[account];
     }
@@ -165,12 +150,16 @@ contract StakingVault {
         }
     }
 
-    function sharesPerUser() public view returns (address[] memory users, uint256[] memory userShares) {
+    function sharesPerUser() public view returns (address[] memory, uint256[] memory) {
+        address[] memory users = new address[](totalUsers.length);
+        uint256[] memory userShares = new uint256[](totalUsers.length);
+
         for (uint256 i = 0; i < totalUsers.length; i++) {
             address user = totalUsers[i];
 
             users[i] = user;
             userShares[i] = shares(user);
         }
+        return (users, userShares);
     }
 }
