@@ -573,6 +573,7 @@ export default function Stake() {
                   ((now - deposit.timestamp) / deposit.tier.lockupTime) * 100;
                 return (
                   <Card
+                    key={`${deposit.timestamp}-${deposit.amount}`}
                     className={cn(
                       'items-center gap-5 px-5 py-3 text-center md:col-span-6 md:grid md:grid-cols-subgrid md:text-left',
                       {
