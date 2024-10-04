@@ -386,8 +386,11 @@ export default function Stake() {
                                 parseInt(field.value) === index,
                               )}
                             >
-                              {secondsToDaysOrMonths(tier.lockupTime)} (
-                              {tier.decimalMult}
+                              {dayjs
+                                .duration(tier.lockupTime, 'seconds')
+                                .humanize()
+                                .replace('a ', '1 ')}{' '}
+                              ({tier.decimalMult}
                               x)
                             </Button>
                           ))
@@ -592,7 +595,10 @@ export default function Stake() {
                       {token.symbol}
                     </div>
                     <div className="text-lg">
-                      {secondsToDaysOrMonths(deposit.tier.lockupTime)}
+                      {dayjs
+                        .duration(deposit.tier.lockupTime, 'seconds')
+                        .humanize()
+                        .replace('a ', '1 ')}
                     </div>
                     <div
                       className={cn('text-xl font-medium', {
