@@ -17,7 +17,7 @@ export const useToken = () => {
     queryFn: () =>
       primaryWallet?.address
         ? (readContract(config, {
-            abi: token!.abi as any,
+            abi: token!.abi,
             address: token!.address,
             functionName: 'balanceOf',
             args: [primaryWallet?.address],
@@ -59,17 +59,15 @@ export const useToken = () => {
       }
 
       const tx = await writeContractAsync({
-        address: token!.address,
-        abi: token!.abi,
+        address: token.address,
+        abi: token.abi,
         functionName: 'mint',
         args: [amount],
       });
 
       await waitForTransactionReceipt(config, { hash: tx });
     },
-    onSuccess: () => {
-      balance.refetch();
-    },
+    onSuccess: () => balance.refetch(),
   });
 
   return {

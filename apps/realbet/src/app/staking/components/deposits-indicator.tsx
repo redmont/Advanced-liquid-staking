@@ -1,10 +1,10 @@
 import { useToken } from '@/hooks/useToken';
-import { Deposit, useVault } from '@/hooks/useVault';
+import { type Deposit, useVault } from '@/hooks/useVault';
 import { cn } from '@/lib/utils';
 import { balanceToFloat, formatBalance, toDurationSeconds } from '@/utils';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import dayjs from '@/dayjs';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 const MAX_SHOWN_DEPOSITS = 5;
 
@@ -33,18 +33,21 @@ export default function DepositsIndicator() {
     [deposits],
   );
 
-  const combineDeposit = (
-    a: Omit<Deposit, 'timestamp' | 'tier'>,
-    b: Omit<Deposit, 'timestamp' | 'tier'>,
-  ) => ({
-    amount: a.amount + b.amount,
-    unlockTime: Math.min(a.unlockTime, b.unlockTime),
-    percentage:
-      (balanceToFloat(a.amount + b.amount, decimals) /
-        balanceToFloat(deposited, decimals)) *
-      100,
-    combined: true,
-  });
+  const combineDeposit = useCallback(
+    (
+      a: Omit<Deposit, 'timestamp' | 'tier'>,
+      b: Omit<Deposit, 'timestamp' | 'tier'>,
+    ) => ({
+      amount: a.amount + b.amount,
+      unlockTime: Math.min(a.unlockTime, b.unlockTime),
+      percentage:
+        (balanceToFloat(a.amount + b.amount, decimals) /
+          balanceToFloat(deposited, decimals)) *
+        100,
+      combined: true,
+    }),
+    [decimals, deposited],
+  );
 
   const groupedDeposits = useMemo(
     () =>
@@ -76,7 +79,7 @@ export default function DepositsIndicator() {
           combined?: boolean;
         })[],
       ),
-    [sortedDeposits],
+    [combineDeposit, decimals, deposited, sortedDeposits],
   );
 
   return (

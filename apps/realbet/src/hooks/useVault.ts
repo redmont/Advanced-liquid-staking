@@ -4,7 +4,7 @@ import { readContract, waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
 import { useContracts } from './useContracts';
 import { useWriteContract } from 'wagmi';
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { z } from 'zod';
 import { useToken } from './useToken';
 
@@ -101,9 +101,7 @@ export const useVault = () => {
 
       await waitForTransactionReceipt(config, { hash: tx });
     },
-    onSuccess: () => {
-      tiers.refetch();
-    },
+    onSuccess: () => tiers.refetch(),
   });
 
   const tiers = useQuery({
@@ -186,12 +184,13 @@ export const useVault = () => {
 
       await waitForTransactionReceipt(config, { hash: tx });
     },
-    onSuccess: () => {
-      deposits.refetch();
-      shares.refetch();
-      balance.refetch();
-      allowance.refetch();
-    },
+    onSuccess: () =>
+      Promise.all([
+        deposits.refetch(),
+        shares.refetch(),
+        balance.refetch(),
+        allowance.refetch(),
+      ]),
   });
 
   const increaseAllowance = useMutation({
@@ -213,9 +212,7 @@ export const useVault = () => {
 
       await waitForTransactionReceipt(config, { hash: tx });
     },
-    onSuccess: async () => {
-      allowance.refetch();
-    },
+    onSuccess: async () => allowance.refetch(),
   });
 
   const unstake = useMutation({
@@ -237,11 +234,8 @@ export const useVault = () => {
 
       await waitForTransactionReceipt(config, { hash: tx });
     },
-    onSuccess: () => {
-      deposits.refetch();
-      shares.refetch();
-      balance.refetch();
-    },
+    onSuccess: () =>
+      Promise.all([deposits.refetch(), shares.refetch(), balance.refetch()]),
   });
 
   return {

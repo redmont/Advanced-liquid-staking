@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Tier, useVault } from '@/hooks/useVault';
+import { type Tier, useVault } from '@/hooks/useVault';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import Loading from '@/components/loading';
 import youGotMe from '@/assets/images/you-got-me.webp';

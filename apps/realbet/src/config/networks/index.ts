@@ -1,7 +1,7 @@
 // import { solanaMainnet, solanaDevnet } from './solana';
 // import { mainnet, polygon, polygonAmoy, sepolia } from 'viem/chains';
 import { sepolia } from 'viem/chains';
-import { GetArrayElementType } from '@/types';
+import { type GetArrayElementType } from '@/types';
 
 export * from 'viem/chains';
 

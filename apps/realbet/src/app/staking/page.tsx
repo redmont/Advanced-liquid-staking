@@ -144,7 +144,7 @@ export default function Stake() {
 
   const selectedTier = useMemo(
     () => vault.tiers.data?.[parseInt(stakeForm.watch('duration'))],
-    [vault.tiers.data, stakeForm.watch('duration')],
+    [stakeForm, vault.tiers.data],
   );
 
   const anticipatedShares = useMemo(
@@ -153,7 +153,7 @@ export default function Stake() {
         ? parseFloat(stakeForm.watch('amount').toString()) *
           selectedTier.decimalMult
         : 0,
-    [selectedTier, stakeForm.watch('amount'), token.decimals],
+    [selectedTier, stakeForm],
   );
 
   const anticipatedSharesAnimated = useAnimatedNumber(anticipatedShares, {
@@ -208,7 +208,17 @@ export default function Stake() {
           setStakingStatus('');
         });
     },
-    [isAuthenticated, setShowAuthFlow, token.decimals, vault.stake],
+    [
+      isAuthenticated,
+      setShowAuthFlow,
+      stakeForm,
+      token.balance,
+      vault.allowance.data,
+      vault.allowance.isSuccess,
+      vault.increaseAllowance,
+      vault.shareSymbol,
+      vault.stake,
+    ],
   );
 
   const onUnstake = useCallback(
@@ -231,7 +241,14 @@ export default function Stake() {
         amount: values.amount,
       });
     },
-    [isAuthenticated, setShowAuthFlow, token.decimals, vault.unstake],
+    [
+      isAuthenticated,
+      primaryWallet?.address,
+      setShowAuthFlow,
+      unstakeForm,
+      vault.unlockable,
+      vault.unstake,
+    ],
   );
 
   const stakeFormLoading =
@@ -439,7 +456,7 @@ export default function Stake() {
       >
         <div className="absolute inset-0 z-10 bg-black opacity-50" />
         <div className="relative z-10 text-center">
-          <h2 className="text-2xl font-semibold">You'll get</h2>
+          <h2 className="text-2xl font-semibold">You&apos;ll get</h2>
           <p className="text-4xl leading-none sm:text-5xl xl:text-6xl">
             {vault.tiers.isLoading ? (
               <Skeleton className="mt-4 inline-block h-20 w-48 rounded-full" />

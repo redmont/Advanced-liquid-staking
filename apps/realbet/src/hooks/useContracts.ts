@@ -6,7 +6,7 @@ export const useContracts = () => {
 
   return {
     isLoading: networkId.isLoading,
-    vault: networkId.data && contracts.TestStakingVault[networkId.data!],
-    token: networkId.data && contracts.TestToken[networkId.data!],
+    vault: networkId.data && contracts.TestStakingVault[networkId.data],
+    token: networkId.data && contracts.TestToken[networkId.data],
   };
 };

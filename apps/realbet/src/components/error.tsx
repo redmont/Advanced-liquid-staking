@@ -13,7 +13,8 @@ const ErrorComponent: React.FC = () => {
           GAME OVER
         </h1>
         <p className="text-xl sm:text-2xl">
-          Unfortunately, something went wrong. <br /> We'll get 'em next time.
+          Unfortunately, something went wrong. <br /> We&apos;ll get &apos;em
+          next time.
         </p>
       </div>
     </div>

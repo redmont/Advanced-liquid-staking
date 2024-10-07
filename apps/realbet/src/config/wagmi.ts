@@ -1,4 +1,4 @@
-import { Environment } from '@/types';
+import { type Environment } from '@/types';
 import { createConfig } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import { http } from 'viem';

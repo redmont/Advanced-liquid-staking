@@ -49,7 +49,7 @@ export const useAnimatedNumber = (
     };
   }, [value, duration]);
 
-  let finalDisplayValue = isNaN(displayValue) ? 0 : displayValue;
+  const finalDisplayValue = isNaN(displayValue) ? 0 : displayValue;
 
   return finalDisplayValue.toFixed(decimals);
 };
