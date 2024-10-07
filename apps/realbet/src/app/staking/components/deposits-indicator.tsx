@@ -28,7 +28,7 @@ export default function DepositsIndicator() {
     () =>
       deposits.data
         ?.slice()
-        .filter((dep) => dep.amount >= 0n)
+        .filter((dep) => dep.amount > 0n)
         .sort((a, b) => a.unlockTime - b.unlockTime) ?? [],
     [deposits],
   );
