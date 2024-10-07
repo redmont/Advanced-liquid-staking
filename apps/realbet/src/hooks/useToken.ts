@@ -5,6 +5,7 @@ import { readContract, waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
 import { useWriteContract } from 'wagmi';
 import { useContracts } from './useContracts';
+import { useEffect } from 'react';
 
 export const useToken = () => {
   const { primaryWallet, setShowAuthFlow } = useDynamicContext();
