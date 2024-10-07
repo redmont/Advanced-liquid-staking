@@ -221,6 +221,7 @@ export const useVault = () => {
       if (!vault) {
         throw new Error('Vault contract required');
       }
+
       if (!primaryWallet) {
         throw new Error('Wallet required');
       }

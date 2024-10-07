@@ -25,9 +25,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect, useState } from 'react';
 import { Progress, Indicator } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
 
 export default function Styleguide() {
   const [isLoading, setIsLoading] = useState(false);
+  const [inputIsLoading, setInputIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [tableLoading, setTableLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -104,6 +106,36 @@ export default function Styleguide() {
             {((progress3 / total) * 100).toFixed(0)}% White
           </span>
         </p>
+      </div>
+      <div>
+        <h2 className="mb-2 text-xl">Input states</h2>
+        <div className="mb-3 flex items-center space-x-2">
+          <Checkbox
+            onCheckedChange={(checked) => setInputIsLoading(!!checked)}
+            checked={inputIsLoading}
+            id="loading"
+          />
+          <label
+            htmlFor="loading"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Loading
+          </label>
+        </div>
+        <Input
+          loading={inputIsLoading}
+          startAdornment={<span className="px-2">Start Adornment</span>}
+          endAdornment={
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mr-1 text-sm"
+            >
+              Max
+            </Button>
+          }
+        />
       </div>
       <div>
         <h2 className="mb-2 text-xl">Button States</h2>
