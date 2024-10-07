@@ -1,17 +1,10 @@
-// This configuration only applies to the package manager root.
 /** @type {import("eslint").Linter.Config} */
 module.exports = {
-  ignorePatterns: [
-    'apps/**',
-    // Ignore dotfiles
-    '.*.js',
-    'node_modules/',
-    'dist/',
-  ],
+  ignorePatterns: ['apps/**', '.*.js', 'node_modules/', 'dist/'],
   extends: ['eslint:recommended', 'prettier', 'turbo'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: './tsconfig.json', // Provide the path to your TypeScript configuration file
+    project: './tsconfig.json',
   },
   plugins: ['only-warn'],
   globals: {
@@ -24,7 +17,7 @@ module.exports = {
   settings: {
     'import/resolver': {
       typescript: {
-        project: './tsconfig.json', // Again, specify the path to your TypeScript configuration file
+        project: './tsconfig.json',
       },
     },
   },
