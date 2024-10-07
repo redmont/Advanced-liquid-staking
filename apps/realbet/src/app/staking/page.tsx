@@ -25,9 +25,7 @@ import { cn } from '@/lib/utils';
 import { useToken } from '@/hooks/useToken';
 import { useVault } from '@/hooks/useVault';
 import { formatUnits, parseUnits } from 'viem';
-import { formatBalance, secondsToDaysOrMonths } from '@/utils';
-import { waitForTransactionReceipt } from '@wagmi/core';
-import config from '@/config/wagmi';
+import { formatBalance } from '@/utils';
 import React from 'react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import AnimatedNumber from '@/components/ui/animated-number';
@@ -36,7 +34,6 @@ import ErrorComponent from '@/components/error';
 import { Progress } from '@/components/ui/progress';
 import dayjs from '@/dayjs';
 import { Scrollable } from '@/components/ui/scrollable';
-import { useContracts } from '@/hooks/useContracts';
 
 const gradientTierButtonClasses = [
   (active: boolean) =>
@@ -186,12 +183,7 @@ export default function Stake() {
       if (values.amount > vault.allowance.data) {
         setStakingStatus('Approving allowance...');
         try {
-          const tx = await vault.increaseAllowance.mutateAsync(values.amount);
-          if (!tx) {
-            stakeForm.setError('amount', { message: 'Insufficient allowance' });
-            return;
-          }
-          await waitForTransactionReceipt(config, { hash: tx });
+          await vault.increaseAllowance.mutateAsync(values.amount);
         } catch (error) {
           setStakingStatus('');
           stakeForm.setError('amount', {
@@ -246,6 +238,12 @@ export default function Stake() {
     !sdkHasLoaded ||
     stakeForm.formState.isSubmitting ||
     vault.allowance.isLoading ||
+    vault.deposits.isLoading ||
+    token.isLoading;
+
+  const unstakeFormLoading =
+    !sdkHasLoaded ||
+    unstakeForm.formState.isSubmitting ||
     vault.deposits.isLoading ||
     token.isLoading;
 
@@ -304,10 +302,10 @@ export default function Stake() {
                   >
                     Stakeable Balance:{' '}
                     {formatBalance(token.balance, token.decimals)}{' '}
-                    {token.symbol},
+                    {token.symbol}
                     {vault.allowance.isSuccess && vault.allowance.data > 0n && (
                       <>
-                        {' '}
+                        {', '}
                         Allowance:{' '}
                         {formatBalance(
                           vault.allowance.data,
@@ -500,7 +498,7 @@ export default function Stake() {
                     <div className="flex flex-col gap-3 sm:flex-row">
                       <FormControl className="grow">
                         <Input
-                          loading={stakeFormLoading}
+                          loading={unstakeFormLoading}
                           startAdornment={
                             <span className="inline-flex items-center gap-1 text-sm">
                               <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
@@ -534,7 +532,11 @@ export default function Stake() {
                           }}
                         />
                       </FormControl>
-                      <Button type="submit" loading={!sdkHasLoaded} size="xl">
+                      <Button
+                        type="submit"
+                        loading={unstakeFormLoading}
+                        size="xl"
+                      >
                         Unstake
                       </Button>
                     </div>

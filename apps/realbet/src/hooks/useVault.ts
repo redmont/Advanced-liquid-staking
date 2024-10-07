@@ -4,7 +4,7 @@ import { readContract, waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
 import { useContracts } from './useContracts';
 import { useWriteContract } from 'wagmi';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { z } from 'zod';
 import { useToken } from './useToken';
 
@@ -204,14 +204,16 @@ export const useVault = () => {
         throw new Error('Vault and token contract required');
       }
 
-      return writeContractAsync({
+      const tx = await writeContractAsync({
         address: token.address,
         abi: token.abi,
         functionName: 'approve',
         args: [vault.address, amount],
       });
+
+      await waitForTransactionReceipt(config, { hash: tx });
     },
-    onSuccess: async (tx) => {
+    onSuccess: async () => {
       allowance.refetch();
     },
   });
