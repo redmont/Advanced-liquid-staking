@@ -75,19 +75,25 @@ describe("StakingVault", function () {
 
     // deposit
     const decimals = await token.read.decimals();
-    const amount = parseUnits("100", decimals);
+    const amount = parseUnits("50", decimals);
     await token.write.mint([amount], { account: user.account.address });
     await token.write.approve([vault.address, amount], { account: user.account.address });
     const tx = await vault.write.deposit([amount, 0n], { account: user.account.address });
     await client.waitForTransactionReceipt({ hash: tx });
 
     await expect(
-      vault.write.withdraw([parseUnits("100", 18), user.account.address], { account: user.account.address }),
+      vault.write.withdraw([parseUnits("55", 18), user.account.address], { account: user.account.address }),
     ).to.be.rejectedWith("InsufficientBalance()");
     const tiers = await vault.read.getTiers();
     await time.increase(tiers[0].lockupTime + 100n);
-    await vault.write.withdraw([parseUnits("50", 18), user.account.address], { account: user.account.address });
-    expect(await vault.read.shares([user.account.address])).to.equal(parseUnits("5", 18));
+    const tx2 = await vault.write.withdraw([parseUnits("50", 18), user.account.address], {
+      account: user.account.address,
+    });
+    await client.waitForTransactionReceipt({ hash: tx2 });
+    expect(await vault.read.shares([user.account.address]), "Shares after withdrawal").to.equal(parseUnits("0", 18));
+    expect(await token.read.balanceOf([user.account.address]), "Balance after withdrawal").to.equal(
+      parseUnits("50", 18),
+    );
   });
 
   it("Changing tiers does not affect current deposits", async function () {

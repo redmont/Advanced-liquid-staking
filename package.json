@@ -8,6 +8,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
+    "eslint-plugin-only-warn": "^1.1.0",
     "prettier": "^3.2.5",
     "turbo": "^2.1.2",
     "typescript": "^5.4.5"
@@ -18,5 +19,8 @@
   },
   "lint-staged": {
     "*.{ts,tsx,md}": "prettier --write"
+  },
+  "dependencies": {
+    "eslint-config-turbo": "^2.1.3"
   }
 }

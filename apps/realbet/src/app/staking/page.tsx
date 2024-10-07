@@ -36,6 +36,7 @@ import ErrorComponent from '@/components/error';
 import { Progress } from '@/components/ui/progress';
 import dayjs from '@/dayjs';
 import { Scrollable } from '@/components/ui/scrollable';
+import { useContracts } from '@/hooks/useContracts';
 
 const gradientTierButtonClasses = [
   (active: boolean) =>
@@ -95,7 +96,7 @@ export default function Stake() {
   const isAuthenticated = useIsLoggedIn();
   const token = useToken();
   const vault = useVault();
-  const { sdkHasLoaded, setShowAuthFlow } = useDynamicContext();
+  const { sdkHasLoaded, setShowAuthFlow, primaryWallet } = useDynamicContext();
   const parallaxRef = useRef<HTMLDivElement>(null);
   const parallax = useParallaxEffect(parallaxRef);
 
@@ -137,9 +138,9 @@ export default function Stake() {
   });
 
   const currentMultiplier = useAnimatedNumber(
-    vault.deposited
-      ? parseFloat(vault.shares.toString()) /
-          parseFloat(vault.deposited.toString())
+    vault.shares.isSuccess && vault.deposits.isSuccess
+      ? parseFloat(vault.shares.data.toString()) /
+          parseFloat(vault.deposited?.toString() ?? 0)
       : 0,
     { decimals: 2, duration: 750 },
   );
@@ -171,6 +172,11 @@ export default function Stake() {
 
       if (values.amount === 0n) {
         return stakeForm.setError('amount', { message: 'Amount required' });
+      }
+
+      if (values.amount > token.balance) {
+        stakeForm.setError('amount', { message: 'Insufficient balance' });
+        return;
       }
 
       if (!vault.allowance.isSuccess) {
@@ -219,8 +225,18 @@ export default function Stake() {
         return setShowAuthFlow(true);
       }
 
+      if (values.amount > vault.unlockable) {
+        unstakeForm.setError('amount', { message: 'Insufficient balance' });
+        return;
+      }
+
+      if (!primaryWallet?.address) {
+        unstakeForm.setError('amount', { message: 'Wallet required' });
+        return;
+      }
+
       await vault.unstake.mutateAsync({
-        amount: parseUnits(values.amount.toString(), token.decimals),
+        amount: values.amount,
       });
     },
     [isAuthenticated, setShowAuthFlow, token.decimals, vault.unstake],
@@ -288,7 +304,18 @@ export default function Stake() {
                   >
                     Stakeable Balance:{' '}
                     {formatBalance(token.balance, token.decimals)}{' '}
-                    {token.symbol}
+                    {token.symbol},
+                    {vault.allowance.isSuccess && vault.allowance.data > 0n && (
+                      <>
+                        {' '}
+                        Allowance:{' '}
+                        {formatBalance(
+                          vault.allowance.data,
+                          token.decimals,
+                        )}{' '}
+                        {token.symbol}
+                      </>
+                    )}
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -322,24 +349,7 @@ export default function Stake() {
                       placeholder="0"
                       value={field.value.toString()}
                       onChange={(e) => {
-                        try {
-                          const value = parseUnits(
-                            e.target.value,
-                            token.decimals,
-                          );
-                          if (value > token.balance) {
-                            stakeForm.setError('amount', {
-                              message: 'Insufficient balance',
-                            });
-                            field.onChange(
-                              formatUnits(token.balance, token.decimals),
-                            );
-                          } else {
-                            field.onChange(e.target.value);
-                          }
-                        } catch (error) {
-                          field.onChange(field.value);
-                        }
+                        field.onChange(e.target.value);
                       }}
                     />
                   </FormControl>
@@ -387,7 +397,10 @@ export default function Stake() {
                               )}
                             >
                               {dayjs
-                                .duration(tier.lockupTime, 'seconds')
+                                .duration(
+                                  parseInt(tier.lockupTime.toString()),
+                                  'seconds',
+                                )
                                 .humanize()
                                 .replace('a ', '1 ')}{' '}
                               ({tier.decimalMult}
@@ -429,7 +442,7 @@ export default function Stake() {
         <div className="absolute inset-0 z-10 bg-black opacity-50" />
         <div className="relative z-10 text-center">
           <h2 className="text-2xl font-semibold">You'll get</h2>
-          <p className="text-4xl leading-none sm:text-6xl">
+          <p className="text-4xl leading-none sm:text-5xl xl:text-6xl">
             {vault.tiers.isLoading ? (
               <Skeleton className="mt-4 inline-block h-20 w-48 rounded-full" />
             ) : (
@@ -447,7 +460,8 @@ export default function Stake() {
       </div>
       <Card className="space-y-5 p-5 md:col-span-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl">Locked REAL</h2>
+          <h2 className="text-xl">Locked {token.symbol}</h2>
+
           <h2 className="text-xl">
             Current Multiplier:{' '}
             <span
@@ -516,24 +530,7 @@ export default function Stake() {
                           placeholder="0"
                           value={field.value.toString()}
                           onChange={(e) => {
-                            try {
-                              const value = parseUnits(
-                                e.target.value,
-                                token.decimals,
-                              );
-                              if (value > vault.unlockable) {
-                                stakeForm.setError('amount', {
-                                  message: 'Insufficient balance',
-                                });
-                                field.onChange(
-                                  formatUnits(vault.unlockable, token.decimals),
-                                );
-                              } else {
-                                field.onChange(e.target.value);
-                              }
-                            } catch (error) {
-                              field.onChange(field.value);
-                            }
+                            field.onChange(e.target.value);
                           }}
                         />
                       </FormControl>
@@ -541,8 +538,13 @@ export default function Stake() {
                         Unstake
                       </Button>
                     </div>
+                    {vault.unstake.error && (
+                      <FormMessage className="text-destructive">
+                        {vault.unstake.error.message}
+                      </FormMessage>
+                    )}
                     <FormDescription>
-                      Unstake REAL to withdraw your staked REAL
+                      Unstake {token.symbol} to withdaw your tokens.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -569,73 +571,75 @@ export default function Stake() {
           </div>
           <Scrollable className="-mr-3 max-h-[32rem] pr-3 md:col-span-2 md:max-h-[25rem]">
             <div className="flex flex-col gap-3 md:grid md:grid-cols-6 md:gap-5">
-              {vault.deposits.data.map((deposit) => {
-                const now = new Date().getTime() / 1000;
-                const remaining = deposit.unlockTime - now;
-                const progress =
-                  ((now - deposit.timestamp) / deposit.tier.lockupTime) * 100;
-                return (
-                  <Card
-                    key={`${deposit.timestamp}-${deposit.amount}`}
-                    className={cn(
-                      'items-center gap-5 px-5 py-3 text-center md:col-span-6 md:grid md:grid-cols-subgrid md:text-left',
-                      {
-                        'border bg-lighter/80': remaining <= 0,
-                      },
-                    )}
-                  >
-                    <div className="hidden items-center justify-center gap-3 text-xl leading-none md:justify-start xl:flex">
-                      <span className="inline-flex size-12 shrink-0 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
-                        <RealIcon className="inline size-full" />
-                      </span>{' '}
-                      {token.symbol} Stake
-                    </div>
-                    <div className="text-lg font-medium">
-                      {formatBalance(deposit.amount, token.decimals)}{' '}
-                      {token.symbol}
-                    </div>
-                    <div className="text-lg">
-                      {dayjs
-                        .duration(deposit.tier.lockupTime, 'seconds')
-                        .humanize()
-                        .replace('a ', '1 ')}
-                    </div>
-                    <div
-                      className={cn('text-xl font-medium', {
-                        'text-primary': deposit.tier.decimalMult < 0.5,
-                        'text-primary-intermediate-1':
-                          deposit.tier.decimalMult >= 0.5 &&
-                          deposit.tier.decimalMult < 1,
-                        'text-primary-intermediate-2':
-                          deposit.tier.decimalMult >= 1 &&
-                          deposit.tier.decimalMult < 1.5,
-                        'text-primary-intermediate-3':
-                          deposit.tier.decimalMult >= 1.5 &&
-                          deposit.tier.decimalMult < 2,
-                        'text-accent': deposit.tier.decimalMult >= 2,
-                      })}
+              {vault.deposits.data
+                .filter((dep) => dep.amount > 0n)
+                .map((deposit) => {
+                  const now = new Date().getTime() / 1000;
+                  const remaining = deposit.unlockTime - now;
+                  const progress =
+                    ((now - deposit.timestamp) / deposit.tier.lockupTime) * 100;
+                  return (
+                    <Card
+                      key={`${deposit.timestamp}-${deposit.amount}`}
+                      className={cn(
+                        'items-center gap-5 px-5 py-3 text-center md:col-span-6 md:grid md:grid-cols-subgrid md:text-left',
+                        {
+                          'border bg-lighter/80': remaining <= 0,
+                        },
+                      )}
                     >
-                      {deposit.tier.decimalMult}x
-                    </div>
-                    <div
-                      className={cn('text-lg', {
-                        'text-accent': remaining <= 0,
-                      })}
-                    >
-                      {remaining <= 0
-                        ? 'Unlocked'
-                        : `Unlocks in ${dayjs.duration(remaining, 'seconds').humanize()}`}{' '}
-                    </div>
-                    <div>
-                      <Progress
-                        className="mt-1.5 h-3"
-                        value={progress}
-                        variant={remaining <= 0 ? 'accent' : 'lightest'}
-                      />
-                    </div>
-                  </Card>
-                );
-              })}
+                      <div className="hidden items-center justify-center gap-3 text-xl leading-none md:justify-start xl:flex">
+                        <span className="inline-flex size-12 shrink-0 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
+                          <RealIcon className="inline size-full" />
+                        </span>{' '}
+                        {token.symbol} Stake
+                      </div>
+                      <div className="text-lg font-medium">
+                        {formatBalance(deposit.amount, token.decimals)}{' '}
+                        {token.symbol}
+                      </div>
+                      <div className="text-lg">
+                        {dayjs
+                          .duration(deposit.tier.lockupTime, 'seconds')
+                          .humanize()
+                          .replace('a ', '1 ')}
+                      </div>
+                      <div
+                        className={cn('text-xl font-medium', {
+                          'text-primary': deposit.tier.decimalMult < 0.5,
+                          'text-primary-intermediate-1':
+                            deposit.tier.decimalMult >= 0.5 &&
+                            deposit.tier.decimalMult < 1,
+                          'text-primary-intermediate-2':
+                            deposit.tier.decimalMult >= 1 &&
+                            deposit.tier.decimalMult < 1.5,
+                          'text-primary-intermediate-3':
+                            deposit.tier.decimalMult >= 1.5 &&
+                            deposit.tier.decimalMult < 2,
+                          'text-accent': deposit.tier.decimalMult >= 2,
+                        })}
+                      >
+                        {deposit.tier.decimalMult}x
+                      </div>
+                      <div
+                        className={cn('text-lg', {
+                          'text-accent': remaining <= 0,
+                        })}
+                      >
+                        {remaining <= 0
+                          ? 'Unlocked'
+                          : `Unlocks in ${dayjs.duration(remaining, 'seconds').humanize()}`}{' '}
+                      </div>
+                      <div>
+                        <Progress
+                          className="mt-1.5 h-3"
+                          value={progress}
+                          variant={remaining <= 0 ? 'accent' : 'lightest'}
+                        />
+                      </div>
+                    </Card>
+                  );
+                })}
             </div>
           </Scrollable>
         </>

@@ -26,7 +26,10 @@ export default function DepositsIndicator() {
 
   const sortedDeposits = useMemo(
     () =>
-      deposits.data?.slice().sort((a, b) => a.unlockTime - b.unlockTime) ?? [],
+      deposits.data
+        ?.slice()
+        .filter((dep) => dep.amount >= 0n)
+        .sort((a, b) => a.unlockTime - b.unlockTime) ?? [],
     [deposits],
   );
 
@@ -138,7 +141,7 @@ export default function DepositsIndicator() {
           style={{
             width: `${groupedDeposits[4]?.percentage ?? 0}%`,
           }}
-          className="delay-[400ms] flex shrink-0 items-center justify-center overflow-hidden text-nowrap transition-all duration-1000"
+          className="flex shrink-0 items-center justify-center overflow-hidden text-nowrap transition-all delay-400 duration-1000"
         >
           {groupedDeposits[4] && (
             <span className="max-w-full overflow-hidden text-ellipsis px-1 text-xs text-primary-foreground">

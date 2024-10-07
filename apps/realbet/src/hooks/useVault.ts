@@ -8,6 +8,12 @@ import { useMemo } from 'react';
 import { z } from 'zod';
 import { useToken } from './useToken';
 
+export type Tier = {
+  lockupTime: number;
+  multiplier: number;
+  multiplierDecimals: number;
+};
+
 const TierSchema = z
   .object({
     lockupTime: z.bigint().transform((n) => parseInt(n.toString())),
@@ -52,7 +58,51 @@ export const useVault = () => {
 
       return amounts
         .map((deposit) => DepositSchema.parse(deposit))
-        .sort((a, b) => a.timestamp - b.timestamp);
+        .sort((a, b) => a.unlockTime - b.unlockTime);
+    },
+  });
+
+  const isAdmin = useQuery({
+    enabled: !!vault && !!primaryWallet?.address,
+    queryKey: ['admin', vault?.address, primaryWallet?.address],
+    queryFn: async () => {
+      const admin = (await readContract(config, {
+        abi: vault!.abi,
+        address: vault!.address,
+        functionName: 'owner',
+      })) as string;
+      return primaryWallet!.address === admin;
+    },
+  });
+
+  const setTier = useMutation({
+    mutationFn: async ({ tier, index }: { tier: Tier; index: number }) => {
+      if (!vault) {
+        throw new Error('Vault contract required');
+      }
+      if (!primaryWallet) {
+        throw new Error('Wallet required');
+      }
+      if (isAdmin.isLoading || isAdmin.data === false) {
+        throw new Error('Not admin');
+      }
+
+      const tx = await writeContractAsync({
+        address: vault.address,
+        abi: vault.abi,
+        functionName: 'setTier',
+        args: [
+          index,
+          tier.lockupTime,
+          tier.multiplier,
+          tier.multiplierDecimals,
+        ],
+      });
+
+      await waitForTransactionReceipt(config, { hash: tx });
+    },
+    onSuccess: () => {
+      tiers.refetch();
     },
   });
 
@@ -83,7 +133,9 @@ export const useVault = () => {
       deposits.data
         ? deposits.data.reduce(
             (a, b) =>
-              new Date(b.unlockTime * 1000) < new Date() ? a + b.amount : 0n,
+              b.unlockTime - new Date().getTime() / 1000 <= 0
+                ? a + b.amount
+                : a,
             0n,
           )
         : undefined,
@@ -99,6 +151,23 @@ export const useVault = () => {
         address: vault!.address,
         functionName: 'shares',
         args: [primaryWallet!.address],
+      }) as Promise<bigint>,
+  });
+
+  const allowance = useQuery({
+    enabled: !!primaryWallet && !!vault && !!token,
+    queryKey: [
+      'allowance',
+      vault?.address,
+      primaryWallet?.address,
+      token?.address,
+    ],
+    queryFn: () =>
+      readContract(config, {
+        abi: token!.abi,
+        address: token!.address,
+        functionName: 'allowance',
+        args: [primaryWallet!.address, vault!.address],
       }) as Promise<bigint>,
   });
 
@@ -121,24 +190,8 @@ export const useVault = () => {
       deposits.refetch();
       shares.refetch();
       balance.refetch();
+      allowance.refetch();
     },
-  });
-
-  const allowance = useQuery({
-    enabled: !!primaryWallet && !!vault && !!token,
-    queryKey: [
-      'allowance',
-      vault?.address,
-      primaryWallet?.address,
-      token?.address,
-    ],
-    queryFn: () =>
-      readContract(config, {
-        abi: token!.abi,
-        address: token!.address,
-        functionName: 'allowance',
-        args: [primaryWallet!.address, vault!.address],
-      }) as Promise<bigint>,
   });
 
   const increaseAllowance = useMutation({
@@ -171,6 +224,7 @@ export const useVault = () => {
       if (!primaryWallet) {
         throw new Error('Wallet required');
       }
+
       const tx = await writeContractAsync({
         address: vault.address,
         abi: vault.abi,
@@ -191,9 +245,11 @@ export const useVault = () => {
     errors: [shares.error, allowance.error, deposits.error].filter((e) => !!e),
     shares,
     allowance,
+    isAdmin,
     deposits,
     deposited: totalDeposited ?? 0n,
     unlockable: unlockable ?? 0n,
+    setTier,
     tiers,
     stake,
     unstake,

@@ -4,13 +4,13 @@ import vault from "./ignition/deployments/chain-11155111/artifacts/StakingVault#
 export default {
   TestToken: {
     11155111: {
-      address: "0xF3351f333dCDa3A79844D8705CCc5536A7248cB7",
+      address: "0x80503a00e1B60C9Be8E6f005C3d4fDbbDAbd5be2",
       abi: token.abi,
     },
   },
   TestStakingVault: {
     11155111: {
-      address: "0xd885e8011c3f65A4E40a9146f15771460bbb9F0E",
+      address: "0xAfa68D066A7e809EFAb066dcA5001f1cD1e75eA0",
       abi: vault.abi,
     },
   },

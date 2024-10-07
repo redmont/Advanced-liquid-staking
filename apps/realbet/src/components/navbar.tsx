@@ -17,11 +17,19 @@ import {
   useDynamicContext,
   useIsLoggedIn,
 } from '@dynamic-labs/sdk-react-core';
-import { House, PackagePlus, Paintbrush, Wallet2, Coins } from 'lucide-react';
+import {
+  House,
+  PackagePlus,
+  Paintbrush,
+  Wallet2,
+  Coins,
+  UserCog,
+} from 'lucide-react';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { usePathname } from 'next/navigation';
 import { env } from '@/env';
 import useClickOutside from '@/hooks/useClickOutside';
+import { useVault } from '@/hooks/useVault';
 
 const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
   className,
@@ -46,13 +54,13 @@ const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
 
 const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const pathname = usePathname();
-
   const isAuthenticated = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
   const { primaryWallet, user } = useDynamicContext();
   const [isNavOpen, setNavOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   useClickOutside(navRef, () => setNavOpen(false));
+  const vault = useVault();
 
   useEffect(() => {
     setNavOpen(false);
@@ -117,6 +125,17 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
             )}
           </li>
           <hr className="mt-3 h-px border-none bg-lighter" />
+          {vault.isAdmin.data && (
+            <li>
+              <NextLink
+                className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+                path="/admin"
+              >
+                <UserCog />
+                <span>Admin</span>
+              </NextLink>
+            </li>
+          )}
           {env.NEXT_PUBLIC_VERCEL_ENV !== 'production' && (
             <li>
               <NextLink

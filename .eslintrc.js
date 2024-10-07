@@ -8,7 +8,7 @@ module.exports = {
     'node_modules/',
     'dist/',
   ],
-  extends: ['eslint:recommended', 'prettier', 'eslint-config-turbo'],
+  extends: ['eslint:recommended', 'prettier', 'turbo'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: './tsconfig.json', // Provide the path to your TypeScript configuration file
