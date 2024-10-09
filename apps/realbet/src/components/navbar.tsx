@@ -24,6 +24,7 @@ import {
   Wallet2,
   Coins,
   UserCog,
+  CircleDollarSign,
 } from 'lucide-react';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { usePathname } from 'next/navigation';
@@ -172,6 +173,15 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
             >
               <Coins />
               <span>Token</span>
+            </NextLink>
+          </li>
+          <li>
+            <NextLink
+              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+              path="/bonus"
+            >
+              <CircleDollarSign />
+              <span>Welcome Bonus</span>
             </NextLink>
           </li>
         </ul>

@@ -184,6 +184,7 @@ export default function Stake() {
         setStakingStatus('Approving allowance...');
         try {
           await vault.increaseAllowance.mutateAsync(values.amount);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
           setStakingStatus('');
           stakeForm.setError('amount', {
