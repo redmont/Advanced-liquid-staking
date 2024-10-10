@@ -31,6 +31,7 @@ import { useToken } from '@/hooks/useToken';
 import { formatUnits, parseUnits } from 'viem';
 import { formatBalance } from '@/utils';
 import ErrorComponent from '@/components/error';
+import useLeaderboardV2 from '@/hooks/useLeaderboard';
 
 const nextUnlockDate = new Date('2023-01-01');
 const rank = 'Diamond League';
@@ -45,6 +46,8 @@ export default function Token() {
   const token = useToken();
   const { sdkHasLoaded } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
+  const { data } = useLeaderboardV2();
+  // console.log(data);
 
   if (token.errors.length > 0) {
     return <ErrorComponent />;
@@ -322,7 +325,7 @@ export default function Token() {
                 <Skeleton className="inline-block h-6 w-40" />
               ) : (
                 <span className="text-xl font-semibold leading-none">
-                  826,820
+                  {data ? data[0]?.points : 0}
                 </span>
               )}
             </div>
