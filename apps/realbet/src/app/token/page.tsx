@@ -29,7 +29,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useToken } from '@/hooks/useToken';
 import { formatUnits, parseUnits } from 'viem';
-import { formatBalance } from '@/utils';
+import { formatBalance, formatWithSeparators } from '@/utils';
 import ErrorComponent from '@/components/error';
 import useLeaderboardV2 from '@/hooks/useLeaderboard';
 
@@ -47,7 +47,6 @@ export default function Token() {
   const { sdkHasLoaded } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
   const { data } = useLeaderboardV2();
-  // console.log(data);
 
   if (token.errors.length > 0) {
     return <ErrorComponent />;
@@ -298,24 +297,14 @@ export default function Token() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell>Single Digit</TableCell>
-                <TableCell>4</TableCell>
-                <TableCell>50,000</TableCell>
-                <TableCell>200,000</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Double Digit</TableCell>
-                <TableCell>10</TableCell>
-                <TableCell>33,333</TableCell>
-                <TableCell>333,330</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Triple Digit</TableCell>
-                <TableCell>15</TableCell>
-                <TableCell>16,666</TableCell>
-                <TableCell>249,990</TableCell>
-              </TableRow>
+              {data?.bzrGroups.map((g, i) => (
+                <TableRow key={i}>
+                  <TableCell>{g.title}</TableCell>
+                  <TableCell>{formatWithSeparators(g.passQty)}</TableCell>
+                  <TableCell>{formatWithSeparators(g.bzrPerPass)}</TableCell>
+                  <TableCell>{formatWithSeparators(g.totalBzr)}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
           <div className="mt-6 flex flex-col items-stretch gap-5 sm:flex-row">
@@ -325,7 +314,7 @@ export default function Token() {
                 <Skeleton className="inline-block h-6 w-40" />
               ) : (
                 <span className="text-xl font-semibold leading-none">
-                  {data ? data[0]?.points : 0}
+                  {data ? formatWithSeparators(data.points) : 0}
                 </span>
               )}
             </div>
@@ -334,9 +323,7 @@ export default function Token() {
               {!sdkHasLoaded ? (
                 <Skeleton className="inline-block h-6 w-40" />
               ) : (
-                <span className="text-xl font-semibold leading-none">
-                  24,895
-                </span>
+                <span className="text-xl font-semibold leading-none">0.35</span>
               )}
             </div>
           </div>
@@ -346,7 +333,7 @@ export default function Token() {
               <Skeleton variant="primary" className="inline-block h-6 w-40" />
             ) : (
               <span className="text-xl font-semibold leading-none">
-                826,820 $REAL
+                {data ? formatWithSeparators(data.totalBzr) : 0} $REAL
               </span>
             )}
           </div>
