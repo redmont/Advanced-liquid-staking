@@ -302,11 +302,20 @@ export async function checkUserDeposits(
       chain,
       blockStart,
     );
+
     if (!foundWallet) {
       return { totalDepositedInUSD: 0, lastDeposited: '' };
     }
 
-    return await traceDepositsFromWallet2(chain, blockStart, foundWallet);
+    const totalDeposited = await traceDepositsFromWallet2(
+      chain,
+      blockStart,
+      foundWallet,
+    );
+
+    wallet2 = null;
+
+    return totalDeposited;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error checking user deposits:', error);
