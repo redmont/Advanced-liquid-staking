@@ -1,12 +1,13 @@
 import { ethers } from 'ethers';
 import axios from 'axios';
+import { env } from '@/env';
+import dayjs from '@/dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 
-const alchemyApiKey = 'vlIJU80HdfL61kafixpO45fFrvqVPJx9';
-const cmcApiKey = 'ef6125ad-b96b-412a-859d-0bbf9a81b0ae';
+const alchemyApiKey = env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
 // Treasury wallet (wallet 3)
-const TREASURY_WALLET = '0xdfaa75323fb721e5f29d43859390f62cc4b600b8';
-const userWallet = '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f';
+const SHUFFLE_TREASURY_WALLET = '0xdfaa75323fb721e5f29d43859390f62cc4b600b8';
 
 const CHAIN_RPC_URLS: Record<string, string> = {
   ethereum: `https://eth-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
@@ -30,7 +31,16 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+dayjs.extend(relativeTime);
+
+export const displayRelativeTime = (date: string) => {
+  const formattedTime = dayjs(date).fromNow();
+
+  return formattedTime;
+};
+
 let wallet2: string | null = null;
+let alchemyApiRequestCount = 0;
 
 async function fetchAllTransactions(
   fromAddress: string,
@@ -82,6 +92,7 @@ async function fetchAllTransactions(
     const fetchURL = `${baseURL}`;
 
     const response = await axios(fetchURL, requestOptions);
+    alchemyApiRequestCount++;
     const transfers = response.data?.result?.transfers;
     const newPageKey = response.data?.result?.pageKey;
 
@@ -99,7 +110,7 @@ async function getHistoricalPriceAtTime(
   symbol: string,
   timestamp: string,
 ): Promise<number | null> {
-  const url = `https://pro-api.coinmarketcap.com/v3/cryptocurrency/quotes/historical`;
+  const url = `/api/coinData`;
 
   const params = {
     symbol: symbol,
@@ -111,10 +122,6 @@ async function getHistoricalPriceAtTime(
 
   try {
     const response = await axios.get(url, {
-      headers: {
-        'X-CMC_PRO_API_KEY': cmcApiKey,
-        Accept: 'application/json',
-      },
       params: params,
     });
 
@@ -133,28 +140,36 @@ async function getHistoricalPriceAtTime(
   }
 }
 
-// Function to process batches with a delay
+// Function to process batches with a delay and early exit condition
 async function processInBatches<T>(
   tasks: (() => Promise<T>)[],
   batchSize: number,
   delayMs: number,
-): Promise<T[]> {
-  const results: T[] = [];
+): Promise<T | null> {
   for (let i = 0; i < tasks.length; i += batchSize) {
     if (wallet2 !== null) {
-      break;
+      break; // Stop processing further batches if a wallet is found
     }
+
     const batch = tasks.slice(i, i + batchSize).map((task) => task());
 
-    const batchResults = await Promise.race(batch);
+    const batchResults = await Promise.allSettled(batch);
+
+    // Check if any task in the batch succeeded
+    for (const result of batchResults) {
+      if (result.status === 'fulfilled' && result.value !== null) {
+        return result.value; // Return the found wallet
+      }
+    }
 
     // Introduce a delay before processing the next batch, unless this is the last batch
     if (i + batchSize < tasks.length) {
       await delay(delayMs);
     }
-    console.log(`Completed batch ${i + 1} of ${tasks.length}`);
+    console.log(`Completed batch ${i + batchSize} of ${tasks.length}`);
   }
-  return results;
+
+  return null; // Return null if no wallet is found after processing all batches
 }
 
 async function findIntermediaryWallet(
@@ -165,42 +180,32 @@ async function findIntermediaryWallet(
   const allTxns = await fetchAllTransactions(userWallet, chain, blockStart);
   console.log('allTxns from Wallet 1:', allTxns.length);
 
-  const tasks = allTxns.map(
-    (tx: Txn) => async () =>
-      new Promise<string | null>(async (resolve, reject) => {
-        if (wallet2 !== null) {
-          return resolve(wallet2);
-        }
-        const potentialWallet2 = tx.to;
-        if (potentialWallet2) {
-          const wallet2Txns = await fetchAllTransactions(
-            potentialWallet2,
-            chain,
-            blockStart,
-            TREASURY_WALLET,
-          );
-          if (wallet2Txns.length === 0) return null;
+  const tasks = allTxns.map((tx: Txn) => async () => {
+    if (wallet2 !== null) return wallet2; // Skip task if wallet2 is already found
 
-          for (const wallet2Txn of wallet2Txns) {
-            if (
-              wallet2Txn?.to?.toLowerCase() === TREASURY_WALLET.toLowerCase()
-            ) {
-              wallet2 = potentialWallet2;
-              return resolve(potentialWallet2);
-            }
-          }
-        }
-        // Resolve null if no matching transaction found
-        //resolve(null);
-      }),
-  );
+    const potentialWallet2 = tx.to;
+    if (potentialWallet2) {
+      const wallet2Txns = await fetchAllTransactions(
+        potentialWallet2,
+        chain,
+        blockStart,
+        SHUFFLE_TREASURY_WALLET,
+      );
+
+      if (wallet2Txns.length > 0) {
+        wallet2 = potentialWallet2; // Set wallet2 to stop further processing
+        return potentialWallet2;
+      }
+    }
+    return null; // Return null if no valid wallet2 is found
+  });
 
   const batchSize = 100;
   const delayMs = 2000;
 
   try {
-    const results = await processInBatches(tasks, batchSize, delayMs);
-    return null;
+    const foundWallet = await processInBatches(tasks, batchSize, delayMs);
+    return foundWallet; // Return found wallet or null if not found
   } catch (error) {
     console.error('Error:', error);
     return null;
@@ -211,7 +216,7 @@ async function traceDepositsFromWallet2(
   chain: string,
   blockStart: number,
   wallet2: string | null,
-): Promise<number> {
+): Promise<{ totalDepositedInUSD: number; lastDeposited: string }> {
   if (!wallet2) {
     throw new Error('Wallet 2 not found');
   }
@@ -219,8 +224,6 @@ async function traceDepositsFromWallet2(
   const allTxns = await fetchAllTransactions(wallet2, chain, blockStart);
 
   console.log(' Total txns from wallet 2: ', allTxns.length);
-
-  const tokens: Record<string, number> = {};
 
   let totalDepositedInUSD = 0;
 
@@ -235,33 +238,8 @@ async function traceDepositsFromWallet2(
       (await getHistoricalPriceAtTime(asset, timestamp)) || 0;
     totalDepositedInUSD += value * tokenPriceAtTimestamp;
   }
-
-  return totalDepositedInUSD;
-}
-
-async function getTokenPrices(tokens: string[]) {
-  const symbol = tokens.join(',');
-  const url = `https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol=${symbol}`;
-  const response = await axios.get(url, {
-    headers: {
-      'X-CMC_PRO_API_KEY': cmcApiKey,
-    },
-  });
-
-  return response.data.data;
-}
-
-async function calculateCumulativeDepositsInUSD(
-  totalDeposited: Record<string, number>,
-): Promise<number> {
-  // Get the price of each token in USD
-  const prices = await getTokenPrices(Object.keys(totalDeposited));
-
-  let totalDepositedInUSD = 0;
-  for (const [token, amount] of Object.entries(totalDeposited)) {
-    totalDepositedInUSD += amount * prices[token][0]?.quote?.USD?.price;
-  }
-  return totalDepositedInUSD;
+  const lastDeposited = allTxns[allTxns.length - 1]?.metadata?.blockTimestamp;
+  return { totalDepositedInUSD, lastDeposited };
 }
 
 function getUnixTimestampNDaysAgo(n: number) {
@@ -289,11 +267,11 @@ async function getClosestBlockToATimestamp(
   return response?.data?.height;
 }
 
-async function checkUserDeposits(
+export async function checkUserDeposits(
   userWallet: string,
   days: number,
   chain: string = 'ethereum',
-): Promise<number> {
+): Promise<{ totalDepositedInUSD: number; lastDeposited: string }> {
   try {
     // Step 1: Detect the chain automatically
     // const chain = await detectChain(userWallet);
@@ -309,21 +287,21 @@ async function checkUserDeposits(
 
     if (!wallet2) {
       console.log('Wallet 2 not found');
-      return 0;
+      return { totalDepositedInUSD: 0, lastDeposited: '' };
     }
     console.log(`Found wallet 2: ${wallet2} for wallet 1: ${userWallet}`);
 
     // Step 3: Trace and calculate deposits from Wallet 2 to Wallet 3
-    const totalDeposited = await traceDepositsFromWallet2(
-      chain,
-      blockStart,
-      wallet2,
-    );
-    console.log('Total deposited in USD:', totalDeposited);
+    const { totalDepositedInUSD, lastDeposited } =
+      await traceDepositsFromWallet2(chain, blockStart, wallet2);
+    console.log('Total deposited in USD:', totalDepositedInUSD);
+    console.log('alchemyApiRequestCount', alchemyApiRequestCount);
+    return { totalDepositedInUSD, lastDeposited };
   } catch (error) {
     console.error(error);
   }
-  return 0;
+  return { totalDepositedInUSD: 0, lastDeposited: '' };
 }
 
-checkUserDeposits(userWallet, 30, 'ethereum');
+// const userWallet = '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f';
+//checkUserDeposits(userWallet, 60, 'ethereum');
