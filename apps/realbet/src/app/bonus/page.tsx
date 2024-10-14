@@ -44,10 +44,7 @@ const Page = () => {
           const { totalDepositedInUSD, lastDeposited } =
             await checkUserDeposits(walletAddress, 60, 'ethereum');
           setTotalDeposited(totalDepositedInUSD);
-          setLastDeposited(lastDeposited);
-        } catch (error) {
-          console.error('Error fetching deposits:', error);
-          setTotalDeposited(0);
+          setLastDeposited(lastDeposited ?? null);
         } finally {
           setLoading(false);
         }
@@ -56,16 +53,14 @@ const Page = () => {
       }
     };
     const resetTable = () => {
-      console.log('resetTable');
       setTotalDeposited(null);
       setLastDeposited(null);
       setLoading(false);
     };
     resetTable();
-    fetchDeposits();
-  }, [walletAddress]);
 
-  console.log('totalDeposited', totalDeposited);
+    void fetchDeposits();
+  }, [walletAddress, isValidWallet]);
 
   return (
     <div className="flex flex-col gap-5 p-5">

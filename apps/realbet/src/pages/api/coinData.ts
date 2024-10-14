@@ -1,8 +1,12 @@
 // /pages/api/coinData.js
 
 import axios from 'axios';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-export default async function handler(req, res) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
   try {
     const { symbol, time_start, interval, count } = req.query;
 
@@ -25,7 +29,6 @@ export default async function handler(req, res) {
     // Return the data from the CoinMarketCap API to the client
     res.status(200).json(response.data);
   } catch (error) {
-    console.error('Error fetching data from CoinMarketCap:', error.message);
-    res.status(500).json({ error: 'Failed to fetch data from CoinMarketCap' });
+    res.status(500).json({ error });
   }
 }
