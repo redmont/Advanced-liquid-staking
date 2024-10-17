@@ -1,10 +1,9 @@
 'use client';
 
 import Banner from '@/components/banner';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import brawlersPoster from '@/assets/images/brawlers-poster.png';
+import brinkoPoster from '@/assets/images/brinko-poster.png';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 
 export default function HomePage() {
@@ -13,47 +12,49 @@ export default function HomePage() {
     <main className="relative space-y-5 p-5">
       <Banner>
         <div className="space-y-4">
-          <h3 className="inline bg-accent px-2 font-monoline text-3xl text-accent-foreground xl:text-4xl">
-            Always on
-          </h3>
           <h2 className="font-tusker text-6xl uppercase leading-none md:max-w-[66%] xl:text-7xl">
-            Real World Data-Powered Games
+            Welcome to the Real World
           </h2>
           <p className="text-lg md:max-w-[66%] xl:text-xl">
-            Our missions is to build the first series of entertainment games
-            based on real world data. We are building the biggest series of
-            next-gen wagering games.
+            $REAL is the fun and financialised future of crypto gaming. See the{' '}
+            <a
+              className="text-primary underline"
+              rel="noreferrer noopener"
+              target="_blank"
+              href="https://realworldgaming.gitbook.io/the-real-paper"
+            >
+              Real Paper
+            </a>{' '}
+            to learn more
           </p>
-          <Button className="text-xl" size="xl" variant="borderless">
-            Explore now
-          </Button>
         </div>
       </Banner>
-      <Tabs className="relative z-20" defaultValue="all">
-        <TabsList>
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="betting">Betting</TabsTrigger>
-          <TabsTrigger value="sports">Sports</TabsTrigger>
-          <TabsTrigger value="memes">Memes</TabsTrigger>
-        </TabsList>
-      </Tabs>
       <div className="z-20 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         <Card
           loading={!sdkHasLoaded}
-          className="aspect-[6/7] overflow-hidden bg-cover"
+          className="relative aspect-[6/7] overflow-hidden bg-cover transition-transform hover:scale-105"
           style={{
             backgroundImage: sdkHasLoaded ? `url(${brawlersPoster.src})` : '',
           }}
-        />
-        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-        <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
+        >
+          <a
+            className="inset-0 block size-full"
+            href="https://brawlers.io"
+            target="_blank"
+            rel="noreferrer noopener"
+          />
+        </Card>
+        <Card
+          loading={!sdkHasLoaded}
+          className="relative aspect-[6/7] overflow-hidden bg-cover"
+          style={{
+            backgroundImage: sdkHasLoaded ? `url(${brinkoPoster.src})` : '',
+          }}
+        >
+          <div className="absolute inset-0 z-10 flex size-full items-center justify-center bg-black/40 transition-all hover:bg-black/60">
+            <p className="text-2xl font-semibold">Coming soon</p>
+          </div>
+        </Card>
       </div>
     </main>
   );
