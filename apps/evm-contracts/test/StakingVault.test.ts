@@ -33,7 +33,17 @@ describe("StakingVault", function () {
     const tx = await vault.write.deposit([amount, 0n], { account: user.account.address });
     await client.waitForTransactionReceipt({ hash: tx });
     const block = await client.getBlock();
+    const logs = await client.getContractEvents({ abi: vault.abi });
+    expect(logs.length).to.equal(1);
+    expect(logs[0].eventName).to.equal("AccountDeposit");
 
+    if (logs[0].eventName !== "AccountDeposit") {
+      throw new Error("Unexpected event name");
+    }
+
+    expect(logs[0].args.user).to.equal(getAddress(user.account.address));
+    expect(logs[0].args.amount).to.equal(amount);
+    expect(logs[0].args.timestamp).to.equal(block.timestamp);
     // check shares and balances
     const newBalance = await token.read.balanceOf([user.account.address]);
     expect(newBalance, "New balance").to.equal(0n);
@@ -90,6 +100,20 @@ describe("StakingVault", function () {
       account: user.account.address,
     });
     await client.waitForTransactionReceipt({ hash: tx2 });
+
+    const logs = await client.getContractEvents({ abi: vault.abi });
+    expect(logs.length).to.equal(1);
+    expect(logs[0].eventName).to.equal("AccountWithdrawal");
+
+    if (logs[0].eventName !== "AccountWithdrawal") {
+      throw new Error("Unexpected event name");
+    }
+
+    const block = await client.getBlock();
+
+    expect(logs[0].args.user).to.equal(getAddress(user.account.address));
+    expect(logs[0].args.amount).to.equal(parseUnits("50", 18));
+    expect(logs[0].args.timestamp).to.equal(block.timestamp);
     expect(await vault.read.shares([user.account.address]), "Shares after withdrawal").to.equal(parseUnits("0", 18));
     expect(await token.read.balanceOf([user.account.address]), "Balance after withdrawal").to.equal(
       parseUnits("50", 18),

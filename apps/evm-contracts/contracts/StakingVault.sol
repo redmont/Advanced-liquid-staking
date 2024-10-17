@@ -9,6 +9,8 @@ interface IERC20 {
 }
 
 contract StakingVault is Ownable2Step {
+    event AccountDeposit(address indexed user, uint256 amount, uint64 indexed timestamp);
+    event AccountWithdrawal(address indexed user, uint256 amount, uint64 indexed timestamp);
     error ERC20InsufficientBalance(address from, uint256 available, uint256 required);
     error InvalidTier();
     error AmountRequired();
@@ -30,7 +32,7 @@ contract StakingVault is Ownable2Step {
         Tier tier;
     }
 
-    IERC20 public token;
+    IERC20 public immutable token;
     mapping(address user => Deposit[] deposited) public deposits;
     Tier[] public tiers;
     mapping(address user => uint256 claimable) public claimableEarnings;
@@ -100,6 +102,8 @@ contract StakingVault is Ownable2Step {
         if (!token.transferFrom(msg.sender, address(this), _amount)) {
             revert TransferFailed();
         }
+
+        emit AccountDeposit(msg.sender, _amount, uint64(block.timestamp));
     }
 
     function withdraw(uint256 amount, address to) external {
@@ -130,6 +134,8 @@ contract StakingVault is Ownable2Step {
         if (!token.transfer(to, amountToTransfer)) {
             revert TransferFailed();
         }
+
+        emit AccountWithdrawal(msg.sender, amountToTransfer, uint64(block.timestamp));
     }
 
     function shares(address account) public view returns (uint256 totalShares) {
