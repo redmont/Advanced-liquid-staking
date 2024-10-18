@@ -1,5 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { useQuery } from '@tanstack/react-query';
 
 interface FloorPriceResponse {
   floorPrice: number | null;
@@ -10,36 +11,40 @@ interface NftListResponse {
   totalCount: number;
 }
 
+async function fetchNftList(address: string): Promise<NftListResponse> {
+  const searchParams = new URLSearchParams({ owner: address });
+  const response = await fetch(`/api/raw-pass/list?${searchParams}`, {
+    method: 'GET',
+    next: { revalidate: 60 },
+  });
+  return response.json() as Promise<NftListResponse>;
+}
+
+async function fetchFloorPrice(): Promise<FloorPriceResponse> {
+  const response = await fetch(`/api/raw-pass/price`, {
+    method: 'GET',
+    next: { revalidate: 60 },
+  });
+  return response.json() as Promise<FloorPriceResponse>;
+}
+
 export function useRawPasses() {
   const { primaryWallet, sdkHasLoaded: isConnected } = useDynamicContext();
   const address = primaryWallet?.address ?? '';
-  const [areNftsLoading, setNftsLoading] = useState<boolean>(false);
 
-  const [nftListResponse, setNftListResponse] =
-    useState<NftListResponse | null>(null);
-
-  const [floorPriceResponse, setFloorPriceResponse] =
-    useState<FloorPriceResponse | null>(null);
-
-  useEffect(() => {
-    if (!isConnected) {
-      return setNftsLoading(false);
-    }
-
-    setNftsLoading(true);
-
-    const searchParams = new URLSearchParams({
-      owner: address,
+  const { data: nftListResponse, isLoading: areNftsLoading } =
+    useQuery<NftListResponse>({
+      queryKey: ['nftList', address],
+      queryFn: () => fetchNftList(address),
+      enabled: isConnected && !!address,
+      staleTime: 10 * 1000, // 1 minute
     });
 
-    void fetch(`/api/raw-pass/list?${searchParams}`, {
-      method: 'GET',
-      next: { revalidate: 60 },
-    })
-      .then((response) => response.json())
-      .then((data: NftListResponse) => setNftListResponse(data))
-      .finally(() => setNftsLoading(false));
-  }, [address, isConnected]);
+  const { data: floorPriceResponse } = useQuery<FloorPriceResponse>({
+    queryKey: ['floorPrice'],
+    queryFn: fetchFloorPrice,
+    staleTime: 60 * 1000, // 1 minute
+  });
 
   const { totalCount = 0, nftNames = [] } = nftListResponse ?? {};
 
@@ -49,15 +54,6 @@ export function useRawPasses() {
   );
 
   const nftsToNextOrdinal = useMemo(() => 3 - (totalCount % 3), [totalCount]);
-
-  useEffect(() => {
-    void fetch(`/api/raw-pass/price`, {
-      method: 'GET',
-      next: { revalidate: 60 },
-    })
-      .then((response) => response.json())
-      .then((data: FloorPriceResponse) => setFloorPriceResponse(data));
-  }, []);
 
   const { floorPrice = 0 } = floorPriceResponse ?? {};
 
