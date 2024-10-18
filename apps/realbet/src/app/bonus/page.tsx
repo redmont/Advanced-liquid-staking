@@ -1,9 +1,8 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useReducer } from 'react';
 import Banner from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import {
   Table,
@@ -14,53 +13,139 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { checkUserDeposits, displayRelativeTime } from './depositsChecker';
-import { ethers } from 'ethers';
+
+import {
+  useDynamicContext,
+  useIsLoggedIn,
+  useUserWallets,
+  useDynamicModals,
+} from '@dynamic-labs/sdk-react-core';
+import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
+import { Wallet2 } from 'lucide-react';
+
+type Casinos = 'shuffle' | 'rollbit';
+type Status = 'notInit' | 'loading' | 'success' | 'error';
+
+interface Casino {
+  name: Casinos;
+  status: Status;
+  lastDeposited: string | null;
+  totalDeposited: number | null;
+}
+
+interface Wallet {
+  status: Status;
+  walletAddress: string;
+  casinos: Casino[];
+}
+
+interface Allocations {
+  refresh: number;
+  status: Status;
+  wallets: Wallet[];
+}
+
+const casinos: Casinos[] = ['shuffle', 'rollbit'];
+const allocations: Allocations = {
+  refresh: 0,
+  status: 'notInit',
+  wallets: [],
+};
+
+const shorten = (address: string, size = 6) =>
+  address.slice(0, size) + '...' + address.slice(-size);
 
 const Page = () => {
-  const [walletAddress, setWalletAddress] = useState('');
-  const [totalDeposited, setTotalDeposited] = useState<number | null>(null);
-  const [lastDeposited, setLastDeposited] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [allocation, setAllocation] = useState<Allocations>(allocations);
+  const [, forceUpdate] = useReducer((x) => x + 1, 0);
 
-  const [isValidWallet, setIsValidWallet] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const isAuthenticated = useIsLoggedIn();
+  const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
+  const handleDynamicAuthClick = useDynamicAuthClickHandler();
+  const userWallets = useUserWallets();
+  const { setShowLinkNewWalletModal } = useDynamicModals();
 
-  const validateWalletAddress = (address: string) => {
-    if (ethers.isAddress(address)) {
-      setIsValidWallet(true);
-      setError(null); // No error
-    } else {
-      setIsValidWallet(false);
-      setError('Invalid wallet address');
-    }
-  };
+  const connectedWalletList = (
+    <div className="flex items-center gap-2">
+      {userWallets.slice(0, 3).map((wallet) => (
+        <span>{wallet.address && shorten(wallet.address, 4)},</span>
+      ))}
+      {userWallets.length > 3 && (
+        <span className="no-wrap whitespace-nowrap">
+          {'+ '}
+          <a
+            className="cursor-pointer font-semibold underline underline-offset-2 hover:text-primary"
+            onClick={() => setShowDynamicUserProfile(true)}
+          >
+            {userWallets.length - 3} more
+          </a>
+        </span>
+      )}
+    </div>
+  );
 
-  // This effect runs whenever walletAddress changes
-  useEffect(() => {
-    const fetchDeposits = async () => {
-      if (walletAddress && isValidWallet) {
-        setLoading(true);
-        try {
-          const { totalDepositedInUSD, lastDeposited } =
-            await checkUserDeposits(walletAddress, 60, 'ethereum');
-          setTotalDeposited(totalDepositedInUSD);
-          setLastDeposited(lastDeposited ?? null);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        resetTable();
+  const calculateRewards = async () => {
+    const allocation: Allocations = {
+      refresh: Date.now(),
+      status: 'loading',
+      wallets: userWallets.map((wallet) => ({
+        status: 'loading',
+        walletAddress: wallet.address,
+        casinos: casinos.map((casino) => ({
+          name: casino,
+          status: 'loading',
+          lastDeposited: null,
+          totalDeposited: null,
+        })),
+      })),
+    };
+    setAllocation(allocation);
+
+    for (const wallet of userWallets) {
+      const userWallet = wallet.address;
+      try {
+        // random number between 20 and 50
+        const randomNumber = Math.floor(Math.random() * (50 - 20) + 20);
+        const { totalDepositedInUSD, lastDeposited } = await checkUserDeposits(
+          //userWallet,
+          '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
+          randomNumber,
+          'ethereum',
+        );
+        const walletIndex =
+          allocation.wallets.findIndex(
+            (wallet) => wallet.walletAddress === userWallet,
+          ) || 0;
+        if (!allocation.wallets[walletIndex]) continue;
+        allocation.wallets[walletIndex].status = 'success';
+        allocation.wallets[walletIndex]?.casinos
+          .filter((casino) => casino.name === 'shuffle')
+          .forEach((casino) => {
+            casino.totalDeposited = totalDepositedInUSD;
+            casino.lastDeposited = lastDeposited ?? null;
+          });
+        setAllocation(allocation);
+        forceUpdate();
+      } finally {
       }
-    };
-    const resetTable = () => {
-      setTotalDeposited(null);
-      setLastDeposited(null);
-      setLoading(false);
-    };
-    resetTable();
+    }
+    allocation.status = 'success';
+    allocation.refresh = Date.now();
+    setAllocation(allocation);
+    forceUpdate();
+  };
+  console.log(allocation);
 
-    void fetchDeposits();
-  }, [walletAddress, isValidWallet]);
+  const calculateTotalAllocation = () => {
+    let totalAllocation = 0;
+    allocation.wallets.forEach((wallet) => {
+      wallet.casinos.forEach((casino) => {
+        if (casino.totalDeposited === null) return;
+        totalAllocation += casino.totalDeposited;
+      });
+    });
+    return Math.floor(totalAllocation);
+  };
 
   return (
     <div className="flex flex-col gap-5 p-5">
@@ -77,62 +162,109 @@ const Page = () => {
             and pays to play!
           </p>
           <div className="flex items-center gap-5 md:max-w-2xl">
-            <Input
-              placeholder="Enter your wallet address"
-              className="border-red-800 bg-black md:min-w-80"
-              value={walletAddress}
-              onChange={(e) => {
-                setWalletAddress(e.target.value);
-                validateWalletAddress(e.target.value);
-              }}
-            />
-            <p className="flex items-center text-foreground">OR</p>
-            <Button>Link Wallet</Button>
+            {sdkHasLoaded && !isAuthenticated && (
+              <div className="space-between no-wrap flex flex-row items-center justify-center gap-5">
+                <h3 className="text-m">
+                  Connect your wallets to calculate and claim rewards
+                </h3>
+                <Button onClick={handleDynamicAuthClick}>
+                  Connect Wallet <Wallet2 className="ml-2" />
+                </Button>
+              </div>
+            )}
+
+            {isAuthenticated && userWallets.length > 0 && (
+              <span>
+                Connected Wallets: {userWallets.length} {connectedWalletList}
+              </span>
+            )}
+            {isAuthenticated && userWallets.length > 0 && (
+              <Button
+                onClick={() => setShowLinkNewWalletModal(true)}
+                variant="outline"
+                className="place-self-end"
+              >
+                + Link new wallets
+              </Button>
+            )}
+            {isAuthenticated && userWallets.length > 0 && (
+              <Button
+                onClick={() => calculateRewards()}
+                className="place-self-end"
+              >
+                {allocation.status === 'loading' ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  'Calculate Rewards'
+                )}
+              </Button>
+            )}
           </div>
-          {error && <p className="text-red-500">{error}</p>}{' '}
         </div>
       </Banner>
-
-      <Card className="max-w-7xl space-y-5 p-5">
-        <h2 className="text-xl">
-          Allocation for {walletAddress || 'your wallet'}
-        </h2>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Source</TableHead>
-              <TableHead>Last Date of Transfer</TableHead>
-              <TableHead>Total deposit amount</TableHead>
-              <TableHead>Amount withdrawn</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell className="flex items-center gap-2">
-                {loading ? <Loader2 className="animate-spin" /> : ''} Shuffle
-              </TableCell>
-              <TableCell>
-                {lastDeposited ? displayRelativeTime(lastDeposited) : '-'}
-              </TableCell>
-              <TableCell>
-                {totalDeposited !== null
-                  ? `$ ${totalDeposited.toFixed(2)}`
-                  : '-'}
-              </TableCell>
-              <TableCell>N/A</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-
+      {isAuthenticated && allocation.status !== 'notInit' && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-2 py-3 text-primary">
-          <h3 className="text-lg">Total $REAL Allocation</h3>
-          <span className="text-xl font-semibold leading-none">
-            826,820 $REAL
+          <span className="text-xl leading-none">
+            <h3 className="text-lg">
+              Total $REAL Allocation:{' '}
+              <span className="px-5 font-semibold">
+                {calculateTotalAllocation()} $REAL
+              </span>
+              {allocation.status === 'success' && (
+                <Button className="place-self-end">Claim Rewards</Button>
+              )}
+              <span>{/* <Button>Claim Rewards</Button> */}</span>
+            </h3>
           </span>
         </div>
+      )}
 
-        <Button>Claim Rewards</Button>
-      </Card>
+      {isAuthenticated &&
+        allocation.wallets.length > 0 &&
+        allocation.wallets.map((wallet) => (
+          <Card className="max-w-7xl space-y-5 p-5">
+            <h2 className="text-xl">
+              <span className="flex flex-wrap items-center justify-start gap-3">
+                Allocation for {shorten(wallet.walletAddress, 6)}{' '}
+                {wallet.status === 'loading' ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  ''
+                )}
+              </span>
+            </h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Source</TableHead>
+                  <TableHead>Last Date of Transfer</TableHead>
+                  <TableHead>Total deposit amount</TableHead>
+                  <TableHead>Amount withdrawn</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {wallet.casinos.map((casino) => (
+                  <TableRow>
+                    <TableCell className="flex items-center gap-2">
+                      {casino.name}
+                    </TableCell>
+                    <TableCell>
+                      {casino.lastDeposited
+                        ? displayRelativeTime(casino.lastDeposited)
+                        : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {casino.totalDeposited !== null
+                        ? `$ ${casino.totalDeposited.toFixed(2)}`
+                        : '-'}
+                    </TableCell>
+                    <TableCell>N/A</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        ))}
     </div>
   );
 };
