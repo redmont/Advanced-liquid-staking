@@ -41,8 +41,8 @@ contract StakingVault is Ownable2Step {
     constructor(address tokenAddress) Ownable(msg.sender) {
         TOKEN = IERC20(tokenAddress);
 
-        tiers.push(Tier(30 days, 100, 3));
-        tiers.push(Tier(60 days, 500, 3));
+        tiers.push(Tier(90 days, 100, 3));
+        tiers.push(Tier(180 days, 500, 3));
         tiers.push(Tier(365 days, 1100, 3));
         tiers.push(Tier(730 days, 1500, 3));
         tiers.push(Tier(1460 days, 2100, 3));

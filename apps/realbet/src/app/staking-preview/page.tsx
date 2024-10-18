@@ -257,10 +257,9 @@ export default function StakePreview() {
                     </span>
                   </PopoverTrigger>
                   <PopoverContent align="start">
-                    {parseFloat(DEFAULT_MONTHLY_REWARDS).toLocaleString()}{' '}
-                    {token.symbol} is guaranteed for 12 months after which we
-                    will transition to platform revenue sharing. Change this
-                    number to estimate future earnings.
+                    {DEFAULT_MONTHLY_REWARDS} {token.symbol} is guaranteed for
+                    12 months after which we will transition to platform revenue
+                    sharing. Change this number to estimate future earnings.
                   </PopoverContent>
                 </Popover>
               }
