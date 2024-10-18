@@ -14,6 +14,11 @@ const config = {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;
   },
+  images: {
+    domains: [
+      "api.microlink.io", // Microlink Image Preview
+    ],
+  },
 };
 
 export default config;
