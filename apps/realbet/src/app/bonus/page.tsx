@@ -57,7 +57,7 @@ const shorten = (address: string, size = 6) =>
 
 const Page = () => {
   const [allocation, setAllocation] = useState<Allocations>(allocations);
-  const [, forceUpdate] = useReducer((x) => x + 1, 0);
+  const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
   const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
@@ -68,7 +68,9 @@ const Page = () => {
   const connectedWalletList = (
     <div className="flex items-center gap-2">
       {userWallets.slice(0, 3).map((wallet) => (
-        <span>{wallet.address && shorten(wallet.address, 4)},</span>
+        <span key={wallet.address}>
+          {wallet.address && shorten(wallet.address, 4)},
+        </span>
       ))}
       {userWallets.length > 3 && (
         <span className="no-wrap whitespace-nowrap">
@@ -116,7 +118,9 @@ const Page = () => {
           allocation.wallets.findIndex(
             (wallet) => wallet.walletAddress === userWallet,
           ) || 0;
-        if (!allocation.wallets[walletIndex]) continue;
+        if (!allocation.wallets[walletIndex]) {
+          continue;
+        }
         allocation.wallets[walletIndex].status = 'success';
         allocation.wallets[walletIndex]?.casinos
           .filter((casino) => casino.name === 'shuffle')
@@ -134,13 +138,14 @@ const Page = () => {
     setAllocation(allocation);
     forceUpdate();
   };
-  console.log(allocation);
 
   const calculateTotalAllocation = () => {
     let totalAllocation = 0;
     allocation.wallets.forEach((wallet) => {
       wallet.casinos.forEach((casino) => {
-        if (casino.totalDeposited === null) return;
+        if (casino.totalDeposited === null) {
+          return;
+        }
         totalAllocation += casino.totalDeposited;
       });
     });
@@ -222,7 +227,7 @@ const Page = () => {
       {isAuthenticated &&
         allocation.wallets.length > 0 &&
         allocation.wallets.map((wallet) => (
-          <Card className="max-w-7xl space-y-5 p-5">
+          <Card key={wallet.walletAddress} className="max-w-7xl space-y-5 p-5">
             <h2 className="text-xl">
               <span className="flex flex-wrap items-center justify-start gap-3">
                 Allocation for {shorten(wallet.walletAddress, 6)}{' '}
@@ -244,7 +249,7 @@ const Page = () => {
               </TableHeader>
               <TableBody>
                 {wallet.casinos.map((casino) => (
-                  <TableRow>
+                  <TableRow key={casino.name}>
                     <TableCell className="flex items-center gap-2">
                       {casino.name}
                     </TableCell>
