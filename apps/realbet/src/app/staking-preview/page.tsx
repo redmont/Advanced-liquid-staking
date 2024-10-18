@@ -207,7 +207,10 @@ export default function StakePreview() {
               className="mb-3"
               value={totalStaked}
               onBlur={() =>
-                setTotalStaked((v) => parseFloat(v).toLocaleString())
+                setTotalStaked((v) => {
+                  const parsed = parseFloat(v);
+                  return isNaN(parsed) ? v : parsed.toLocaleString();
+                })
               }
               onChange={(e) => setTotalStaked(e.target.value)}
               startAdornment={
@@ -234,7 +237,12 @@ export default function StakePreview() {
               error={isNaN(parseFloat(rewards))}
               size="sm"
               value={rewards}
-              onBlur={() => setRewards((v) => parseFloat(v).toLocaleString())}
+              onBlur={() =>
+                setRewards((v) => {
+                  const parsed = parseFloat(v);
+                  return isNaN(parsed) ? v : parsed.toLocaleString();
+                })
+              }
               onChange={(e) => setRewards(e.target.value)}
               startAdornment={
                 <Popover>
