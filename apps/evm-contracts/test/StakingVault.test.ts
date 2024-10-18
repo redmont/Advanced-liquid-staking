@@ -12,7 +12,7 @@ describe("StakingVault", function () {
     const { vault, token } = await loadFixture(stakingModuleFixture);
     const adminAddress = await vault.read.owner();
     expect(adminAddress, "Contract admin address").to.equal(getAddress(admin.account.address));
-    expect(await vault.read.token()).to.equal(token.address);
+    expect(await vault.read.TOKEN()).to.equal(token.address);
   });
 
   it("should allow deposits", async function () {
@@ -23,7 +23,7 @@ describe("StakingVault", function () {
     // addresses are correct
     const adminAddress = await vault.read.owner();
     expect(adminAddress, "Contract admin address").to.equal(getAddress(admin.account.address));
-    expect(await vault.read.token()).to.equal(token.address);
+    expect(await vault.read.TOKEN()).to.equal(token.address);
 
     // deposit
     const decimals = await token.read.decimals();
