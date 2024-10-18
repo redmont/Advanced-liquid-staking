@@ -32,14 +32,14 @@ contract StakingVault is Ownable2Step {
         Tier tier;
     }
 
-    IERC20 public immutable token;
+    IERC20 public immutable TOKEN;
     mapping(address user => Deposit[] deposited) public deposits;
     Tier[] public tiers;
     mapping(address user => uint256 claimable) public claimableEarnings;
     address[] public totalUsers;
 
     constructor(address tokenAddress) Ownable(msg.sender) {
-        token = IERC20(tokenAddress);
+        TOKEN = IERC20(tokenAddress);
 
         tiers.push(Tier(30 days, 100, 3));
         tiers.push(Tier(60 days, 500, 3));
@@ -99,7 +99,7 @@ contract StakingVault is Ownable2Step {
         );
         addUser(msg.sender);
 
-        if (!token.transferFrom(msg.sender, address(this), _amount)) {
+        if (!TOKEN.transferFrom(msg.sender, address(this), _amount)) {
             revert TransferFailed();
         }
 
@@ -131,7 +131,7 @@ contract StakingVault is Ownable2Step {
             revert InsufficientBalance();
         }
 
-        if (!token.transfer(to, amountToTransfer)) {
+        if (!TOKEN.transfer(to, amountToTransfer)) {
             revert TransferFailed();
         }
 
