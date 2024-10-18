@@ -208,7 +208,7 @@ export default function StakePreview() {
               value={totalStaked}
               onBlur={() =>
                 setTotalStaked((v) => {
-                  const parsed = parseFloat(v);
+                  const parsed = parseFloat(v.replace(/,/g, ''));
                   return isNaN(parsed) ? v : parsed.toLocaleString();
                 })
               }
@@ -239,7 +239,7 @@ export default function StakePreview() {
               value={rewards}
               onBlur={() =>
                 setRewards((v) => {
-                  const parsed = parseFloat(v);
+                  const parsed = parseFloat(v.replace(/,/g, ''));
                   return isNaN(parsed) ? v : parsed.toLocaleString();
                 })
               }
