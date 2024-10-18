@@ -103,11 +103,12 @@ export default function StakePreview() {
       return 0;
     }
 
-    const amount = parseFloat(stakeAmount);
+    const amount = parseFloat(stakeAmount.replace(/,/g, ''));
     const mult = selectedTier?.decimalMult ?? 0;
     const multedAmount = amount * mult;
-    const monthlyReward = parseFloat(rewards);
-    const rewardShare = multedAmount / parseFloat(totalStaked);
+    const monthlyReward = parseFloat(rewards.replace(/,/g, ''));
+    const rewardShare =
+      multedAmount / parseFloat(totalStaked.replace(/,/g, ''));
 
     return rewardShare * monthlyReward;
   }, [rewards, selectedTier, stakeAmount, totalStaked]);
@@ -124,7 +125,7 @@ export default function StakePreview() {
   const apy = useMemo(
     () =>
       calculateAPY(
-        anticipatedMonthlyReward / parseFloat(stakeAmount),
+        anticipatedMonthlyReward / parseFloat(stakeAmount.replace(/,/g, '')),
         12,
       ).toFixed(2),
     [anticipatedMonthlyReward, stakeAmount],
