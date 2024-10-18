@@ -13,7 +13,6 @@ import { useVault } from '@/hooks/useVault';
 import React from 'react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import ErrorComponent from '@/components/error';
-import dayjs from '@/dayjs';
 import { CalculatorIcon } from 'lucide-react';
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
@@ -22,6 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { convertToReadableTime } from '@/utils';
 
 const gradientTierButtonClasses = [
   (active: boolean) =>
@@ -76,8 +76,8 @@ const gradientTierButtonClasses = [
         },
 ];
 
-const DEFAULT_GLOBAL_STAKE = '10000000';
-const DEFAULT_MONTHLY_REWARDS = '14000000';
+const DEFAULT_GLOBAL_STAKE = '10,000,000';
+const DEFAULT_MONTHLY_REWARDS = '14,000,000';
 
 const calculateAPY = (rate: number, periods: number) => {
   return ((1 + rate / periods) ** periods - 1) * 100;
@@ -135,6 +135,14 @@ export default function StakePreview() {
     duration: 300,
   });
 
+  const animatedDecimalMult = useAnimatedNumber(
+    selectedTier?.decimalMult ?? 0,
+    {
+      decimals: 1,
+      duration: 300,
+    },
+  );
+
   if (vault.errors.length > 0 || token.errors.length > 0) {
     return <ErrorComponent />;
   }
@@ -145,7 +153,7 @@ export default function StakePreview() {
         <h2 className="mb-3 text-2xl">
           <CalculatorIcon className="mb-1 inline" /> Staking Simulator
         </h2>
-        <p className="text-lg">
+        <p className="text-lg text-white/80">
           Curious about your potential rewards? Before the token launch, use
           this calculator to estimate how much you could earn based on your
           staking amount and the total staking pool.
@@ -198,6 +206,9 @@ export default function StakePreview() {
               size="sm"
               className="mb-3"
               value={totalStaked}
+              onBlur={() =>
+                setTotalStaked((v) => parseFloat(v).toLocaleString())
+              }
               onChange={(e) => setTotalStaked(e.target.value)}
               startAdornment={
                 <Popover>
@@ -223,6 +234,7 @@ export default function StakePreview() {
               error={isNaN(parseFloat(rewards))}
               size="sm"
               value={rewards}
+              onBlur={() => setRewards((v) => parseFloat(v).toLocaleString())}
               onChange={(e) => setRewards(e.target.value)}
               startAdornment={
                 <Popover>
@@ -271,10 +283,7 @@ export default function StakePreview() {
                       durationIndex === index,
                     )}
                   >
-                    {dayjs
-                      .duration(parseInt(tier.lockupTime.toString()), 'seconds')
-                      .humanize()
-                      .replace('a ', '1 ')}{' '}
+                    {convertToReadableTime(tier.lockupTime)}
                   </Button>
                 ))
               )}
@@ -313,7 +322,7 @@ export default function StakePreview() {
                       'border border-accent text-accent': durationIndex === 4,
                     })}
                   >
-                    {selectedTier?.decimalMult}x
+                    {animatedDecimalMult}x
                   </span>{' '}
                   <span>the rewards</span>
                 </div>

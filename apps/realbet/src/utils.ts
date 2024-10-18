@@ -45,3 +45,25 @@ export const secondsToDaysOrMonths = (
 
 export const toDurationSeconds = (datetime: number) =>
   datetime - new Date().getTime() / 1000;
+
+export const convertToReadableTime = (seconds: number) => {
+  const duration = dayjs.duration(seconds, 'seconds');
+
+  if (duration.asMinutes() < 60) {
+    const minutes = Math.floor(duration.asMinutes());
+    return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+  }
+
+  if (duration.asHours() < 24) {
+    const hours = Math.floor(duration.asHours());
+    return `${hours} hour${hours !== 1 ? 's' : ''}`;
+  }
+
+  if (duration.asDays() < 30) {
+    const days = Math.floor(duration.asDays());
+    return `${days} day${days !== 1 ? 's' : ''}`;
+  }
+
+  const months = Math.ceil(duration.asMonths());
+  return `${months} month${months !== 1 ? 's' : ''}`;
+};
