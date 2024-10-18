@@ -7,7 +7,7 @@ import badge from '@/assets/images/progress/badge.png';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import brawlersPoster from '@/assets/images/brawlers-poster.png';
-import brawlersPoster2 from '@/assets/images/brawlers-poster-2.png';
+import brinkoPoster from '@/assets/images/brinko-poster.png';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,9 +30,6 @@ export default function HomePage() {
     <main className="relative space-y-5 p-5">
       <Banner>
         <div className="space-y-4">
-          <h3 className="inline bg-accent px-2 font-monoline text-3xl text-accent-foreground xl:text-4xl">
-            Always on
-          </h3>
           <h2 className="font-tusker text-6xl uppercase leading-none md:max-w-[66%] xl:text-7xl">
             Welcome to the Real World
           </h2>
@@ -173,19 +170,9 @@ export default function HomePage() {
               loading={!sdkHasLoaded}
               className="aspect-[6/7] overflow-hidden bg-cover"
               style={{
-                backgroundImage: sdkHasLoaded
-                  ? `url(${brawlersPoster2.src})`
-                  : '',
+                backgroundImage: sdkHasLoaded ? `url(${brinkoPoster.src})` : '',
               }}
             />
-            <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-            <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-            <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-            <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-            <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-            <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-            <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
-            <Card loading={!sdkHasLoaded} className="aspect-[6/7]" />
           </div>
         )}
       </div>

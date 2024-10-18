@@ -170,7 +170,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-              path="/staking"
+              path="/staking-preview"
             >
               <PackagePlus />
               <span>Staking</span>

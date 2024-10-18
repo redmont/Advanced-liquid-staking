@@ -22,7 +22,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
           {skeleton}
         </div>
       )}
-      {props.children}
+      {!loading && props.children}
     </div>
   ),
 );
