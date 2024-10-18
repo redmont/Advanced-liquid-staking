@@ -145,7 +145,7 @@ export default function Airdrop() {
               <Skeleton variant="primary" className="inline-block h-6 w-40" />
             ) : (
               <span className="text-xl font-semibold leading-none">
-                {data ? formatWithSeparators(data.totalBzr) : 0} $REAL
+                {data ? formatWithSeparators(data.totalBzr) : 0} {token.symbol}
               </span>
             )}
           </div>

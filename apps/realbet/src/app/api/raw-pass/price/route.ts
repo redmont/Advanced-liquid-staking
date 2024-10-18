@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { env } from '@/env';
 
 interface GetFloorPriceResponse {
   openSea?: {
@@ -9,7 +10,7 @@ interface GetFloorPriceResponse {
 export const revalidate = 60;
 
 export async function GET() {
-  const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
+  const ALCHEMY_API_KEY = env.NEXT_PUBLIC_ALCHEMY_API_KEY;
   const RAW_PASS_CONTRACT_ADDRESS = process.env.RAW_PASS_CONTRACT_ADDRESS;
 
   if (!ALCHEMY_API_KEY || !RAW_PASS_CONTRACT_ADDRESS) {
