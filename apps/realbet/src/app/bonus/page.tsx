@@ -67,9 +67,10 @@ const Page = () => {
 
   const connectedWalletList = (
     <div className="flex items-center gap-2">
-      {userWallets.slice(0, 3).map((wallet) => (
+      {userWallets.slice(0, 3).map((wallet, i) => (
         <span key={wallet.address}>
-          {wallet.address && shorten(wallet.address, 4)},
+          {wallet.address && shorten(wallet.address, 4)}
+          {i !== userWallets.length - 1 && ','}
         </span>
       ))}
       {userWallets.length > 3 && (
