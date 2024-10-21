@@ -5,9 +5,7 @@ import { CircleAlert } from 'lucide-react';
 import RealIcon from '@/assets/images/R.svg';
 import badge from '@/assets/images/progress/badge.png';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import brawlersPoster from '@/assets/images/brawlers-poster.png';
-import brinkoPoster from '@/assets/images/brinko-poster.png';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -140,17 +138,6 @@ export default function HomePage() {
           </div>
         </CardContent>
       </Card>
-
-      {false && (
-        <Tabs className="relative z-20" defaultValue="all">
-          <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="betting">Betting</TabsTrigger>
-            <TabsTrigger value="sports">Sports</TabsTrigger>
-            <TabsTrigger value="memes">Memes</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      )}
       <div className="z-20 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         <LinkPreview
           url="https://brawl3rs.ai/"
@@ -164,17 +151,6 @@ export default function HomePage() {
             }}
           />
         </LinkPreview>
-        {false && (
-          <div>
-            <Card
-              loading={!sdkHasLoaded}
-              className="aspect-[6/7] overflow-hidden bg-cover"
-              style={{
-                backgroundImage: sdkHasLoaded ? `url(${brinkoPoster.src})` : '',
-              }}
-            />
-          </div>
-        )}
       </div>
     </main>
   );

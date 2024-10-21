@@ -3,18 +3,19 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useRawPasses } from './useRawPasses';
 import { toBase26 } from '@/utils';
+import { z } from 'zod';
 
-interface ApiResponse {
-  '0': {
-    totalPasses: number;
-    lowestId: number;
-    points: number;
-    wallet: string;
-    affiliateCode: string;
-    rankScore: number;
-    rank: number;
-  };
-}
+const ApiResponseSchema = z.object({
+  '0': z.object({
+    totalPasses: z.number(),
+    lowestId: z.number(),
+    points: z.number(),
+    wallet: z.string(),
+    affiliateCode: z.string(),
+    rankScore: z.number(),
+    rank: z.number(),
+  }),
+});
 
 interface LeaderboardRecord {
   totalPasses: number;
@@ -79,7 +80,7 @@ const useLeaderboardV2 = (): UseQueryResult<LeaderboardRecord, Error> => {
         throw new Error('Failed to fetch leaderboard data');
       }
 
-      const apiResponse: ApiResponse = (await response.json()) as ApiResponse;
+      const apiResponse = ApiResponseSchema.parse(await response.json());
       const data = apiResponse['0'];
 
       const bzrGroups: BzrPassGroup[] = passGroups.map((g, i) => ({

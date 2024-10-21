@@ -53,8 +53,7 @@ export function toBase26(num: number): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz';
 
   if (num < 0) {
-    // eslint-disable-next-line @typescript-eslint/only-throw-error
-    throw 'Number must be positive';
+    throw Error('Number must be positive');
   }
 
   if (num === 0) {
