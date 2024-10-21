@@ -1,14 +1,18 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { z } from 'zod';
 
-interface FloorPriceResponse {
-  floorPrice: number | null;
-}
+const FloorPriceResponseSchema = z.object({
+  floorPrice: z.number().nullable(),
+});
 
-interface NftListResponse {
-  nftNames: string[];
-  totalCount: number;
-}
+const NftListResponseSchema = z.object({
+  nftNames: z.array(z.string()),
+  totalCount: z.number(),
+});
+
+type FloorPriceResponse = z.infer<typeof FloorPriceResponseSchema>;
+type NftListResponse = z.infer<typeof NftListResponseSchema>;
 
 export function useRawPasses() {
   const { primaryWallet, sdkHasLoaded: isConnected } = useDynamicContext();
@@ -37,7 +41,10 @@ export function useRawPasses() {
       next: { revalidate: 60 },
     })
       .then((response) => response.json())
-      .then((data: NftListResponse) => setNftListResponse(data))
+      .then((data) => {
+        const validatedData = NftListResponseSchema.parse(data);
+        setNftListResponse(validatedData);
+      })
       .finally(() => setNftsLoading(false));
   }, [address, isConnected]);
 
@@ -56,7 +63,10 @@ export function useRawPasses() {
       next: { revalidate: 60 },
     })
       .then((response) => response.json())
-      .then((data: FloorPriceResponse) => setFloorPriceResponse(data));
+      .then((data) => {
+        const validatedData = FloorPriceResponseSchema.parse(data);
+        setFloorPriceResponse(validatedData);
+      });
   }, []);
 
   const { floorPrice = 0 } = floorPriceResponse ?? {};
