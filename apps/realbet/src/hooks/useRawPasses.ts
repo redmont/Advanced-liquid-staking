@@ -15,7 +15,7 @@ export function useRawPasses() {
   const { primaryWallet, sdkHasLoaded } = useDynamicContext();
   const address = primaryWallet?.address ?? '';
 
-  const nfts = useQuery({
+  const { data: nfts, isLoading: areNftsLoading } = useQuery({
     enabled: sdkHasLoaded && !!address,
     queryKey: ['nftList', address],
     queryFn: async () => {
@@ -40,7 +40,8 @@ export function useRawPasses() {
   });
 
   return {
-    floorPrice,
+    floorPrice: floorPrice.data,
     nfts,
+    areNftsLoading,
   };
 }

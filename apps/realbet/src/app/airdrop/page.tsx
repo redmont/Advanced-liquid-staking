@@ -94,14 +94,31 @@ export default function Airdrop() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data?.bzrGroups.map((g, i) => (
-                <TableRow key={i}>
-                  <TableCell>{g.title}</TableCell>
-                  <TableCell>{formatWithSeparators(g.passQty)}</TableCell>
-                  <TableCell>{formatWithSeparators(g.bzrPerPass)}</TableCell>
-                  <TableCell>{formatWithSeparators(g.totalBzr)}</TableCell>
+              {data?.isLoding ? (
+                <TableRow>
+                  <TableCell>
+                    <Skeleton className="inline-block h-6 w-40" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="inline-block h-6 w-40" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="inline-block h-6 w-40" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="inline-block h-6 w-40" />
+                  </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                data?.bzrGroups.map((g, i) => (
+                  <TableRow key={i}>
+                    <TableCell>{g.title}</TableCell>
+                    <TableCell>{formatWithSeparators(g.passQty)}</TableCell>
+                    <TableCell>{formatWithSeparators(g.bzrPerPass)}</TableCell>
+                    <TableCell>{formatWithSeparators(g.totalBzr)}</TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
           <div className="mt-6 flex flex-col items-stretch gap-5 sm:flex-row">

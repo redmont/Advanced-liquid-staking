@@ -27,6 +27,7 @@ interface LeaderboardRecord {
   rank: number;
   bzrGroups: BzrPassGroup[];
   totalBzr: number;
+  isLoding: boolean;
 }
 
 interface BzrPassGroup {
@@ -47,13 +48,13 @@ const bzrConversionRate = 0.35;
 const API_BASE_URL = 'https://rp-leaderboard-api.prod.walletwars.io';
 
 const useLeaderboardV2 = (): UseQueryResult<LeaderboardRecord, Error> => {
-  const { nfts } = useRawPasses();
+  const { nfts, areNftsLoading } = useRawPasses();
   const { primaryWallet } = useDynamicContext();
   const walletAddress = primaryWallet?.address ?? '';
 
   const passQuantities = useMemo(
     () =>
-      nfts.data?.nftNames?.reduce(
+      nfts?.nftNames?.reduce(
         (result, name) => {
           const id = Number(name.split('#')[1]);
           if (isNaN(id)) {
@@ -98,6 +99,7 @@ const useLeaderboardV2 = (): UseQueryResult<LeaderboardRecord, Error> => {
         ...data,
         bzrGroups,
         totalBzr,
+        isLoding: areNftsLoading
       };
     },
     enabled: !!walletAddress,
