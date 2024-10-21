@@ -47,13 +47,13 @@ const bzrConversionRate = 0.35;
 const API_BASE_URL = 'https://rp-leaderboard-api.prod.walletwars.io';
 
 const useLeaderboardV2 = (): UseQueryResult<LeaderboardRecord, Error> => {
-  const { nftNames } = useRawPasses();
+  const { nfts } = useRawPasses();
   const { primaryWallet } = useDynamicContext();
   const walletAddress = primaryWallet?.address ?? '';
 
   const passQuantities = useMemo(
     () =>
-      nftNames.reduce(
+      nfts.data?.nftNames?.reduce(
         (result, name) => {
           const id = Number(name.split('#')[1]);
           if (isNaN(id)) {
@@ -64,8 +64,8 @@ const useLeaderboardV2 = (): UseQueryResult<LeaderboardRecord, Error> => {
           return result;
         },
         [0, 0, 0] as [number, number, number],
-      ),
-    [nftNames],
+      ) ?? [0, 0, 0],
+    [nfts],
   );
 
   return useQuery<LeaderboardRecord, Error>({
