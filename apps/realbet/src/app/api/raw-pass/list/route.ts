@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { env } from '@/env';
 
 export const revalidate = 60;
 
@@ -36,16 +37,23 @@ export async function GET(request: NextRequest) {
       }),
     });
 
-    alchemyParams.append('contractAddresses[]', process.env.RAW_PASS_CONTRACT_ADDRESS!);
+    alchemyParams.append(
+      'contractAddresses[]',
+      env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS,
+    );
 
     const response = await fetch(
-      `https://eth-mainnet.g.alchemy.com/nft/v3/${process.env.ALCHEMY_API_KEY}/getNFTsForOwner?${alchemyParams}`,
+      `https://eth-mainnet.g.alchemy.com/nft/v3/${env.NEXT_PUBLIC_ALCHEMY_API_KEY}/getNFTsForOwner?${alchemyParams}`,
       {
         method: 'GET',
         headers: { accept: 'application/json' },
         next: { revalidate: 60 },
       },
     );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const respData = (await response.json()) as GetNFTsForOwnerResponse;
 

@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { formatUnits } from 'viem';
 import TokenTiers from '@/components/modals/TokenTiersModal';
 import brinkoPoster from '@/assets/images/brinko-poster.png';
+import stakingPoster from '@/assets/images/staking-poster.png';
+import bonusChecker from '@/assets/images/bonus-checker-poster.png';
 import { useProgression } from '@/hooks/useProgression';
 
 export default function HomePage() {
@@ -149,6 +151,30 @@ export default function HomePage() {
             target="_blank"
             rel="noreferrer noopener"
           />
+        </Card>
+        <Card
+          loading={!sdkHasLoaded}
+          className="relative aspect-[6/7] overflow-hidden bg-cover transition-transform hover:scale-105"
+          style={{
+            backgroundImage: sdkHasLoaded ? `url(${stakingPoster.src})` : '',
+          }}
+        >
+          <Link
+            className="inset-0 block size-full"
+            href="/staking-preview"
+            rel="noreferrer noopener"
+          />
+        </Card>
+        <Card
+          loading={!sdkHasLoaded}
+          className="relative aspect-[6/7] overflow-hidden bg-cover"
+          style={{
+            backgroundImage: sdkHasLoaded ? `url(${bonusChecker.src})` : '',
+          }}
+        >
+          <div className="absolute inset-0 z-10 flex size-full items-center justify-center bg-black/40 transition-all hover:bg-black/60">
+            <p className="text-2xl font-semibold">Coming soon</p>
+          </div>
         </Card>
         <Card
           loading={!sdkHasLoaded}
