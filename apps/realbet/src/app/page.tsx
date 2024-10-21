@@ -13,16 +13,13 @@ import { useToken } from '@/hooks/useToken';
 import { Button } from '@/components/ui/button';
 import { formatUnits } from 'viem';
 import TokenTiers from '@/components/modals/TokenTiersModal';
-import { LinkPreview } from '@/components/ui/link-preview';
-
-const rank = 'Bronze';
-const rakebackTier = '-%';
-const xp = 0;
-const claimable = 0n;
+import brinkoPoster from '@/assets/images/brinko-poster.png';
+import { useProgression } from '@/hooks/useProgression';
 
 export default function HomePage() {
   const token = useToken();
   const { sdkHasLoaded } = useDynamicContext();
+  const progression = useProgression();
 
   return (
     <main className="relative space-y-5 p-5">
@@ -69,7 +66,7 @@ export default function HomePage() {
                   <Skeleton className="mb-2 inline-block h-4 w-32" />
                 ) : (
                   <div className="flex items-center gap-3">
-                    <h3 className="mb-1 text-xl">{rank}</h3>
+                    <h3 className="mb-1 text-xl">{progression.rank}</h3>
                     <TokenTiers>
                       <CircleAlert className="inline size-6 cursor-pointer" />
                     </TokenTiers>
@@ -83,7 +80,7 @@ export default function HomePage() {
                     />
                   ) : (
                     <span className="flex items-center gap-2 text-3xl font-medium text-primary">
-                      {xp.toLocaleString()}
+                      {progression.xp.toLocaleString()}
                       <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
                         <RealIcon className="inline size-full" />
                       </span>
@@ -97,7 +94,7 @@ export default function HomePage() {
               {!sdkHasLoaded ? (
                 <Skeleton className="inline-block h-4 w-16" />
               ) : (
-                <span className="text-xl">{rakebackTier}</span>
+                <span className="text-xl">{progression.rakebackTier}</span>
               )}
             </div>
             <div>
@@ -127,7 +124,7 @@ export default function HomePage() {
                   )}
                 </span>
                 <Button
-                  disabled={claimable <= 0}
+                  disabled={progression.claimable <= 0}
                   loading={!sdkHasLoaded}
                   size="sm"
                 >
@@ -139,18 +136,31 @@ export default function HomePage() {
         </CardContent>
       </Card>
       <div className="z-20 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-        <LinkPreview
-          url="https://brawl3rs.ai/"
-          className="duration-300 ease-in-out hover:scale-90"
+        <Card
+          loading={!sdkHasLoaded}
+          className="relative aspect-[6/7] overflow-hidden bg-cover transition-transform hover:scale-105"
+          style={{
+            backgroundImage: sdkHasLoaded ? `url(${brawlersPoster.src})` : '',
+          }}
         >
-          <Card
-            loading={!sdkHasLoaded}
-            className="aspect-[6/7] overflow-hidden bg-cover"
-            style={{
-              backgroundImage: sdkHasLoaded ? `url(${brawlersPoster.src})` : '',
-            }}
+          <a
+            className="inset-0 block size-full"
+            href="https://brawlers.io"
+            target="_blank"
+            rel="noreferrer noopener"
           />
-        </LinkPreview>
+        </Card>
+        <Card
+          loading={!sdkHasLoaded}
+          className="relative aspect-[6/7] overflow-hidden bg-cover"
+          style={{
+            backgroundImage: sdkHasLoaded ? `url(${brinkoPoster.src})` : '',
+          }}
+        >
+          <div className="absolute inset-0 z-10 flex size-full items-center justify-center bg-black/40 transition-all hover:bg-black/60">
+            <p className="text-2xl font-semibold">Coming soon</p>
+          </div>
+        </Card>
       </div>
     </main>
   );
