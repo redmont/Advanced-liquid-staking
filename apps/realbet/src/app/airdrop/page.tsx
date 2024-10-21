@@ -52,7 +52,7 @@ export default function Airdrop() {
         >
           <div className="rounded-xl p-10 text-center">
             <h3 className="text-xl font-bold">
-              Connect your wallet to claim your $REAL
+              Connect your wallet to claim your {token.symbol}
             </h3>
             <Button className="mt-4" onClick={handleDynamicAuthClick} size="xl">
               Connect Wallet <Wallet2 className="ml-2" />
@@ -65,7 +65,8 @@ export default function Airdrop() {
         </CardHeader>
         <CardContent>
           <p className="mt-2 bg-black/25 px-2 py-4 text-xl italic">
-            $REAL Allocation = Base rP Allocation + (Points * Conversion Rate)
+            {token.symbol} Allocation = Base rP Allocation + (Points *
+            Conversion Rate)
           </p>
           <p className="mt-2">
             <strong>Buying rPs</strong> will transfer their base allocation to
@@ -76,7 +77,8 @@ export default function Airdrop() {
           </p>
           <h4 className="mt-8 uppercase">Airdrop Details</h4>
           <p className="mt-4">
-            Airdrop will be claimable post $REAL TGE and public sale completion.
+            Airdrop will be claimable post {token.symbol} TGE and public sale
+            completion.
           </p>
           <p className="mb-6 mt-2">
             <strong>15%</strong> of airdrop will be unlocked at TGE. Remainder
@@ -87,7 +89,7 @@ export default function Airdrop() {
               <TableRow>
                 <TableHead>raW Pass</TableHead>
                 <TableHead>Quantity</TableHead>
-                <TableHead>$REAL Rate</TableHead>
+                <TableHead>{token.symbol} Rate</TableHead>
                 <TableHead>Quantity</TableHead>
               </TableRow>
             </TableHeader>
@@ -123,12 +125,12 @@ export default function Airdrop() {
             </div>
           </div>
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-2 py-3 text-primary">
-            <h3 className="text-lg">Total $REAL Allocation</h3>
+            <h3 className="text-lg">Total {token.symbol} Allocation</h3>
             {!sdkHasLoaded ? (
               <Skeleton variant="primary" className="inline-block h-6 w-40" />
             ) : (
               <span className="text-xl font-semibold leading-none">
-                {data ? formatWithSeparators(data.totalBzr) : 0} $REAL
+                {data ? formatWithSeparators(data.totalBzr) : 0} {token.symbol}
               </span>
             )}
           </div>
@@ -139,7 +141,10 @@ export default function Airdrop() {
           </div>
         </CardContent>
         <CardFooter>
-          <p>Airdrop claims will open following the $REAL TGE announcement.</p>
+          <p>
+            Airdrop claims will open following the {token.symbol} TGE
+            announcement.
+          </p>
         </CardFooter>
       </Card>
     </div>

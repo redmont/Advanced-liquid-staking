@@ -2,6 +2,7 @@ import Banner from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { useToken } from '@/hooks/useToken';
 import {
   Table,
   TableBody,
@@ -12,7 +13,9 @@ import {
 } from '@/components/ui/table';
 import React from 'react';
 
-const page = () => {
+const Page = () => {
+  const token = useToken();
+
   return (
     <div className="flex flex-col gap-5 p-5">
       <Banner>
@@ -61,9 +64,9 @@ const page = () => {
         </Table>
 
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-2 py-3 text-primary">
-          <h3 className="text-lg">Total $REAL Allocation</h3>
+          <h3 className="text-lg">Total {token.symbol} Allocation</h3>
           <span className="text-xl font-semibold leading-none">
-            826,820 $REAL
+            826,820 {token.symbol}
           </span>
         </div>
 
@@ -73,4 +76,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

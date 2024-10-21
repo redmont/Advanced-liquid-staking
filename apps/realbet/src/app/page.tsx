@@ -34,7 +34,7 @@ export default function HomePage() {
             Welcome to the Real World
           </h2>
           <p className="pb-8 text-lg md:max-w-[66%] xl:text-xl">
-            $REAL is the fun and financialised future of crypto gaming.
+            {token.symbol} is the fun and financialised future of crypto gaming.
             <br />
             See the{' '}
             <Link
