@@ -32,11 +32,11 @@ const TokenTiers: FC<TokenTiersProps> = ({ children }) => {
       <DialogTrigger onClick={() => setOpen(true)} asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="border-transparent bg-zinc-950 sm:max-w-xl">
-        <DialogHeader>
+      <DialogContent className="border-transparent bg-zinc-950 px-2 sm:max-w-xl">
+        <DialogHeader className="px-4">
           <DialogTitle className="font-normal">RWG TOKENS TIERS</DialogTitle>
         </DialogHeader>
-        <Scrollable className="h-80 w-full overflow-hidden md:h-[30rem]">
+        <Scrollable className="h-80 w-full overflow-hidden px-4 md:h-[30rem]">
           <div className="mb-4 flex w-full flex-col gap-4">
             <p>
               All players receive a <span className="font-semibold">%</span> of
