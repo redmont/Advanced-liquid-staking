@@ -10,6 +10,7 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(['development', 'test', 'production'])
       .default('development'),
+    SENTRY_AUTH_TOKEN: z.string().optional(),
   },
 
   /**
@@ -29,6 +30,7 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??

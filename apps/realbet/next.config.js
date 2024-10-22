@@ -3,7 +3,7 @@ import { withSentryConfig } from '@sentry/nextjs';
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
-await import('./src/env.js');
+const { env } = await import('./src/env.js');
 import analyzer from '@next/bundle-analyzer';
 
 const withBundleAnalyzer = analyzer({
@@ -13,6 +13,7 @@ const withBundleAnalyzer = analyzer({
 /** @type {import("next").NextConfig} */
 const config = {
   webpack: (config) => {
+    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack'],
@@ -29,6 +30,8 @@ export default withBundleAnalyzer(
 
     org: 'rwg',
     project: 'realbet',
+
+    authToken: env.SENTRY_AUTH_TOKEN,
 
     // Only print logs for uploading source maps in CI
     silent: !process.env.CI,
