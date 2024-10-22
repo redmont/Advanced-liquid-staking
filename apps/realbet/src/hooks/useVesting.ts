@@ -43,13 +43,15 @@ export const useVesting = () => {
     ],
     enabled: !!primaryWallet && !!vesting && !!vestingSchedulesCount.data,
     queryFn: async () => {
+      assert(vesting, 'Vesting contract required');
+
       const count = vestingSchedulesCount.data!;
       const contracts = Array.from({ length: count }, (_, index) => ({
-        address: vesting!.address,
-        abi: vesting!.abi,
+        address: vesting.address,
+        abi: vesting.abi,
         functionName: 'computeVestingScheduleIdForAddressAndIndex',
         args: [primaryWallet?.address, index],
-      }));
+      })) as MulticallContracts<typeof vesting.abi>;
 
       const schedules = await multicall(config, {
         contracts,
@@ -77,7 +79,7 @@ export const useVesting = () => {
         abi: vesting.abi,
         functionName: 'getVestingScheduleByAddressAndIndex',
         args: [primaryWallet.address, index],
-      }));
+      })) as MulticallContracts<typeof vesting.abi>;
 
       const schedules = await multicall(config, {
         contracts,
