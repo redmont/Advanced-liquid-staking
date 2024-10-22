@@ -25,6 +25,13 @@ export const formatBalance = (
   return formatted;
 };
 
+// Format balance, but truncate trailing zeros that are not significant
+export const formatBalanceTruncated = (
+  balance: bigint,
+  decimals: number,
+  precision = 6,
+) => formatBalance(balance, decimals, precision).replace(/\.0+$/, '');
+
 export const parseBalance = (balance: string, decimals: number) =>
   parseUnits(balance, decimals);
 
