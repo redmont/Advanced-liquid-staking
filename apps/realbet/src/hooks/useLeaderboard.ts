@@ -3,19 +3,18 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useRawPasses } from './useRawPasses';
 import { toBase26 } from '@/utils';
-import { z } from 'zod';
 
-const ApiResponseSchema = z.object({
-  '0': z.object({
-    totalPasses: z.number(),
-    lowestId: z.number(),
-    points: z.number(),
-    wallet: z.string(),
-    affiliateCode: z.string(),
-    rankScore: z.number(),
-    rank: z.number(),
-  }),
-});
+interface ApiResponse {
+  '0': {
+    totalPasses: number;
+    lowestId: number;
+    points: number;
+    wallet: string;
+    affiliateCode: string;
+    rankScore: number;
+    rank: number;
+  };
+}
 
 interface LeaderboardRecord {
   totalPasses: number;
@@ -65,8 +64,8 @@ const useLeaderboardV2 = (): UseQueryResult<LeaderboardRecord, Error> => {
           return result;
         },
         [0, 0, 0] as [number, number, number],
-      ) ?? [0, 0, 0],
-    [nfts],
+      ),
+    [nfts?.nftNames],
   );
 
   return useQuery<LeaderboardRecord, Error>({
@@ -81,8 +80,12 @@ const useLeaderboardV2 = (): UseQueryResult<LeaderboardRecord, Error> => {
         throw new Error('Failed to fetch leaderboard data');
       }
 
-      const apiResponse = ApiResponseSchema.parse(await response.json());
+      const apiResponse: ApiResponse = (await response.json()) as ApiResponse;
       const data = apiResponse['0'];
+
+      if (!passQuantities) {
+        throw new Error('passQuantities is undefined');
+      }
 
       const bzrGroups: BzrPassGroup[] = passGroups.map((g, i) => ({
         ...g,

@@ -50,7 +50,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ??
       'vlIJU80HdfL61kafixpO45fFrvqVPJx9',
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS:
-      process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ??
+      process.env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS ??
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
   },
   /**
