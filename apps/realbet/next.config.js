@@ -14,14 +14,6 @@ const config = {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;
   },
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'api.microlink.io',
-      },
-    ],
-  },
 };
 
 export default config;
