@@ -52,7 +52,8 @@
     "tailwindcss-animate": "^1.0.7",
     "viem": "^2.21.15",
     "wagmi": "^2.12.14",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "husky": "^9.1.6"
   },
   "devDependencies": {
     "@svgr/webpack": "^8.1.0",
@@ -66,7 +67,6 @@
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.13",
     "eslint-plugin-tailwindcss": "^3.17.4",
-    "husky": "^9.1.6",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
