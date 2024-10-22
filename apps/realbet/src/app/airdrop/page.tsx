@@ -141,8 +141,8 @@ export default function Airdrop() {
             )}
           </div>
           <div className="mt-6 text-right">
-            <Button className="w-48" loading={!sdkHasLoaded} size="xl">
-              Claim
+            <Button disabled className="w-48" loading={!sdkHasLoaded} size="xl">
+              Claim (Coming Soon)
             </Button>
           </div>
         </CardContent>
