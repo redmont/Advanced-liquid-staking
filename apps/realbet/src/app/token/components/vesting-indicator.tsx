@@ -1,18 +1,10 @@
 import { useToken } from '@/hooks/useToken';
 import { type Deposit, useVault } from '@/hooks/useVault';
 import { cn } from '@/lib/utils';
-import {
-  balanceToFloat,
-  formatBalance,
-  formatBalanceTruncated,
-  toDurationSeconds,
-} from '@/utils';
+import { balanceToFloat, formatBalanceTruncated } from '@/utils';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
-import dayjs from '@/dayjs';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useVesting } from '@/hooks/useVesting';
-
-const MAX_SHOWN_DEPOSITS = 5;
 
 const colors = [
   'bg-primary',
