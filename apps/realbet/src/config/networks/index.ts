@@ -5,7 +5,7 @@ import { type GetArrayElementType } from '@/types';
 
 export * from 'viem/chains';
 
-export const evm = [/*mainnet, polygon, polygonAmoy, */ sepolia] as const;
+export const evm = [sepolia] as const;
 export const allNetworks = [...evm] as const;
 export const production = allNetworks.filter((chain) => !chain.testnet);
 export const development = allNetworks.filter(

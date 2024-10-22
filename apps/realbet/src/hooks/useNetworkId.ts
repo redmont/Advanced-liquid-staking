@@ -1,8 +1,9 @@
 import { networkIdExists } from '@/config/networks';
+import { isDev } from '@/env';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useQuery } from '@tanstack/react-query';
 
-const defaultNetwork = '11155111';
+const defaultNetwork = isDev ? '11155111' : '1';
 
 const useNetworkId = () => {
   const { primaryWallet, sdkHasLoaded } = useDynamicContext();
