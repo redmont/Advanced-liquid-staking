@@ -1,18 +1,16 @@
+import { fileURLToPath } from 'url';
 import path from 'path';
 import { withSentryConfig } from '@sentry/nextjs';
-
-/**
- * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
- * for Docker builds.
- */
-const { env } = await import('./src/env.js');
 import analyzer from '@next/bundle-analyzer';
+import { env } from './src/env.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Use this `__dirname` in your configuration
 const withBundleAnalyzer = analyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-/** @type {import("next").NextConfig} */
 const config = {
   webpack: (config) => {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
@@ -25,6 +23,7 @@ const config = {
   },
 };
 
+// Other configuration remains the same...
 export default withBundleAnalyzer(
   withSentryConfig(config, {
     // For all available options, see:
