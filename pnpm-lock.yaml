@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@radix-ui/react-hover-card':
+        specifier: ^1.1.2
+        version: 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       eslint-config-turbo:
         specifier: ^2.1.3
         version: 2.1.3(eslint@8.57.1)
+      qss:
+        specifier: ^3.0.0
+        version: 3.0.0
     devDependencies:
       eslint-plugin-only-warn:
         specifier: ^1.1.0
@@ -123,6 +129,9 @@ importers:
       '@radix-ui/react-checkbox':
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-dialog':
+        specifier: ^1.1.2
+        version: 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-dropdown-menu':
         specifier: ^2.1.1
         version: 2.1.1(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -310,7 +319,7 @@ importers:
         version: 2.0.8(@nomicfoundation/hardhat-viem@2.0.5(hardhat@2.22.12(bufferutil@4.0.8)(ts-node@10.9.1(@types/node@20.16.9)(typescript@5.0.4))(typescript@5.0.4)(utf-8-validate@5.0.10))(typescript@5.0.4)(viem@2.21.15(bufferutil@4.0.8)(typescript@5.0.4)(utf-8-validate@5.0.10)(zod@3.23.8))(zod@3.23.8))(chai@4.5.0)(hardhat@2.22.12(bufferutil@4.0.8)(ts-node@10.9.1(@types/node@20.16.9)(typescript@5.0.4))(typescript@5.0.4)(utf-8-validate@5.0.10))(viem@2.21.15(bufferutil@4.0.8)(typescript@5.0.4)(utf-8-validate@5.0.10)(zod@3.23.8))
       hardhat-docgen:
         specifier: ^1.1.1
-        version: 1.3.0(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(hardhat@2.22.12(bufferutil@4.0.8)(ts-node@10.9.1(@types/node@20.16.9)(typescript@5.0.4))(typescript@5.0.4)(utf-8-validate@5.0.10))(lodash@4.17.21)(prettier@3.3.3)
+        version: 1.3.0(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(hardhat@2.22.12(bufferutil@4.0.8)(ts-node@10.9.1(@types/node@20.16.9)(typescript@5.0.4))(typescript@5.0.4)(utf-8-validate@5.0.10))(lodash@4.17.21)(prettier@3.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       hardhat-gas-reporter:
         specifier: ^1.0.4
         version: 1.0.10(bufferutil@4.0.8)(hardhat@2.22.12(bufferutil@4.0.8)(ts-node@10.9.1(@types/node@20.16.9)(typescript@5.0.4))(typescript@5.0.4)(utf-8-validate@5.0.10))(utf-8-validate@5.0.10)
@@ -2449,6 +2458,19 @@ packages:
       '@types/react':
         optional: true
 
+  '@radix-ui/react-dialog@1.1.2':
+    resolution: {integrity: sha512-Yj4dZtqa2o+kG61fzB0H2qUvmwBA2oyQroGLyNtBj1beo1khoQ3q1a2AO8rrQYjd8256CO9+N8L9tvsS+bnIyA==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
   '@radix-ui/react-direction@1.1.0':
     resolution: {integrity: sha512-BUuBvgThEiAXh2DWu93XsT+a3aWrGqolGlqqw5VU1kG7p/ZH2cuDlM1sRLNnY3QcBS69UIz2mcKhMxDsdewhjg==}
     peerDependencies:
@@ -2517,6 +2539,19 @@ packages:
 
   '@radix-ui/react-focus-scope@1.1.0':
     resolution: {integrity: sha512-200UD8zylvEyL8Bx+z76RJnASR2gRMuxlgFCPAe/Q/679a/r0eK3MBVYMb7vZODZcffZBdob1EGnky78xmVvcA==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+
+  '@radix-ui/react-hover-card@1.1.2':
+    resolution: {integrity: sha512-Y5w0qGhysvmqsIy6nQxaPa6mXNKznfoGjOfBgzOjocLxr2XlSjqBMYQQL+FfyogsMuX+m8cZyQGYhJxvxUzO4w==}
     peerDependencies:
       '@types/react': '*'
       '@types/react-dom': '*'
@@ -8429,6 +8464,10 @@ packages:
     resolution: {integrity: sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==}
     engines: {node: '>=0.6'}
 
+  qss@3.0.0:
+    resolution: {integrity: sha512-ZHoCB3M/3Voev64zhLLUOKDtaEdJ/lymsJJ7R3KBusVZ2ovNiIB7XOq3Xh6V1a8O+Vho+g2B5YElq9zW7D8aQw==}
+    engines: {node: '>=4'}
+
   query-string@5.1.1:
     resolution: {integrity: sha512-gjWOsm2SoGlgLEdAGt7a6slVOk9mGiXmPFMqrEhLQ68rhQuBnpfs3+EmlvqKyxnCo9/PPlF+9MtY02S1aFg+Jw==}
     engines: {node: '>=0.10.0'}
@@ -11449,11 +11488,11 @@ snapshots:
       '@dynamic-labs/logger': 3.1.3(eventemitter3@5.0.1)
       '@dynamic-labs/rpc-providers': 3.1.3
       '@dynamic-labs/sdk-api-core': 0.0.535
-      '@dynamic-labs/solana-core': 3.1.3(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1))(@dynamic-labs/wallet-connector-core@3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1))(bufferutil@4.0.8)(encoding@0.1.13)(eventemitter3@5.0.1)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.2)(utf-8-validate@5.0.10)
+      '@dynamic-labs/solana-core': 3.1.3(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@dynamic-labs/wallet-connector-core@3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1))(bufferutil@4.0.8)(encoding@0.1.13)(eventemitter3@5.0.1)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@dynamic-labs/types': 3.1.3
       '@dynamic-labs/utils': 3.1.3
       '@dynamic-labs/wallet-book': 3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1)
-      '@dynamic-labs/wallet-connector-core': 3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1)
+      '@dynamic-labs/wallet-connector-core': 3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1)
       '@dynamic-labs/webauthn': 3.1.3(eventemitter3@5.0.1)
       '@solana/spl-token': 0.4.6(@solana/web3.js@1.92.1(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(encoding@0.1.13)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.2)(utf-8-validate@5.0.10)
       '@solana/web3.js': 1.92.1(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
@@ -11479,7 +11518,7 @@ snapshots:
       '@dynamic-labs/sdk-api-core': 0.0.535
       '@dynamic-labs/utils': 3.1.3
       '@dynamic-labs/wallet-book': 3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1)
-      '@dynamic-labs/wallet-connector-core': 3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1)
+      '@dynamic-labs/wallet-connector-core': 3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1)
       '@dynamic-labs/webauthn': 3.1.3(eventemitter3@5.0.1)
       '@turnkey/api-key-stamper': 0.4.1
       '@turnkey/http': 2.12.2(encoding@0.1.13)
@@ -11636,24 +11675,6 @@ snapshots:
       - '@types/react'
       - react-native
 
-  '@dynamic-labs/solana-core@3.1.3(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1))(@dynamic-labs/wallet-connector-core@3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1))(bufferutil@4.0.8)(encoding@0.1.13)(eventemitter3@5.0.1)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.2)(utf-8-validate@5.0.10)':
-    dependencies:
-      '@dynamic-labs/rpc-providers': 3.1.3
-      '@dynamic-labs/sdk-api-core': 0.0.535
-      '@dynamic-labs/types': 3.1.3
-      '@dynamic-labs/utils': 3.1.3
-      '@dynamic-labs/wallet-book': 3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1)
-      '@dynamic-labs/wallet-connector-core': 3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1)
-      '@solana/spl-token': 0.4.6(@solana/web3.js@1.92.1(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10))(bufferutil@4.0.8)(encoding@0.1.13)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.2)(utf-8-validate@5.0.10)
-      '@solana/web3.js': 1.92.1(bufferutil@4.0.8)(encoding@0.1.13)(utf-8-validate@5.0.10)
-      eventemitter3: 5.0.1
-    transitivePeerDependencies:
-      - bufferutil
-      - encoding
-      - fastestsmallesttextencoderdecoder
-      - typescript
-      - utf-8-validate
-
   '@dynamic-labs/solana-core@3.1.3(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@dynamic-labs/wallet-connector-core@3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1))(bufferutil@4.0.8)(encoding@0.1.13)(eventemitter3@5.0.1)(fastestsmallesttextencoderdecoder@1.0.22)(typescript@5.6.2)(utf-8-validate@5.0.10)':
     dependencies:
       '@dynamic-labs/rpc-providers': 3.1.3
@@ -11757,16 +11778,6 @@ snapshots:
       zod: 3.22.4
     transitivePeerDependencies:
       - eventemitter3
-
-  '@dynamic-labs/wallet-connector-core@3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1)':
-    dependencies:
-      '@dynamic-labs/logger': 3.1.3(eventemitter3@5.0.1)
-      '@dynamic-labs/rpc-providers': 3.1.3
-      '@dynamic-labs/sdk-api-core': 0.0.535
-      '@dynamic-labs/types': 3.1.3
-      '@dynamic-labs/utils': 3.1.3
-      '@dynamic-labs/wallet-book': 3.1.3(eventemitter3@5.0.1)(react-dom@18.2.0(react@18.3.1))(react@18.3.1)
-      eventemitter3: 5.0.1
 
   '@dynamic-labs/wallet-connector-core@3.1.3(@dynamic-labs/logger@3.1.3(eventemitter3@5.0.1))(@dynamic-labs/rpc-providers@3.1.3)(@dynamic-labs/types@3.1.3)(@dynamic-labs/utils@3.1.3)(@dynamic-labs/wallet-book@3.1.3(eventemitter3@5.0.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(eventemitter3@5.0.1)':
     dependencies:
@@ -13380,6 +13391,28 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.9
 
+  '@radix-ui/react-dialog@1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@radix-ui/primitive': 1.1.0
+      '@radix-ui/react-compose-refs': 1.1.0(@types/react@18.3.9)(react@18.3.1)
+      '@radix-ui/react-context': 1.1.1(@types/react@18.3.9)(react@18.3.1)
+      '@radix-ui/react-dismissable-layer': 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-focus-guards': 1.1.1(@types/react@18.3.9)(react@18.3.1)
+      '@radix-ui/react-focus-scope': 1.1.0(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-id': 1.1.0(@types/react@18.3.9)(react@18.3.1)
+      '@radix-ui/react-portal': 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-presence': 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-primitive': 2.0.0(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-slot': 1.1.0(@types/react@18.3.9)(react@18.3.1)
+      '@radix-ui/react-use-controllable-state': 1.1.0(@types/react@18.3.9)(react@18.3.1)
+      aria-hidden: 1.2.4
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      react-remove-scroll: 2.6.0(@types/react@18.3.9)(react@18.3.1)
+    optionalDependencies:
+      '@types/react': 18.3.9
+      '@types/react-dom': 18.3.0
+
   '@radix-ui/react-direction@1.1.0(@types/react@18.3.9)(react@18.3.1)':
     dependencies:
       react: 18.3.1
@@ -13444,6 +13477,23 @@ snapshots:
       '@radix-ui/react-compose-refs': 1.1.0(@types/react@18.3.9)(react@18.3.1)
       '@radix-ui/react-primitive': 2.0.0(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@radix-ui/react-use-callback-ref': 1.1.0(@types/react@18.3.9)(react@18.3.1)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    optionalDependencies:
+      '@types/react': 18.3.9
+      '@types/react-dom': 18.3.0
+
+  '@radix-ui/react-hover-card@1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@radix-ui/primitive': 1.1.0
+      '@radix-ui/react-compose-refs': 1.1.0(@types/react@18.3.9)(react@18.3.1)
+      '@radix-ui/react-context': 1.1.1(@types/react@18.3.9)(react@18.3.1)
+      '@radix-ui/react-dismissable-layer': 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-popper': 1.2.0(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-portal': 1.1.2(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-presence': 1.1.1(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-primitive': 2.0.0(@types/react-dom@18.3.0)(@types/react@18.3.9)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@radix-ui/react-use-controllable-state': 1.1.0(@types/react@18.3.9)(react@18.3.1)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
     optionalDependencies:
@@ -15234,9 +15284,9 @@ snapshots:
     optionalDependencies:
       prettier: 2.8.8
 
-  '@vue/component-compiler-utils@3.3.0(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)':
+  '@vue/component-compiler-utils@3.3.0(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      consolidate: 0.15.1(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)
+      consolidate: 0.15.1(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       hash-sum: 1.0.2
       lru-cache: 4.1.5
       merge-source-map: 1.1.0
@@ -17009,7 +17059,7 @@ snapshots:
 
   consola@3.2.3: {}
 
-  consolidate@0.15.1(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21):
+  consolidate@0.15.1(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       bluebird: 3.7.2
     optionalDependencies:
@@ -17017,6 +17067,8 @@ snapshots:
       ejs: 3.1.10
       handlebars: 4.7.8
       lodash: 4.17.21
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   content-disposition@0.5.4:
     dependencies:
@@ -17771,7 +17823,7 @@ snapshots:
       debug: 4.3.7(supports-color@8.1.1)
       enhanced-resolve: 5.17.1
       eslint: 8.57.1
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.7.0(eslint@8.57.1)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@8.7.0(eslint@8.57.1)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0)(eslint@8.57.1))(eslint@8.57.1)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.7.0(eslint@8.57.1)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3)(eslint@8.57.1)
       fast-glob: 3.3.2
       get-tsconfig: 4.8.1
       is-bun-module: 1.2.1
@@ -17784,7 +17836,7 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.7.0(eslint@8.57.1)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@8.7.0(eslint@8.57.1)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0)(eslint@8.57.1))(eslint@8.57.1):
+  eslint-module-utils@2.12.0(@typescript-eslint/parser@8.7.0(eslint@8.57.1)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3)(eslint@8.57.1):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
@@ -17806,7 +17858,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.57.1
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.7.0(eslint@8.57.1)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3(@typescript-eslint/parser@8.7.0(eslint@8.57.1)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.30.0)(eslint@8.57.1))(eslint@8.57.1)
+      eslint-module-utils: 2.12.0(@typescript-eslint/parser@8.7.0(eslint@8.57.1)(typescript@5.6.2))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.3)(eslint@8.57.1)
       hasown: 2.0.2
       is-core-module: 2.15.1
       is-glob: 4.0.3
@@ -18865,13 +18917,13 @@ snapshots:
       ordinal: 1.0.3
       viem: 2.21.15(bufferutil@4.0.8)(typescript@5.0.4)(utf-8-validate@5.0.10)(zod@3.23.8)
 
-  hardhat-docgen@1.3.0(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(hardhat@2.22.12(bufferutil@4.0.8)(ts-node@10.9.1(@types/node@20.16.9)(typescript@5.0.4))(typescript@5.0.4)(utf-8-validate@5.0.10))(lodash@4.17.21)(prettier@3.3.3):
+  hardhat-docgen@1.3.0(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(hardhat@2.22.12(bufferutil@4.0.8)(ts-node@10.9.1(@types/node@20.16.9)(typescript@5.0.4))(typescript@5.0.4)(utf-8-validate@5.0.10))(lodash@4.17.21)(prettier@3.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       css-loader: 6.11.0(webpack@5.95.0)
       hardhat: 2.22.12(bufferutil@4.0.8)(ts-node@10.9.1(@types/node@20.16.9)(typescript@5.0.4))(typescript@5.0.4)(utf-8-validate@5.0.10)
       html-webpack-plugin: 5.6.0(webpack@5.95.0)
       vue: 2.7.16
-      vue-loader: 15.11.1(babel-core@6.26.3)(css-loader@6.11.0(webpack@5.95.0))(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)(prettier@3.3.3)(vue-template-compiler@2.7.16)(webpack@5.95.0)
+      vue-loader: 15.11.1(babel-core@6.26.3)(css-loader@6.11.0(webpack@5.95.0))(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)(prettier@3.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue-template-compiler@2.7.16)(webpack@5.95.0)
       vue-router: 3.6.5(vue@2.7.16)
       vue-template-compiler: 2.7.16
       webpack: 5.95.0
@@ -21135,6 +21187,8 @@ snapshots:
 
   qs@6.5.3: {}
 
+  qss@3.0.0: {}
+
   query-string@5.1.1:
     dependencies:
       decode-uri-component: 0.2.2
@@ -22883,9 +22937,9 @@ snapshots:
 
   vue-hot-reload-api@2.3.4: {}
 
-  vue-loader@15.11.1(babel-core@6.26.3)(css-loader@6.11.0(webpack@5.95.0))(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)(prettier@3.3.3)(vue-template-compiler@2.7.16)(webpack@5.95.0):
+  vue-loader@15.11.1(babel-core@6.26.3)(css-loader@6.11.0(webpack@5.95.0))(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)(prettier@3.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(vue-template-compiler@2.7.16)(webpack@5.95.0):
     dependencies:
-      '@vue/component-compiler-utils': 3.3.0(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)
+      '@vue/component-compiler-utils': 3.3.0(babel-core@6.26.3)(ejs@3.1.10)(handlebars@4.7.8)(lodash@4.17.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       css-loader: 6.11.0(webpack@5.95.0)
       hash-sum: 1.0.2
       loader-utils: 1.4.2

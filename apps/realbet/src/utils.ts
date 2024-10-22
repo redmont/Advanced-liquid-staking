@@ -46,6 +46,30 @@ export const secondsToDaysOrMonths = (
 export const toDurationSeconds = (datetime: number) =>
   datetime - new Date().getTime() / 1000;
 
+export const formatWithSeparators = (num: number) =>
+  new Intl.NumberFormat('en-US').format(num);
+
+export function toBase26(num: number): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz';
+
+  if (num < 0) {
+    throw Error('Number must be positive');
+  }
+
+  if (num === 0) {
+    return chars[0]!;
+  }
+
+  let result = '';
+
+  while (num > 0) {
+    result = chars[num % 26] + result;
+    num = Math.floor(num / 26);
+  }
+
+  return result;
+}
+
 export const convertToReadableTime = (seconds: number) => {
   const duration = dayjs.duration(seconds, 'seconds');
 

@@ -1,0 +1,112 @@
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { useRawPasses } from './useRawPasses';
+import { toBase26 } from '@/utils';
+
+interface ApiResponse {
+  '0': {
+    totalPasses: number;
+    lowestId: number;
+    points: number;
+    wallet: string;
+    affiliateCode: string;
+    rankScore: number;
+    rank: number;
+  };
+}
+
+interface LeaderboardRecord {
+  totalPasses: number;
+  lowestId: number;
+  points: number;
+  wallet: string;
+  affiliateCode: string;
+  rankScore: number;
+  rank: number;
+  bzrGroups: BzrPassGroup[];
+  totalBzr: number;
+  isLoding: boolean;
+}
+
+interface BzrPassGroup {
+  title: string;
+  bzrPerPass: number;
+  passQty: number;
+  totalBzr: number;
+}
+
+const passGroups = [
+  { title: 'Single Digit', bzrPerPass: 14_000 },
+  { title: 'Double Digit', bzrPerPass: 10_500 },
+  { title: 'Triple Digit', bzrPerPass: 8_750 },
+];
+
+const bzrConversionRate = 0.35;
+
+const API_BASE_URL = 'https://rp-leaderboard-api.prod.walletwars.io';
+
+const useLeaderboardV2 = (): UseQueryResult<LeaderboardRecord, Error> => {
+  const { nfts, areNftsLoading } = useRawPasses();
+  const { primaryWallet } = useDynamicContext();
+  const walletAddress = primaryWallet?.address ?? '';
+
+  const passQuantities = useMemo(
+    () =>
+      nfts?.nftNames?.reduce(
+        (result, name) => {
+          const id = Number(name.split('#')[1]);
+          if (isNaN(id)) {
+            return result;
+          }
+          const codeLength = toBase26(id).length;
+          result[codeLength - 1]! += 1;
+          return result;
+        },
+        [0, 0, 0] as [number, number, number],
+      ),
+    [nfts?.nftNames],
+  );
+
+  return useQuery<LeaderboardRecord, Error>({
+    queryKey: ['leaderboard', walletAddress],
+    queryFn: async () => {
+      if (!walletAddress) {
+        throw new Error('No wallet address available');
+      }
+
+      const response = await fetch(`${API_BASE_URL}/?address=${walletAddress}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch leaderboard data');
+      }
+
+      const apiResponse: ApiResponse = (await response.json()) as ApiResponse;
+      const data = apiResponse['0'];
+
+      if (!passQuantities) {
+        throw new Error('passQuantities is undefined');
+      }
+
+      const bzrGroups: BzrPassGroup[] = passGroups.map((g, i) => ({
+        ...g,
+        passQty: passQuantities[i]!,
+        totalBzr: passQuantities[i]! * g.bzrPerPass,
+      }));
+
+      const totalBzr = bzrGroups.reduce(
+        (result, g) => result + g.totalBzr,
+        Math.floor(data.points * bzrConversionRate),
+      );
+
+      return {
+        ...data,
+        bzrGroups,
+        totalBzr,
+        isLoding: areNftsLoading
+      };
+    },
+    enabled: !!walletAddress,
+  });
+};
+
+export default useLeaderboardV2;

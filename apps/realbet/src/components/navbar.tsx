@@ -24,7 +24,8 @@ import {
   Wallet2,
   Coins,
   UserCog,
-  CircleDollarSign,
+  Box,
+  Trophy,
 } from 'lucide-react';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { usePathname } from 'next/navigation';
@@ -41,6 +42,7 @@ const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
 
   return (
     <Link
+      prefetch
       href={path}
       className={cn(
         'py-2 text-xl',
@@ -98,7 +100,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
           <li>
             <Button
               onClick={authHandler}
-              variant="outline"
+              variant="default"
               className="w-full max-w-64"
             >
               {isAuthenticated ? (
@@ -160,6 +162,15 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+              path="/bonus"
+            >
+              <Coins />
+              <span>Bonus</span>
+            </NextLink>
+          </li>
+          <li>
+            <NextLink
+              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
               path="/staking-preview"
             >
               <PackagePlus />
@@ -169,19 +180,19 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-              path="/token"
+              path="/vesting"
             >
-              <Coins />
-              <span>Token</span>
+              <Trophy />
+              <span>Vesting</span>
             </NextLink>
           </li>
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-              path="/bonus"
+              path="/airdrop"
             >
-              <CircleDollarSign />
-              <span>Welcome Bonus</span>
+              <Box />
+              <span>Airdrop</span>
             </NextLink>
           </li>
         </ul>
