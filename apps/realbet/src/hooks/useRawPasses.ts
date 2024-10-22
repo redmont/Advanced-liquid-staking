@@ -1,82 +1,70 @@
-import { useEffect, useState, useMemo } from 'react';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
-import { z } from 'zod';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useAlchemy } from './useAlchemy';
+import { type OwnedNftsResponse } from 'alchemy-sdk';
+import { env } from '@/env';
+import { useEffect, useMemo } from 'react';
+import { toBase26 } from '@/utils';
 
-const FloorPriceResponseSchema = z.object({
-  floorPrice: z.number().nullable(),
-});
-
-const NftListResponseSchema = z.object({
-  nftNames: z.array(z.string()),
-  totalCount: z.number(),
-});
-
-type FloorPriceResponse = z.infer<typeof FloorPriceResponseSchema>;
-type NftListResponse = z.infer<typeof NftListResponseSchema>;
+const passGroups = [
+  { title: 'Single Digit', bzrPerPass: 14_000 },
+  { title: 'Double Digit', bzrPerPass: 10_500 },
+  { title: 'Triple Digit', bzrPerPass: 8_750 },
+] as const;
 
 export function useRawPasses() {
-  const { primaryWallet, sdkHasLoaded: isConnected } = useDynamicContext();
+  const { primaryWallet, sdkHasLoaded } = useDynamicContext();
+  const { data: alchemy } = useAlchemy();
   const address = primaryWallet?.address ?? '';
-  const [areNftsLoading, setNftsLoading] = useState<boolean>(false);
 
-  const [nftListResponse, setNftListResponse] =
-    useState<NftListResponse | null>(null);
-
-  const [floorPriceResponse, setFloorPriceResponse] =
-    useState<FloorPriceResponse | null>(null);
+  const nfts = useInfiniteQuery({
+    initialPageParam: undefined,
+    queryKey: ['nftList', address],
+    enabled: sdkHasLoaded && !!address && !!alchemy,
+    queryFn: async (params) => {
+      return alchemy!.nft.getNftsForOwner(address, {
+        pageKey: params.pageParam,
+        contractAddresses: [env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS],
+      });
+    },
+    getNextPageParam: (lastPage: OwnedNftsResponse) => lastPage.pageKey,
+  });
 
   useEffect(() => {
-    if (!isConnected) {
-      return setNftsLoading(false);
+    if (nfts.isSuccess && nfts.hasNextPage) {
+      void nfts.fetchNextPage();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nfts.isSuccess, nfts.hasNextPage]);
 
-    setNftsLoading(true);
-
-    const searchParams = new URLSearchParams({
-      owner: address,
-    });
-
-    void fetch(`/api/raw-pass/list?${searchParams}`, {
-      method: 'GET',
-      next: { revalidate: 60 },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const validatedData = NftListResponseSchema.parse(data);
-        setNftListResponse(validatedData);
-      })
-      .finally(() => setNftsLoading(false));
-  }, [address, isConnected]);
-
-  const { totalCount = 0, nftNames = [] } = nftListResponse ?? {};
-
-  const ordinalsEligibility = useMemo(
-    () => Math.floor(totalCount / 3),
-    [totalCount],
+  const passes = useMemo(
+    () =>
+      nfts.isSuccess && !nfts.hasNextPage
+        ? nfts.data.pages.reduce(
+            (result, response) => {
+              return response.ownedNfts
+                .map((nft) => nft.name)
+                .reduce((result, name) => {
+                  const id = Number(name?.split('#')[1]);
+                  if (isNaN(id)) {
+                    return result;
+                  }
+                  const index = toBase26(id).length - 1;
+                  if (!result[index]) {
+                    return result;
+                  }
+                  result[index].qty += 1;
+                  return result;
+                }, result);
+            },
+            passGroups.map((g) => ({ ...g, qty: 0 })),
+          )
+        : passGroups.map((g) => ({ ...g, qty: 0 })),
+    [nfts.isSuccess, nfts.hasNextPage, nfts.data],
   );
 
-  const nftsToNextOrdinal = useMemo(() => 3 - (totalCount % 3), [totalCount]);
-
-  useEffect(() => {
-    void fetch(`/api/raw-pass/price`, {
-      method: 'GET',
-      next: { revalidate: 60 },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        const validatedData = FloorPriceResponseSchema.parse(data);
-        setFloorPriceResponse(validatedData);
-      });
-  }, []);
-
-  const { floorPrice = 0 } = floorPriceResponse ?? {};
-
   return {
-    floorPrice: floorPrice ? floorPrice.toFixed(4) : '',
-    totalCount,
-    nftNames,
-    ordinalsEligibility,
-    nftsToNextOrdinal,
-    areNftsLoading,
+    nfts,
+    passes,
   };
 }

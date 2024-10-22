@@ -172,9 +172,11 @@ export default function HomePage() {
             backgroundImage: sdkHasLoaded ? `url(${bonusChecker.src})` : '',
           }}
         >
-          <div className="absolute inset-0 z-10 flex size-full items-center justify-center bg-black/40 transition-all hover:bg-black/60">
-            <p className="text-2xl font-semibold">Coming soon</p>
-          </div>
+          <Link
+            className="inset-0 block size-full"
+            href="/bonus"
+            rel="noreferrer noopener"
+          />
         </Card>
         <Card
           loading={!sdkHasLoaded}

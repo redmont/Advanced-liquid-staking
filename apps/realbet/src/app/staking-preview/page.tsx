@@ -169,6 +169,7 @@ export default function StakePreview() {
               below.
             </p>
             <Input
+              align="right"
               error={isNaN(parseFloat(stakeAmount))}
               value={stakeAmount}
               onChange={(e) => setStakeAmount(e.target.value)}
@@ -203,6 +204,7 @@ export default function StakePreview() {
               )}
             </p>
             <Input
+              align="right"
               error={isNaN(parseFloat(totalStaked))}
               size="sm"
               className="mb-3"
@@ -234,6 +236,7 @@ export default function StakePreview() {
               placeholder="0"
             />
             <Input
+              align="right"
               className="mb-3"
               error={isNaN(parseFloat(rewards))}
               size="sm"
