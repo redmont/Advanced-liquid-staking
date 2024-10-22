@@ -53,10 +53,10 @@
     "viem": "^2.21.15",
     "wagmi": "^2.12.14",
     "zod": "^3.23.8",
+    "@svgr/webpack": "^8.1.0",
     "husky": "^9.1.6"
   },
   "devDependencies": {
-    "@svgr/webpack": "^8.1.0",
     "@types/eslint": "^8.56.12",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.16.9",
