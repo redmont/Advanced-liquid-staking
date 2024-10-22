@@ -192,6 +192,7 @@ const Page = () => {
       }
     }
 
+    setProgressMessage(`Checking token rewards...`);
     await getTokenRewards().then((tokenRewards) => {
       allocation.tokenRewards = tokenRewards;
       for (const tokenReward of Object.values(tokenRewards)) {
