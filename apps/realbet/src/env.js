@@ -45,7 +45,7 @@ export const env = createEnv({
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID,
-    NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV ?? 'development',
+    NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development',
     NEXT_PUBLIC_ALCHEMY_API_KEY:
       process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ??
       'vlIJU80HdfL61kafixpO45fFrvqVPJx9',
