@@ -1,21 +1,9 @@
 import { ethers } from 'ethers';
 import axios from 'axios';
 import type { AxiosResponse } from 'axios';
-import { env } from '@/env';
 import dayjs from '@/dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-
-const alchemyApiKey = env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-
-// Treasury wallet (wallet 3)
-const SHUFFLE_TREASURY_WALLET = '0xdfaa75323fb721e5f29d43859390f62cc4b600b8';
-
-const CHAIN_RPC_URLS: Record<string, string> = {
-  ethereum: `https://eth-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
-  polygon: `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
-  bsc: `https://bnb-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
-  avax: `https://avax-mainnet.g.alchemy.com/v2/${alchemyApiKey}`,
-};
+import { SHUFFLE_TREASURY_WALLET, CHAIN_RPC_URLS } from './utils';
 
 interface Txn {
   hash: string;
