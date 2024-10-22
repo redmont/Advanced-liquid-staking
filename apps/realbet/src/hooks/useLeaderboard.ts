@@ -1,112 +1,80 @@
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useRawPasses } from './useRawPasses';
-import { toBase26 } from '@/utils';
+import { z } from 'zod';
 
-interface ApiResponse {
-  '0': {
-    totalPasses: number;
-    lowestId: number;
-    points: number;
-    wallet: string;
-    affiliateCode: string;
-    rankScore: number;
-    rank: number;
-  };
-}
-
-interface LeaderboardRecord {
-  totalPasses: number;
-  lowestId: number;
-  points: number;
-  wallet: string;
-  affiliateCode: string;
-  rankScore: number;
-  rank: number;
-  bzrGroups: BzrPassGroup[];
-  totalBzr: number;
-  isLoding: boolean;
-}
-
-interface BzrPassGroup {
-  title: string;
-  bzrPerPass: number;
-  passQty: number;
-  totalBzr: number;
-}
-
-const passGroups = [
-  { title: 'Single Digit', bzrPerPass: 14_000 },
-  { title: 'Double Digit', bzrPerPass: 10_500 },
-  { title: 'Triple Digit', bzrPerPass: 8_750 },
-];
+const RpLeaderboardData = z.array(
+  z.object({
+    totalPasses: z.number(),
+    lowestId: z.number(),
+    points: z.number(),
+    wallet: z.string(),
+    affiliateCode: z.string(),
+    rankScore: z.number(),
+    rank: z.number(),
+  }),
+);
 
 const bzrConversionRate = 0.35;
 
 const API_BASE_URL = 'https://rp-leaderboard-api.prod.walletwars.io';
 
-const useLeaderboardV2 = (): UseQueryResult<LeaderboardRecord, Error> => {
-  const { nfts, areNftsLoading } = useRawPasses();
+export const useLeaderboard = () => {
+  const {
+    passes: rawPasses,
+    nfts: { isLoading, isSuccess, error },
+  } = useRawPasses();
   const { primaryWallet } = useDynamicContext();
   const walletAddress = primaryWallet?.address ?? '';
 
-  const passQuantities = useMemo(
-    () =>
-      nfts?.nftNames?.reduce(
-        (result, name) => {
-          const id = Number(name.split('#')[1]);
-          if (isNaN(id)) {
-            return result;
-          }
-          const codeLength = toBase26(id).length;
-          result[codeLength - 1]! += 1;
-          return result;
-        },
-        [0, 0, 0] as [number, number, number],
-      ),
-    [nfts?.nftNames],
-  );
-
-  return useQuery<LeaderboardRecord, Error>({
+  const leaderboard = useQuery({
     queryKey: ['leaderboard', walletAddress],
     queryFn: async () => {
-      if (!walletAddress) {
-        throw new Error('No wallet address available');
-      }
-
-      const response = await fetch(`${API_BASE_URL}/?address=${walletAddress}`);
+      const response = await fetch(
+        `${API_BASE_URL}/?address=${walletAddress}`,
+        {
+          method: 'GET',
+          next: { revalidate: 60 },
+        },
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch leaderboard data');
       }
 
-      const apiResponse: ApiResponse = (await response.json()) as ApiResponse;
-      const data = apiResponse['0'];
-
-      if (!passQuantities) {
-        throw new Error('passQuantities is undefined');
-      }
-
-      const bzrGroups: BzrPassGroup[] = passGroups.map((g, i) => ({
-        ...g,
-        passQty: passQuantities[i]!,
-        totalBzr: passQuantities[i]! * g.bzrPerPass,
-      }));
-
-      const totalBzr = bzrGroups.reduce(
-        (result, g) => result + g.totalBzr,
-        Math.floor(data.points * bzrConversionRate),
+      return (
+        RpLeaderboardData.parse(await response.json())[0] ?? {
+          points: 0,
+          totalPasses: 0,
+          wallet: walletAddress,
+          rankScore: 0,
+          rank: 0,
+        }
       );
-
-      return {
-        ...data,
-        bzrGroups,
-        totalBzr,
-        isLoding: areNftsLoading
-      };
     },
-    enabled: !!walletAddress,
+    enabled: walletAddress !== '',
   });
+
+  const totalBzr =
+    useMemo(
+      () =>
+        leaderboard.isSuccess && isSuccess
+          ? rawPasses.reduce(
+              (result, g) => result + g.qty * g.bzrPerPass,
+              Math.floor(leaderboard.data.points * bzrConversionRate),
+            )
+          : undefined,
+      [rawPasses, leaderboard.isSuccess, leaderboard.data, isSuccess],
+    ) ?? 0;
+
+  return {
+    data: leaderboard.data,
+    rawPasses: rawPasses,
+    totalBzr,
+    isLoading: leaderboard.isLoading || isLoading,
+    isSuccess: leaderboard.isSuccess && isSuccess,
+    error: error ?? leaderboard.error,
+  };
 };
 
-export default useLeaderboardV2;
+export default useLeaderboard;

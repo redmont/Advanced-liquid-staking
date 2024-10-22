@@ -16,6 +16,7 @@ import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import {
   Table,
   TableBody,
+  TableBodySkeleton,
   TableCell,
   TableHead,
   TableHeader,
@@ -25,16 +26,16 @@ import { cn } from '@/lib/utils';
 import { useToken } from '@/hooks/useToken';
 import { formatWithSeparators } from '@/utils';
 import ErrorComponent from '@/components/error';
-import useLeaderboardV2 from '@/hooks/useLeaderboard';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
 
 export default function Airdrop() {
   const isAuthenticated = useIsLoggedIn();
   const token = useToken();
   const { sdkHasLoaded } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
-  const { data } = useLeaderboardV2();
+  const leaderboard = useLeaderboard();
 
-  if (token.errors.length > 0) {
+  if (token.errors.length > 0 || leaderboard.error) {
     return <ErrorComponent />;
   }
 
@@ -59,7 +60,6 @@ export default function Airdrop() {
             </Button>
           </div>
         </div>
-
         <CardHeader>
           <CardTitle className="uppercase">Airdrop Eligibility</CardTitle>
         </CardHeader>
@@ -93,42 +93,31 @@ export default function Airdrop() {
                 <TableHead>Quantity</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {data?.isLoding ? (
-                <TableRow>
-                  <TableCell>
-                    <Skeleton className="inline-block h-6 w-40" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="inline-block h-6 w-40" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="inline-block h-6 w-40" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="inline-block h-6 w-40" />
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data?.bzrGroups.map((g, i) => (
+            {!sdkHasLoaded || leaderboard.isLoading ? (
+              <TableBodySkeleton cols={4} rows={3} />
+            ) : (
+              <TableBody>
+                {leaderboard.rawPasses.map((g, i) => (
                   <TableRow key={i}>
                     <TableCell>{g.title}</TableCell>
-                    <TableCell>{formatWithSeparators(g.passQty)}</TableCell>
+                    <TableCell>{formatWithSeparators(g.qty)}</TableCell>
                     <TableCell>{formatWithSeparators(g.bzrPerPass)}</TableCell>
-                    <TableCell>{formatWithSeparators(g.totalBzr)}</TableCell>
+                    <TableCell>
+                      {formatWithSeparators(g.bzrPerPass * g.qty)}
+                    </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
+                ))}
+              </TableBody>
+            )}
           </Table>
           <div className="mt-6 flex flex-col items-stretch gap-5 sm:flex-row">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-2 py-3 sm:w-1/2">
               <h3 className="text-lg leading-none">Points</h3>
-              {!sdkHasLoaded ? (
+              {!sdkHasLoaded || leaderboard.isLoading ? (
                 <Skeleton className="inline-block h-6 w-40" />
               ) : (
                 <span className="text-xl font-semibold leading-none">
-                  {data ? formatWithSeparators(data.points) : 0}
+                  {formatWithSeparators(leaderboard.data?.points ?? 0)}
                 </span>
               )}
             </div>
@@ -147,7 +136,7 @@ export default function Airdrop() {
               <Skeleton variant="primary" className="inline-block h-6 w-40" />
             ) : (
               <span className="text-xl font-semibold leading-none">
-                {data ? formatWithSeparators(data.totalBzr) : 0} {token.symbol}
+                {formatWithSeparators(leaderboard.totalBzr)} {token.symbol}
               </span>
             )}
           </div>

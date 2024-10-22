@@ -45,7 +45,7 @@ const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
       prefetch
       href={path}
       className={cn(
-        'py-2 text-xl',
+        'py-2 text-xl font-normal',
         pathname === path && 'text-primary',
         className,
       )}

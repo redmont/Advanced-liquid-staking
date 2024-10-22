@@ -151,10 +151,10 @@ export default function StakePreview() {
   return (
     <div className="grid grid-cols-1 gap-3 p-3 sm:gap-5 sm:p-5 md:grid-cols-2">
       <div className="w-full md:col-span-2">
-        <h2 className="mb-3 text-2xl">
+        <h2 className="mb-3 text-[2rem] font-medium">
           <CalculatorIcon className="mb-1 inline" /> Staking Simulator
         </h2>
-        <p className="text-lg text-white/80">
+        <p className="mb-4 text-xl font-medium leading-tight text-white/80">
           Curious about your potential rewards? Before the token launch, use
           this calculator to estimate how much you could earn based on your
           staking amount and the total staking pool.
@@ -163,17 +163,20 @@ export default function StakePreview() {
       <Card className="grid gap-5 p-5 md:col-span-2 md:grid-cols-2 lg:gap-8">
         <div className="space-y-8">
           <div>
-            <h2 className="mb-2 text-xl">Step 1: Your Staked Amount</h2>
+            <h2 className="mb-2 text-xl font-medium">
+              Step 1: Your Staked Amount
+            </h2>
             <p className="mb-2 text-sm">
               How much {token.symbol} do you want to stake? Enter your amount
               below.
             </p>
             <Input
+              align="right"
               error={isNaN(parseFloat(stakeAmount))}
               value={stakeAmount}
               onChange={(e) => setStakeAmount(e.target.value)}
               startAdornment={
-                <span className="inline-flex items-center gap-1 text-sm">
+                <span className="inline-flex items-center gap-1">
                   <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                     <RealIcon className="size-full" />
                   </span>
@@ -184,7 +187,9 @@ export default function StakePreview() {
             />
           </div>
           <div>
-            <h2 className="mb-2 text-xl">Step 2: Confirm Parameters</h2>
+            <h2 className="mb-2 text-xl font-medium">
+              Step 2: Confirm Parameters
+            </h2>
             <p className="mb-3 text-sm">
               We&apos;ve set up the calculator with what we feel are sensible
               defaults. You can change them to see how they&apos;ll affect your
@@ -203,8 +208,8 @@ export default function StakePreview() {
               )}
             </p>
             <Input
+              align="right"
               error={isNaN(parseFloat(totalStaked))}
-              size="sm"
               className="mb-3"
               value={totalStaked}
               onBlur={() =>
@@ -217,7 +222,7 @@ export default function StakePreview() {
               startAdornment={
                 <Popover>
                   <PopoverTrigger className="hover:text-primary">
-                    <span className="inline-flex items-center gap-1 text-sm hover:text-primary">
+                    <span className="inline-flex items-center gap-1 hover:text-primary">
                       <span className="m-1 inline-flex size-6 flex-col items-center justify-center rounded-full bg-black p-1 text-primary">
                         <RealIcon className="size-full" />
                       </span>
@@ -234,9 +239,9 @@ export default function StakePreview() {
               placeholder="0"
             />
             <Input
+              align="right"
               className="mb-3"
               error={isNaN(parseFloat(rewards))}
-              size="sm"
               value={rewards}
               onBlur={() =>
                 setRewards((v) => {
@@ -248,7 +253,7 @@ export default function StakePreview() {
               startAdornment={
                 <Popover>
                   <PopoverTrigger className="hover:text-primary">
-                    <span className="inline-flex items-center gap-1 text-sm hover:text-primary">
+                    <span className="inline-flex items-center gap-1 hover:text-primary">
                       <span className="m-1 inline-flex size-6 flex-col items-center justify-center rounded-full bg-black p-1 text-primary">
                         <RealIcon className="size-full" />
                       </span>
@@ -314,9 +319,9 @@ export default function StakePreview() {
         >
           <div className="absolute inset-0 z-10 bg-black opacity-50" />
           <div className="relative z-10 text-center">
-            <h2 className="flex flex-col gap-3 text-2xl font-semibold">
+            <h2 className="flex flex-col gap-3 text-2xl font-medium">
               {selectedTier && (
-                <div>
+                <div className="text-xl font-medium">
                   <span>You&apos;ll get </span>{' '}
                   <span
                     className={cn('rounded-lg bg-black/50 px-2', {
@@ -335,8 +340,8 @@ export default function StakePreview() {
                   <span>the rewards</span>
                 </div>
               )}
-              <div className="text-4xl">{animatedAPY}% APY</div>
-              <div>
+              <div className="text-[2rem] font-medium">{animatedAPY}% APY</div>
+              <div className="text-xl">
                 ~{anticipatedMonthlyRewardAnimated}
                 <span className="inline-flex items-center gap-1">
                   <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
