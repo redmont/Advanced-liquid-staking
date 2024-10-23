@@ -1,4 +1,5 @@
 export const TiersData = [
+  { status: 'Bronze', rakeback: 0, tier: 0 },
   { status: 'Silver', rakeback: 1, tier: 100 },
   { status: 'Gold', rakeback: 2, tier: 1000 },
   { status: 'Platinum', rakeback: 3, tier: 2500 },

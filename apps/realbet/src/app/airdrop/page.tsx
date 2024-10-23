@@ -1,15 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Wallet2 } from 'lucide-react';
+import { Box, Wallet2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { useDynamicContext, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
@@ -40,7 +34,13 @@ export default function Airdrop() {
   }
 
   return (
-    <div className="space-y-5 p-3 sm:p-5">
+    <div className="p-3 sm:p-5">
+      <h2 className="mb-3 text-[2rem] font-medium">
+        <Box className="inline size-8" /> Airdrop Eligibility
+      </h2>
+      <p className="mb-8 text-xl font-medium leading-tight text-white/80">
+        Earn REAL for holding raW Passes. See your upcoming airdrop eligibility.
+      </p>
       <Card className="relative">
         <div
           className={cn(
@@ -60,9 +60,6 @@ export default function Airdrop() {
             </Button>
           </div>
         </div>
-        <CardHeader>
-          <CardTitle className="uppercase">Airdrop Eligibility</CardTitle>
-        </CardHeader>
         <CardContent>
           <p className="mt-2 bg-black/25 px-2 py-4 text-xl italic">
             {token.symbol} Allocation = Base rP Allocation + (Points *
@@ -75,7 +72,6 @@ export default function Airdrop() {
           <p className="mt-2">
             <strong>Selling rPs</strong> will forfeit points from those rPs.
           </p>
-          <h4 className="mt-8 uppercase">Airdrop Details</h4>
           <p className="mt-4">
             Airdrop will be claimable post {token.symbol} TGE and public sale
             completion.
@@ -141,17 +137,11 @@ export default function Airdrop() {
             )}
           </div>
           <div className="mt-6 text-right">
-            <Button disabled className="w-48" loading={!sdkHasLoaded} size="xl">
+            <Button disabled loading={!sdkHasLoaded} size="xl">
               Claim (Coming Soon)
             </Button>
           </div>
         </CardContent>
-        <CardFooter>
-          <p>
-            Airdrop claims will open following the {token.symbol} TGE
-            announcement.
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );
