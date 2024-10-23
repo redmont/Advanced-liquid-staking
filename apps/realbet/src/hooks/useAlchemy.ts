@@ -1,12 +1,13 @@
-import { type NetworkId } from '@/config/networks';
+// import { type NetworkId } from '@/config/networks';
 import { Network, type AlchemySettings } from 'alchemy-sdk';
 import useNetworkId from './useNetworkId';
 import { env } from '@/env';
 import { useQuery } from '@tanstack/react-query';
 
-const appNetworkIdToAlchemyNetworkMap: Record<NetworkId, Network> = {
-  11155111: Network.ETH_SEPOLIA,
-};
+// const appNetworkIdToAlchemyNetworkMap: Record<NetworkId, Network> = {
+//   11155111: Network.ETH_SEPOLIA,
+//   1: Network.ETH_MAINNET,
+// };
 
 const alchemySettings: AlchemySettings = {
   apiKey: env.NEXT_PUBLIC_ALCHEMY_API_KEY, // Insert your Alchemy API key here
@@ -23,7 +24,7 @@ export const useAlchemy = () => {
 
       const settings = {
         ...alchemySettings,
-        network: appNetworkIdToAlchemyNetworkMap[network.data!],
+        network: Network.ETH_MAINNET,
       };
 
       const alchemy = new Alchemy(settings);

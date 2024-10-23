@@ -10,17 +10,7 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(['development', 'test', 'production'])
       .default('development'),
-    NEXTAUTH_SECRET:
-      process.env.NODE_ENV === 'production'
-        ? z.string()
-        : z.string().optional(),
-    NEXTAUTH_URL: z.preprocess(
-      // This makes Vercel deployments not fail if you don't set NEXTAUTH_URL
-      // Since NextAuth.js automatically uses the VERCEL_URL if present.
-      (str) => process.env.VERCEL_URL ?? str,
-      // VERCEL_URL doesn't include `https` so it cant be validated as a URL
-      process.env.VERCEL ? z.string() : z.string().url(),
-    ),
+    SENTRY_AUTH_TOKEN: z.string().optional(),
   },
 
   /**
@@ -40,11 +30,11 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     NODE_ENV: process.env.NODE_ENV,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
-      process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID,
+      process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??
+      '21452bd4-902f-40be-9b8f-5bc817b00e0e',
     NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development',
     NEXT_PUBLIC_ALCHEMY_API_KEY:
       process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ??
