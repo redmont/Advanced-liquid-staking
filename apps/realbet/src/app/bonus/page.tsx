@@ -18,7 +18,16 @@ import {
   totalDegenScore,
   getTokenBalances,
 } from './degenScore';
-import { CHAIN_RPC_URLS } from './utils';
+import {
+  CHAIN_RPC_URLS,
+  Chains,
+  Casinos,
+  Allocations,
+  shorten,
+  Casino,
+  casinos,
+  chains,
+} from './utils';
 import { memeCoins } from './memeCoins';
 import { Tooltip } from '../../components/Tooltip';
 import {
@@ -29,47 +38,34 @@ import {
 } from '@dynamic-labs/sdk-react-core';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { Wallet2 } from 'lucide-react';
+import { getChainIcon } from '@/config/chainIcons';
 
-type Casinos = 'shuffle' | 'rollbit' | 'stake';
-type Status = 'notInit' | 'loading' | 'success' | 'error';
-
-interface Casino {
-  name: Casinos;
-  status: Status;
-  lastDeposited: string | null;
-  totalDeposited: number | null;
-  totalScore: number | null;
-}
-
-interface Wallet {
-  status: Status;
-  walletAddress: string;
-  casinos: Casino[];
-}
-
-interface Allocations {
-  totalDeposited: number;
-  totalScore: number;
-  tokenRewards: Record<string, number>;
-  totalTokenRewards: number;
-  refresh: number;
-  status: Status;
-  wallets: Wallet[];
-}
-
-const casinos: Casinos[] = ['shuffle', 'rollbit', 'stake'];
+const casinoAllocations: Record<Casinos, Casino> = {
+  shuffle: {
+    totalDeposited: null,
+    totalScore: null,
+    chainsDepositsDetected: {
+      ethereum: false,
+      bsc: false,
+    },
+  },
+  rollbit: {
+    totalDeposited: null,
+    totalScore: null,
+    chainsDepositsDetected: {
+      ethereum: false,
+      bsc: false,
+    },
+  },
+};
 const allocations: Allocations = {
-  refresh: 0,
   totalDeposited: 0,
   totalScore: 0,
   tokenRewards: {},
   totalTokenRewards: 0,
   status: 'notInit',
-  wallets: [],
+  casinoAllocations: casinoAllocations,
 };
-
-const shorten = (address: string, size = 6) =>
-  address.slice(0, size) + '...' + address.slice(-size);
 
 const Page = () => {
   const [allocation, setAllocation] = useState<Allocations>(allocations);
@@ -125,74 +121,62 @@ const Page = () => {
   };
 
   const calculateRewards = async () => {
-    const allocation: Allocations = {
-      totalDeposited: 0,
-      totalScore: 0,
-      tokenRewards: {},
-      totalTokenRewards: 0,
-      refresh: Date.now(),
-      status: 'loading',
-      wallets: userWallets.map((wallet) => ({
-        status: 'loading',
-        walletAddress: wallet.address,
-        casinos: casinos.map((casino) => ({
-          name: casino,
-          status: 'loading',
-          lastDeposited: null,
-          totalDeposited: null,
-          totalScore: null,
-        })),
-      })),
-    };
-    setAllocation(allocation);
+    allocations.status = 'loading';
+    forceUpdate();
 
-    for (const wallet of userWallets) {
-      const userWallet = wallet.address;
-      const chains = Object.keys(CHAIN_RPC_URLS);
+    const chains = Object.keys(CHAIN_RPC_URLS);
+    for (const currentCasino of casinos) {
       for (const chain of chains) {
-        try {
-          setProgressMessage(
-            `Checking deposits for ${shorten(userWallet, 4)} (${chain}) on Shuffle....`,
-          );
-          // random number between 20 and 50
-          const randomNumber = Math.floor(Math.random() * (50 - 20) + 20);
-          const { totalDepositedInUSD, lastDeposited } =
-            await checkUserDeposits(
-              //userWallet,
+        for (const wallet of userWallets) {
+          const userWallet = wallet.address;
+          try {
+            setProgressMessage(
+              `Checking deposits for ${shorten(userWallet, 4)} (${chain}) on ${currentCasino}....`,
+            );
+            // random number between 20 and 50
+            const randomNumber = Math.floor(Math.random() * (50 - 20) + 20);
+            const { totalDepositedInUSD } = await checkUserDeposits(
               '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
               randomNumber,
               chain,
+              currentCasino,
             );
-          const walletIndex =
-            allocation.wallets.findIndex(
-              (wallet) => wallet.walletAddress === userWallet,
-            ) || 0;
-          if (!allocation.wallets[walletIndex]) {
-            continue;
+            if (totalDepositedInUSD > 0) {
+              allocations.casinoAllocations[
+                currentCasino
+              ].chainsDepositsDetected[chain as Chains] = true;
+            }
+            if (
+              allocations.casinoAllocations[currentCasino].totalDeposited ===
+              null
+            ) {
+              allocations.casinoAllocations[currentCasino].totalDeposited =
+                totalDepositedInUSD;
+              allocations.casinoAllocations[currentCasino].totalScore =
+                getScoreFromDeposit(totalDepositedInUSD);
+            } else {
+              allocations.casinoAllocations[currentCasino].totalDeposited +=
+                totalDepositedInUSD;
+              allocations.casinoAllocations[currentCasino].totalScore =
+                getScoreFromDeposit(
+                  allocations.casinoAllocations[currentCasino].totalDeposited,
+                );
+            }
+            allocations.totalDeposited += totalDepositedInUSD;
+            allocations.totalScore = getScoreFromDeposit(
+              allocations.totalDeposited,
+            );
+            setAllocation(allocation);
+            forceUpdate();
+          } finally {
           }
-          allocation.wallets[walletIndex].status = 'success';
-          allocation.wallets[walletIndex]?.casinos
-            .filter((casino) => casino.name === 'shuffle')
-            .forEach((casino) => {
-              casino.totalDeposited = casino.totalDeposited
-                ? casino.totalDeposited + totalDepositedInUSD
-                : totalDepositedInUSD;
-              casino.totalScore = getScoreFromDeposit(casino.totalDeposited);
-              allocation.totalDeposited += totalDepositedInUSD;
-              allocation.totalScore = getScoreFromDeposit(
-                allocation.totalDeposited,
-              );
-
-              casino.lastDeposited = lastDeposited ?? null;
-            });
-          setAllocation(allocation);
-          forceUpdate();
-        } finally {
         }
       }
+      setAllocation(allocation);
+      forceUpdate();
     }
 
-    setProgressMessage(`Checking token rewards...`);
+    setProgressMessage(`Checking token interaction rewards...`);
     await getTokenRewards().then((tokenRewards) => {
       allocation.tokenRewards = tokenRewards;
       for (const tokenReward of Object.values(tokenRewards)) {
@@ -203,21 +187,11 @@ const Page = () => {
     });
 
     allocation.status = 'success';
-    allocation.refresh = Date.now();
     setProgressMessage(``);
     setAllocation(allocation);
     forceUpdate();
   };
 
-  const calculateTotalDeposited = (casinoName: Casinos) => {
-    let totalDeposited = 0;
-    allocation.wallets.forEach((wallet) => {
-      totalDeposited +=
-        wallet.casinos.find((casino) => casino.name === casinoName)
-          ?.totalDeposited ?? 0;
-    });
-    return Math.floor(totalDeposited);
-  };
   return (
     <div className="flex flex-col gap-5 p-5">
       <Banner>
@@ -385,56 +359,73 @@ const Page = () => {
               </div>
             )}
 
-            {allocation.wallets.length > 0 &&
-              allocation.wallets.slice(0, 1).map((wallet) => (
-                <Table key={wallet.walletAddress}>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="px-5 font-normal">
-                        Eligible deposits
-                      </TableHead>
-                      <TableHead className="px-5 font-normal">
-                        Deposit
-                      </TableHead>
-                      <TableHead className="px-5 text-right font-normal">
-                        Score
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {wallet.casinos.map((casino) => (
-                      <TableRow
-                        key={casino.name}
-                        className="odd:bg-lighter/1 even:bg-lighter/1 border-b-5 border border-lighter/50"
-                      >
-                        <TableCell className="flex items-center gap-2 px-5 font-normal capitalize">
-                          {casino.name}
-                        </TableCell>
-                        <TableCell className="px-5">
-                          {calculateTotalDeposited(casino.name)} USD
-                        </TableCell>
-                        <TableCell className="px-5 text-right">
-                          +{' '}
-                          {getScoreFromDeposit(
-                            calculateTotalDeposited(casino.name),
+            {allocation.status !== 'notInit' && (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="px-5 font-normal">
+                      Eligible deposits
+                    </TableHead>
+                    <TableHead className="px-5 font-normal">Deposit</TableHead>
+                    <TableHead className="px-5 text-right font-normal">
+                      Score
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Object.keys(allocation.casinoAllocations).map((casino) => (
+                    <TableRow
+                      key={casino}
+                      className="odd:bg-lighter/1 even:bg-lighter/1 border-b-5 border border-lighter/50"
+                    >
+                      <TableCell className="flex items-center gap-2 px-5 font-normal capitalize">
+                        <span className="pr-3">{casino} </span>
+                        <span className="flex gap-1">
+                          {chains.map(
+                            (chain: string) =>
+                              allocation.casinoAllocations[casino as Casinos]
+                                .chainsDepositsDetected[chain as Chains] && (
+                                <div key={chain}>
+                                  {getChainIcon(chain, {
+                                    height: 20,
+                                    width: 20,
+                                  })}
+                                </div>
+                              ),
                           )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                  <TableFooter className="border-b-5 border border-lighter/50 bg-lighter/20">
-                    <TableRow>
-                      <TableHead className="px-5"></TableHead>
-                      <TableHead className="px-5 font-normal">Total</TableHead>
-                      <TableHead className="px-5 text-right font-normal text-primary">
-                        {allocation.totalScore ? '+' : ''}{' '}
-                        {allocation.totalScore}
-                      </TableHead>
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-5">
+                        {Math.floor(
+                          allocation.casinoAllocations[casino as Casinos]
+                            .totalDeposited ?? 0,
+                        ).toLocaleString('en-US', {
+                          maximumFractionDigits: 2,
+                        })}{' '}
+                        USD
+                      </TableCell>
+                      <TableCell className="px-5 text-right">
+                        +{' '}
+                        {
+                          allocation.casinoAllocations[casino as Casinos]
+                            .totalScore
+                        }
+                      </TableCell>
                     </TableRow>
-                  </TableFooter>
-                </Table>
-              ))}
-            {allocation.wallets.length > 0 && memeCoins.length > 0 && (
+                  ))}
+                </TableBody>
+                <TableFooter className="border-b-5 border border-lighter/50 bg-lighter/20">
+                  <TableRow>
+                    <TableHead className="px-5"></TableHead>
+                    <TableHead className="px-5 font-normal">Total</TableHead>
+                    <TableHead className="px-5 text-right font-normal text-primary">
+                      {allocation.totalScore ? '+' : ''} {allocation.totalScore}
+                    </TableHead>
+                  </TableRow>
+                </TableFooter>
+              </Table>
+            )}
+            {allocation.status !== 'notInit' && memeCoins.length > 0 && (
               <Table>
                 <TableHeader>
                   <TableRow>

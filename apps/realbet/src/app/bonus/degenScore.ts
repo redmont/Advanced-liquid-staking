@@ -1,4 +1,4 @@
-import { CHAIN_RPC_URLS } from './utils';
+import { CHAIN_RPC_URLS, Chains } from './utils';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
 
@@ -27,7 +27,7 @@ export const getTokenBalances = async (
     id: 42,
   });
 
-  const baseURL = CHAIN_RPC_URLS[chain];
+  const baseURL = CHAIN_RPC_URLS[chain as Chains];
   if (!baseURL) {
     throw new Error(`Alchemy API URL not defined for chain: ${chain}`);
   }

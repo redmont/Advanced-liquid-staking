@@ -3,7 +3,12 @@ import axios from 'axios';
 import type { AxiosResponse } from 'axios';
 import dayjs from '@/dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { SHUFFLE_TREASURY_WALLET, CHAIN_RPC_URLS } from './utils';
+import {
+  getCasinoTreasuryWallet,
+  CHAIN_RPC_URLS,
+  Casinos,
+  Chains,
+} from './utils';
 
 interface Txn {
   hash: string;
@@ -49,55 +54,61 @@ async function fetchAllTransactions(
   let pageKey: string | undefined = undefined;
 
   do {
-    const params: Record<string, unknown> = {
-      fromBlock: fromBlockHex,
-      fromAddress: fromAddress,
-      category: ['erc20', 'external'],
-      maxCount: '0x3e8', // 1000 in hex
-      withMetadata: true,
-    };
+    try {
+      const params: Record<string, unknown> = {
+        fromBlock: fromBlockHex,
+        fromAddress: fromAddress,
+        category: ['erc20', 'external'],
+        maxCount: '0x3e8', // 1000 in hex
+        withMetadata: true,
+      };
 
-    if (toAddress) {
-      params.toAddress = toAddress;
+      if (toAddress) {
+        params.toAddress = toAddress;
+      }
+
+      if (pageKey) {
+        params.pageKey = pageKey;
+      }
+
+      const data = JSON.stringify({
+        jsonrpc: '2.0',
+        id: 0,
+        method: 'alchemy_getAssetTransfers',
+        params: [params],
+      });
+
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        data,
+      };
+
+      const baseURL = CHAIN_RPC_URLS[chain as Chains];
+      if (!baseURL) {
+        throw new Error(`Alchemy API URL not defined for chain: ${chain}`);
+      }
+
+      const fetchURL = baseURL;
+
+      const response: AxiosResponse<AlchemyAssetTransfersResponse> =
+        await axios(fetchURL, requestOptions);
+
+      if (!response.data.result) {
+        throw new Error(JSON.stringify(response));
+      }
+
+      const transfers = response.data.result.transfers;
+      const newPageKey = response.data.result.pageKey;
+
+      if (transfers && transfers.length > 0) {
+        allTransfers = allTransfers.concat(transfers);
+      }
+
+      pageKey = newPageKey;
+    } catch {
+      // console.error('Error fetching all transactions:', error);
     }
-
-    if (pageKey) {
-      params.pageKey = pageKey;
-    }
-
-    const data = JSON.stringify({
-      jsonrpc: '2.0',
-      id: 0,
-      method: 'alchemy_getAssetTransfers',
-      params: [params],
-    });
-
-    const requestOptions = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data,
-    };
-
-    const baseURL = CHAIN_RPC_URLS[chain];
-    if (!baseURL) {
-      throw new Error(`Alchemy API URL not defined for chain: ${chain}`);
-    }
-
-    const fetchURL = baseURL;
-
-    const response: AxiosResponse<AlchemyAssetTransfersResponse> = await axios(
-      fetchURL,
-      requestOptions,
-    );
-
-    const transfers = response.data.result.transfers;
-    const newPageKey = response.data.result.pageKey;
-
-    if (transfers && transfers.length > 0) {
-      allTransfers = allTransfers.concat(transfers);
-    }
-
-    pageKey = newPageKey;
   } while (pageKey);
 
   return allTransfers;
@@ -143,9 +154,9 @@ async function getHistoricalPriceAtTime(
       return price ?? null;
     }
     return null;
-  } catch (error) {
+  } catch {
     // eslint-disable-next-line no-console
-    console.error('Error fetching historical price:', error);
+    // console.error('Error fetching historical price:', error);
     return null;
   }
 }
@@ -185,6 +196,7 @@ async function findIntermediaryWallet(
   userWallet: string,
   chain: string,
   blockStart: number,
+  treasuryWallet: string,
 ): Promise<string | null> {
   const allTxns = await fetchAllTransactions(userWallet, chain, blockStart);
 
@@ -199,7 +211,7 @@ async function findIntermediaryWallet(
         potentialWallet2,
         chain,
         blockStart,
-        SHUFFLE_TREASURY_WALLET,
+        treasuryWallet,
       );
 
       if (wallet2Txns.length > 0) {
@@ -215,9 +227,9 @@ async function findIntermediaryWallet(
 
   try {
     return await processInBatches(tasks, batchSize, delayMs);
-  } catch (error) {
+  } catch {
     // eslint-disable-next-line no-console
-    console.error('Error finding intermediary wallet:', error);
+    // console.error('Error finding intermediary wallet:', error);
     return null;
   }
 }
@@ -280,15 +292,19 @@ export async function checkUserDeposits(
   userWallet: string,
   days: number,
   chain = 'ethereum',
+  casino: Casinos = 'shuffle',
 ): Promise<{ totalDepositedInUSD: number; lastDeposited: string | undefined }> {
   try {
     const timestamp = getUnixTimestampNDaysAgo(days);
-    const blockStart = await getClosestBlockToATimestamp('ethereum', timestamp);
+    const blockStart = await getClosestBlockToATimestamp(chain, timestamp);
+
+    const treasuryWallet = getCasinoTreasuryWallet(casino);
 
     const foundWallet = await findIntermediaryWallet(
       userWallet,
       chain,
       blockStart,
+      treasuryWallet,
     );
 
     if (!foundWallet) {
@@ -304,9 +320,14 @@ export async function checkUserDeposits(
     wallet2 = null;
 
     return totalDeposited;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error checking user deposits:', error);
+  } catch {
+    // console.error(
+    //   'Error checking user deposits:',
+    //   casino,
+    //   chain,
+    //   userWallet,
+    //   error,
+    // );
     return { totalDepositedInUSD: 0, lastDeposited: '' };
   }
 }
