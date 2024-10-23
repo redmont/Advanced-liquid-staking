@@ -9,6 +9,8 @@ import {
   Casinos,
   Chains,
 } from './utils';
+import pLimit from 'p-limit';
+const limit = pLimit(10);
 
 interface Txn {
   hash: string;
@@ -245,18 +247,26 @@ async function traceDepositsFromWallet2(
 
   const allTxns = await fetchAllTransactions(wallet2, chain, blockStart);
 
-  let totalDepositedInUSD = 0;
+  const promises = allTxns.map((tx) =>
+    limit(async () => {
+      const timestamp = tx.metadata.blockTimestamp;
+      const asset = tx.asset;
+      const value = tx.value;
 
-  for (const tx of allTxns) {
-    const timestamp = tx.metadata.blockTimestamp;
-    const asset = tx.asset;
-    const value = tx.value;
+      // Get the price of the token at the timestamp
+      const tokenPriceAtTimestamp =
+        (await getHistoricalPriceAtTime(asset, timestamp)) ?? 0;
+      return value * tokenPriceAtTimestamp;
+    }),
+  );
 
-    // Get the price of the token at the timestamp
-    const tokenPriceAtTimestamp =
-      (await getHistoricalPriceAtTime(asset, timestamp)) ?? 0;
-    totalDepositedInUSD += value * tokenPriceAtTimestamp;
-  }
+  const results = await Promise.all(promises);
+
+  // Sum up the totalDepositedInUSD
+  const totalDepositedInUSD = results.reduce(
+    (sum, current) => sum + current,
+    0,
+  );
 
   const lastDeposited = allTxns[allTxns.length - 1]?.metadata?.blockTimestamp;
   return { totalDepositedInUSD, lastDeposited };

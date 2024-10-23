@@ -24,7 +24,6 @@ import {
   Casinos,
   Allocations,
   shorten,
-  Casino,
   casinos,
   chains,
 } from './utils';
@@ -40,32 +39,35 @@ import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { Wallet2 } from 'lucide-react';
 import { getChainIcon } from '@/config/chainIcons';
 
-const casinoAllocations: Record<Casinos, Casino> = {
-  shuffle: {
-    totalDeposited: null,
-    totalScore: null,
-    chainsDepositsDetected: {
-      ethereum: false,
-      bsc: false,
+const createInitialAllocations = (): Allocations => {
+  return {
+    totalDeposited: 0,
+    totalScore: 0,
+    tokenRewards: {},
+    totalTokenRewards: 0,
+    status: 'notInit',
+    casinoAllocations: {
+      shuffle: {
+        totalDeposited: null,
+        totalScore: null,
+        chainsDepositsDetected: {
+          ethereum: false,
+          bsc: false,
+        },
+      },
+      rollbit: {
+        totalDeposited: null,
+        totalScore: null,
+        chainsDepositsDetected: {
+          ethereum: false,
+          bsc: false,
+        },
+      },
     },
-  },
-  rollbit: {
-    totalDeposited: null,
-    totalScore: null,
-    chainsDepositsDetected: {
-      ethereum: false,
-      bsc: false,
-    },
-  },
+  };
 };
-const allocations: Allocations = {
-  totalDeposited: 0,
-  totalScore: 0,
-  tokenRewards: {},
-  totalTokenRewards: 0,
-  status: 'notInit',
-  casinoAllocations: casinoAllocations,
-};
+
+let allocations: Allocations = createInitialAllocations();
 
 const Page = () => {
   const [allocation, setAllocation] = useState<Allocations>(allocations);
@@ -121,13 +123,18 @@ const Page = () => {
   };
 
   const calculateRewards = async () => {
+    allocations = createInitialAllocations();
     allocations.status = 'loading';
+    setAllocation(allocations);
     forceUpdate();
 
     const chains = Object.keys(CHAIN_RPC_URLS);
     for (const currentCasino of casinos) {
       for (const chain of chains) {
         for (const wallet of userWallets) {
+          if (wallet.chain !== 'EVM') {
+            continue;
+          }
           const userWallet = wallet.address;
           try {
             setProgressMessage(
@@ -136,7 +143,7 @@ const Page = () => {
             // random number between 20 and 50
             const randomNumber = Math.floor(Math.random() * (50 - 20) + 20);
             const { totalDepositedInUSD } = await checkUserDeposits(
-              '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
+              wallet.address, //'0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
               randomNumber,
               chain,
               currentCasino,
@@ -166,29 +173,29 @@ const Page = () => {
             allocations.totalScore = getScoreFromDeposit(
               allocations.totalDeposited,
             );
-            setAllocation(allocation);
+            setAllocation(allocations);
             forceUpdate();
           } finally {
           }
         }
       }
-      setAllocation(allocation);
+      setAllocation(allocations);
       forceUpdate();
     }
 
     setProgressMessage(`Checking token interaction rewards...`);
     await getTokenRewards().then((tokenRewards) => {
-      allocation.tokenRewards = tokenRewards;
+      allocations.tokenRewards = tokenRewards;
       for (const tokenReward of Object.values(tokenRewards)) {
-        allocation.totalTokenRewards += tokenReward;
+        allocations.totalTokenRewards += tokenReward;
       }
-      setAllocation(allocation);
+      setAllocation(allocations);
       forceUpdate();
     });
 
-    allocation.status = 'success';
+    allocations.status = 'success';
     setProgressMessage(``);
-    setAllocation(allocation);
+    setAllocation(allocations);
     forceUpdate();
   };
 
@@ -405,11 +412,13 @@ const Page = () => {
                         USD
                       </TableCell>
                       <TableCell className="px-5 text-right">
-                        +{' '}
-                        {
-                          allocation.casinoAllocations[casino as Casinos]
-                            .totalScore
-                        }
+                        {allocation.casinoAllocations[casino as Casinos]
+                          .totalScore !== null
+                          ? `+ ${
+                              allocation.casinoAllocations[casino as Casinos]
+                                .totalScore
+                            }`
+                          : '-'}
                       </TableCell>
                     </TableRow>
                   ))}
