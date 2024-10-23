@@ -12,7 +12,6 @@ import { useToken } from '@/hooks/useToken';
 import { useVault } from '@/hooks/useVault';
 import React from 'react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
-import ErrorComponent from '@/components/error';
 import { CalculatorIcon } from 'lucide-react';
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { cn } from '@/lib/utils';
@@ -143,10 +142,6 @@ export default function StakePreview() {
       duration: 300,
     },
   );
-
-  if (vault.errors.length > 0 || token.errors.length > 0) {
-    return <ErrorComponent />;
-  }
 
   return (
     <div className="grid grid-cols-1 gap-3 p-3 sm:gap-5 sm:p-5 md:grid-cols-2">
