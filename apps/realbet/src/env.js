@@ -35,7 +35,7 @@ export const env = createEnv({
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??
       '21452bd4-902f-40be-9b8f-5bc817b00e0e',
-    NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV ?? 'development',
+    NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development',
     NEXT_PUBLIC_ALCHEMY_API_KEY:
       process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ??
       'vlIJU80HdfL61kafixpO45fFrvqVPJx9',
