@@ -3,6 +3,9 @@ import React, { useState, useReducer } from 'react';
 import Banner from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+// import { Card } from '@/components/ui/card';
+// import { Input } from '@/components/ui/input';
+import { useToken } from '@/hooks/useToken';
 import {
   Table,
   TableBody,
@@ -198,6 +201,9 @@ const Page = () => {
     setAllocation(allocations);
     forceUpdate();
   };
+
+  // const Page = () => {
+  const token = useToken();
 
   return (
     <div className="flex flex-col gap-5 p-5">
@@ -478,6 +484,12 @@ const Page = () => {
                 </TableFooter>
               </Table>
             )}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-2 py-3 text-primary">
+            <h3 className="text-lg">Total {token.symbol} Allocation</h3>
+            <span className="text-xl font-semibold leading-none">
+              826,820 {token.symbol}
+            </span>
           </div>
         </div>
       )}

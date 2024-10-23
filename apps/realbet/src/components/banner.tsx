@@ -2,8 +2,8 @@
 
 import React, { type PropsWithChildren, useRef } from 'react';
 import { motion } from 'framer-motion';
-import backgroundImage from 'src/assets/images/vr-guy.png';
-import pepeAttack from 'src/assets/images/pepe-attack.png';
+import backgroundImage from '@/assets/images/vr-guy.png';
+import pepeAttack from '@/assets/images/pepe-attack.png';
 import useParallaxEffect from '@/hooks/useParallax';
 
 const Banner: React.FC<PropsWithChildren> = ({ children }) => {

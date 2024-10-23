@@ -65,6 +65,7 @@ export default {
           foreground: 'hsl(var(--destructive-foreground))',
         },
         border: 'hsl(var(--border))',
+        'input-border': 'hsl(var(--input-border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         chart: {

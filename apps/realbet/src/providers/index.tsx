@@ -5,12 +5,12 @@ import { DynamicWagmiConnector } from '@dynamic-labs/wagmi-connector';
 
 export default function ProviderWrapper({ children }: React.PropsWithChildren) {
   return (
-    <Dynamic>
-      <Wagmi>
-        <ReactQuery>
+    <ReactQuery>
+      <Dynamic>
+        <Wagmi>
           <DynamicWagmiConnector>{children}</DynamicWagmiConnector>
-        </ReactQuery>
-      </Wagmi>
-    </Dynamic>
+        </Wagmi>
+      </Dynamic>
+    </ReactQuery>
   );
 }

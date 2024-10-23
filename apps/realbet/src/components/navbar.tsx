@@ -22,9 +22,10 @@ import {
   PackagePlus,
   Paintbrush,
   Wallet2,
-  Coins,
+  // Coins,
   UserCog,
-  CircleDollarSign,
+  Box,
+  // Trophy,
 } from 'lucide-react';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { usePathname } from 'next/navigation';
@@ -41,9 +42,10 @@ const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
 
   return (
     <Link
+      prefetch
       href={path}
       className={cn(
-        'py-2 text-xl',
+        'py-2 text-xl font-normal',
         pathname === path && 'text-primary',
         className,
       )}
@@ -98,7 +100,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
           <li>
             <Button
               onClick={authHandler}
-              variant="outline"
+              variant="default"
               className="w-full max-w-64"
             >
               {isAuthenticated ? (
@@ -157,31 +159,40 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
               <span>Home</span>
             </NextLink>
           </li>
+          {/* <li>
+            <NextLink
+              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+              path="/bonus"
+            >
+              <Coins />
+              <span>Bonus</span>
+            </NextLink>
+          </li> */}
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-              path="/staking"
+              path="/staking-preview"
             >
               <PackagePlus />
               <span>Staking</span>
             </NextLink>
           </li>
-          <li>
+          {/* <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-              path="/token"
+              path="/vesting"
             >
-              <Coins />
-              <span>Token</span>
+              <Trophy />
+              <span>Vesting</span>
             </NextLink>
-          </li>
+          </li> */}
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-              path="/bonus"
+              path="/airdrop"
             >
-              <CircleDollarSign />
-              <span>Welcome Bonus</span>
+              <Box />
+              <span>Airdrop</span>
             </NextLink>
           </li>
         </ul>

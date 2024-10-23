@@ -26,7 +26,7 @@ const TierSchema = z
     ...tier,
   }));
 
-const TiersSchema = z.array(TierSchema);
+// const TiersSchema = z.array(TierSchema);
 
 const DepositSchema = z.object({
   amount: z.bigint(),
@@ -108,13 +108,46 @@ export const useVault = () => {
     enabled: !!vault,
     queryKey: ['tiers', vault?.address],
     queryFn: async () => {
-      const tiers = await readContract(config, {
-        abi: vault!.abi,
-        address: vault!.address,
-        functionName: 'getTiers',
-      });
+      // const tiers = await readContract(config, {
+      //   abi: vault!.abi,
+      //   address: vault!.address,
+      //   functionName: 'getTiers',
+      // });
 
-      return TiersSchema.parse(tiers);
+      // return TiersSchema.parse(tiers);
+
+      return [
+        {
+          lockupTime: 90 * 24 * 60 * 60,
+          multiplier: 100,
+          multiplierDecimals: 3,
+          decimalMult: 0.1,
+        },
+        {
+          lockupTime: 180 * 24 * 60 * 60,
+          multiplier: 500,
+          multiplierDecimals: 3,
+          decimalMult: 0.5,
+        },
+        {
+          lockupTime: 365 * 24 * 60 * 60,
+          multiplier: 1100,
+          multiplierDecimals: 3,
+          decimalMult: 1.1,
+        },
+        {
+          lockupTime: 730 * 24 * 60 * 60,
+          multiplier: 1500,
+          multiplierDecimals: 3,
+          decimalMult: 1.5,
+        },
+        {
+          lockupTime: 1460 * 24 * 60 * 60,
+          multiplier: 2100,
+          multiplierDecimals: 3,
+          decimalMult: 2.1,
+        },
+      ];
     },
   });
 
