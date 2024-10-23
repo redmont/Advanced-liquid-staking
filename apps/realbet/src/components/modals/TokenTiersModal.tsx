@@ -40,7 +40,7 @@ const TokenTiers: FC<TokenTiersProps> = ({ children }) => {
           <div className="mb-4 flex w-full flex-col gap-4">
             <p>
               All players receive a <span className="font-semibold">%</span> of
-              a house hedge rakeback as per below table.
+              a house edge rakeback as per below table.
             </p>
             <Table>
               <TableHeader>
@@ -52,7 +52,7 @@ const TokenTiers: FC<TokenTiersProps> = ({ children }) => {
               <TableBody>
                 <TableRow>
                   <TableCell>$100+</TableCell>
-                  <TableCell>5% of house hedge returned to player</TableCell>
+                  <TableCell>5% of house edge returned to player</TableCell>
                 </TableRow>
               </TableBody>
             </Table>

@@ -1,7 +1,7 @@
 'use client';
 
 import Banner from '@/components/banner';
-import { CircleAlert } from 'lucide-react';
+import { CircleHelp } from 'lucide-react';
 import RealIcon from '@/assets/images/R.svg';
 import badge from '@/assets/images/progress/badge.png';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,7 +50,7 @@ export default function HomePage() {
         <CardHeader>
           <CardTitle className="uppercase">
             <Link
-              href="https://x.com/rwg_official"
+              href="https://x.com/realbetio"
               target="_blank"
               className="underline underline-offset-4"
             >
@@ -70,7 +70,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-3">
                     <h3 className="mb-1 text-xl">{progression.rank}</h3>
                     <TokenTiers>
-                      <CircleAlert className="inline size-6 cursor-pointer" />
+                      <CircleHelp className="inline size-6 cursor-pointer" />
                     </TokenTiers>
                   </div>
                 )}

@@ -87,8 +87,8 @@ export default function StakePreview() {
   const vault = useVault();
   const parallaxRef = useRef<HTMLDivElement>(null);
   const parallax = useParallaxEffect(parallaxRef);
-  const [durationIndex, setDurationIndex] = useState(0);
-  const [stakeAmount, setStakeAmount] = useState('0');
+  const [durationIndex, setDurationIndex] = useState(2);
+  const [stakeAmount, setStakeAmount] = useState('10,000');
   const [totalStaked, setTotalStaked] = useState(DEFAULT_GLOBAL_STAKE);
   const [rewards, setRewards] = useState(DEFAULT_MONTHLY_REWARDS);
 
@@ -167,7 +167,13 @@ export default function StakePreview() {
             </p>
             <Input
               align="right"
-              error={isNaN(parseFloat(stakeAmount))}
+              onBlur={() =>
+                setStakeAmount((v) => {
+                  const parsed = parseFloat(v.replace(/,/g, ''));
+                  return isNaN(parsed) ? v : parsed.toLocaleString();
+                })
+              }
+              error={isNaN(parseFloat(stakeAmount.replace(/,/g, '')))}
               value={stakeAmount}
               onChange={(e) => setStakeAmount(e.target.value)}
               startAdornment={
@@ -218,7 +224,7 @@ export default function StakePreview() {
                 <Popover>
                   <PopoverTrigger className="hover:text-primary">
                     <span className="inline-flex items-center gap-1 hover:text-primary">
-                      <span className="m-1 inline-flex size-6 flex-col items-center justify-center rounded-full bg-black p-1 text-primary">
+                      <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                         <RealIcon className="size-full" />
                       </span>
                       Total Stake
@@ -249,7 +255,7 @@ export default function StakePreview() {
                 <Popover>
                   <PopoverTrigger className="hover:text-primary">
                     <span className="inline-flex items-center gap-1 hover:text-primary">
-                      <span className="m-1 inline-flex size-6 flex-col items-center justify-center rounded-full bg-black p-1 text-primary">
+                      <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                         <RealIcon className="size-full" />
                       </span>
                       Total Monthly Reward
