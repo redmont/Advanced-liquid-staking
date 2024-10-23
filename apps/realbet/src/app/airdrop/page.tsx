@@ -35,7 +35,7 @@ export default function Airdrop() {
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
   const leaderboard = useLeaderboard();
 
-  if (token.errors.length > 0 || leaderboard.error) {
+  if (leaderboard.error) {
     return <ErrorComponent />;
   }
 
@@ -141,7 +141,7 @@ export default function Airdrop() {
             )}
           </div>
           <div className="mt-6 text-right">
-            <Button disabled className="w-48" loading={!sdkHasLoaded} size="xl">
+            <Button disabled className="w-50" loading={!sdkHasLoaded} size="xl">
               Claim (Coming Soon)
             </Button>
           </div>
