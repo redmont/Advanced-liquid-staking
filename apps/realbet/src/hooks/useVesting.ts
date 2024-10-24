@@ -111,7 +111,7 @@ export const useVesting = () => {
       vestingScheduleIds.data,
     ],
     enabled: !!vesting && !!vestingScheduleIds.data,
-    refetchInterval: 10_000,
+    refetchInterval: 60_000,
     queryFn: async () => {
       assert(vesting, 'Vesting contract required');
 
