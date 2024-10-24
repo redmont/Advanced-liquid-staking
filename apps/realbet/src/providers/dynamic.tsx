@@ -5,6 +5,7 @@ import { DynamicContextProvider } from '../lib/dynamic';
 import {
   EthereumWalletConnectors,
   SolanaWalletConnectors,
+  BitcoinWalletConnectors,
 } from '../lib/dynamic';
 
 export default function ProviderWrapper({ children }: React.PropsWithChildren) {
@@ -12,7 +13,11 @@ export default function ProviderWrapper({ children }: React.PropsWithChildren) {
     <DynamicContextProvider
       settings={{
         environmentId: env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID,
-        walletConnectors: [EthereumWalletConnectors, SolanaWalletConnectors],
+        walletConnectors: [
+          EthereumWalletConnectors,
+          SolanaWalletConnectors,
+          BitcoinWalletConnectors,
+        ],
       }}
     >
       {children}
