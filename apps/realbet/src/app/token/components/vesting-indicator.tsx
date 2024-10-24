@@ -1,9 +1,8 @@
 import { useToken } from '@/hooks/useToken';
-import { type Deposit, useVault } from '@/hooks/useVault';
 import { cn } from '@/lib/utils';
-import { balanceToFloat, formatBalanceTruncated } from '@/utils';
+import { formatBalanceTruncated } from '@/utils';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useVesting } from '@/hooks/useVesting';
 
 const colors = [
@@ -25,19 +24,15 @@ interface VestingData {
   withdrawn: VestingDataItem;
 }
 
-const isPast = (unlockTimeSeconds: number) =>
-  new Date().getTime() > unlockTimeSeconds * 1000;
-
 export default function VestingIndicator() {
   const { sdkHasLoaded } = useDynamicContext();
   const { decimals, symbol } = useToken();
-  const { deposits, deposited } = useVault();
 
   const { vestingSchedulesWithAmounts } = useVesting();
 
   const vestingData = useMemo(() => {
     const total = vestingSchedulesWithAmounts.reduce(
-      (a, b) => a + b.result.amountTotal,
+      (a, b) => a + b.amountTotal,
       0n,
     );
     const releasable = vestingSchedulesWithAmounts.reduce(
@@ -45,7 +40,7 @@ export default function VestingIndicator() {
       0n,
     );
     const released = vestingSchedulesWithAmounts.reduce(
-      (a, b) => a + b.result.released,
+      (a, b) => a + b.released,
       0n,
     );
 
@@ -70,96 +65,13 @@ export default function VestingIndicator() {
     } as VestingData;
   }, [vestingSchedulesWithAmounts]);
 
-  useEffect(() => {
-    console.log(vestingData);
-  }, [vestingData]);
-
-  const sortedDeposits = useMemo(
-    () =>
-      deposits.data
-        ?.slice()
-        .filter((dep) => dep.amount > 0n)
-        .sort((a, b) => a.unlockTime - b.unlockTime) ?? [],
-    [deposits],
-  );
-
-  const combineDeposit = useCallback(
-    (
-      a: Omit<Deposit, 'timestamp' | 'tier'>,
-      b: Omit<Deposit, 'timestamp' | 'tier'>,
-    ) => ({
-      amount: a.amount + b.amount,
-      unlockTime: Math.min(a.unlockTime, b.unlockTime),
-      percentage:
-        (balanceToFloat(a.amount + b.amount, decimals) /
-          balanceToFloat(deposited, decimals)) *
-        100,
-      combined: true,
-    }),
-    [decimals, deposited],
-  );
-
-  // const groupedDeposits = useMemo(
-  //   () =>
-  //     sortedDeposits.reduce(
-  //       (acc, cur) => {
-  //         if (acc.length < MAX_SHOWN_DEPOSITS) {
-  //           if (
-  //             acc.length > 1 &&
-  //             isPast(cur.unlockTime) &&
-  //             isPast(acc[acc.length - 1]!.unlockTime)
-  //           ) {
-  //             acc.push(combineDeposit(acc.pop()!, cur));
-  //           } else {
-  //             acc.push({
-  //               ...cur,
-  //               percentage:
-  //                 (balanceToFloat(cur.amount, decimals) /
-  //                   balanceToFloat(deposited, decimals)) *
-  //                 100,
-  //             });
-  //           }
-  //         } else {
-  //           acc.push(combineDeposit(acc.pop()!, cur));
-  //         }
-  //         return acc;
-  //       },
-  //       [] as (Omit<Deposit, 'timestamp' | 'tier'> & {
-  //         percentage: number;
-  //         combined?: boolean;
-  //       })[],
-  //     ),
-  //   [combineDeposit, decimals, deposited, sortedDeposits],
-  // );
-
-  const groupedDeposits = [
-    {
-      amount: 100n,
-      percentage: 5,
-      combined: true,
-      unlockTime: 1677721600,
-    },
-    {
-      amount: 200n,
-      percentage: 10,
-      combined: true,
-      unlockTime: 1677721600,
-    },
-    {
-      amount: 5000n,
-      percentage: 25,
-      combined: true,
-      unlockTime: 1677821600,
-    },
-  ];
-
   return (
     <div>
       <div
         className={cn(
           'flex h-4 w-full overflow-hidden rounded-full bg-lighter',
           {
-            'animate-pulse': !sdkHasLoaded || deposits.isLoading,
+            'animate-pulse': !sdkHasLoaded,
           },
         )}
       >
@@ -226,5 +138,3 @@ export default function VestingIndicator() {
     </div>
   );
 }
-
-// Color mapping based on index for different categories

@@ -69,8 +69,8 @@ export default function Token() {
 
   const fullyUnlockedDate = useMemo(() => {
     const timestamps = vestingSchedulesWithAmounts
-      .filter((v) => !v.result.revoked)
-      .map((v) => Number(v.result.start + v.result.duration));
+      .filter((v) => !v.revoked)
+      .map((v) => Number(v.start + v.duration));
 
     if (timestamps.length > 0) {
       return new Date(Math.max(...timestamps) * 1000);

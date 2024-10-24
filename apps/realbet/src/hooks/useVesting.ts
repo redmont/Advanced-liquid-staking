@@ -7,6 +7,7 @@ import { useMemo } from 'react';
 import { useWriteContract } from 'wagmi';
 import { waitForTransactionReceipt } from '@wagmi/core';
 import assert from 'assert';
+import { type MulticallContracts } from 'viem';
 
 export const useVesting = () => {
   const { primaryWallet } = useDynamicContext();
@@ -46,12 +47,16 @@ export const useVesting = () => {
       assert(vesting, 'Vesting contract required');
 
       const count = vestingSchedulesCount.data!;
-      const contracts = Array.from({ length: count }, (_, index) => ({
-        address: vesting.address,
-        abi: vesting.abi,
-        functionName: 'computeVestingScheduleIdForAddressAndIndex',
-        args: [primaryWallet?.address, index],
-      })) as MulticallContracts<typeof vesting.abi>;
+      const contracts = Array.from(
+        { length: count },
+        (_, index) =>
+          ({
+            address: vesting.address,
+            abi: vesting.abi,
+            functionName: 'computeVestingScheduleIdForAddressAndIndex',
+            args: [primaryWallet?.address, index],
+          }) as const,
+      ) as MulticallContracts<typeof vesting.abi>;
 
       const schedules = await multicall(config, {
         contracts,
@@ -74,16 +79,26 @@ export const useVesting = () => {
       assert(primaryWallet?.address, 'Wallet required');
 
       const count = vestingSchedulesCount.data!;
-      const contracts = Array.from({ length: count }).map((_, index) => ({
-        address: vesting.address,
-        abi: vesting.abi,
-        functionName: 'getVestingScheduleByAddressAndIndex',
-        args: [primaryWallet.address, index],
-      })) as MulticallContracts<typeof vesting.abi>;
+      const contracts = Array.from({ length: count }).map(
+        (_, index: number) =>
+          ({
+            address: vesting.address,
+            abi: vesting.abi,
+            functionName: 'getVestingScheduleByAddressAndIndex',
+            args: [primaryWallet.address, index],
+          }) as const,
+      ) as MulticallContracts<typeof vesting.abi>;
 
-      const schedules = await multicall(config, {
+      const schedules = (await multicall(config, {
         contracts,
-      });
+        allowFailure: false,
+      })) as {
+        amountTotal: bigint;
+        released: bigint;
+        revoked: boolean;
+        start: bigint;
+        duration: bigint;
+      }[];
 
       return schedules;
     },
@@ -98,18 +113,26 @@ export const useVesting = () => {
     enabled: !!vesting && !!vestingScheduleIds.data,
     refetchInterval: 10_000,
     queryFn: async () => {
-      const contracts = vestingScheduleIds.data?.map((scheduleId) => ({
-        address: vesting!.address,
-        abi: vesting!.abi,
-        functionName: 'computeReleasableAmount',
-        args: [scheduleId.result],
-      }));
+      assert(vesting, 'Vesting contract required');
 
-      const amounts = await multicall(config, { contracts });
+      const contracts = vestingScheduleIds.data?.map(
+        (scheduleId) =>
+          ({
+            address: vesting.address,
+            abi: vesting.abi,
+            functionName: 'computeReleasableAmount',
+            args: [scheduleId.result],
+          }) as const,
+      ) as MulticallContracts<typeof vesting.abi>;
+
+      const amounts = await multicall(config, {
+        contracts,
+        allowFailure: false,
+      });
 
       const amountsWithIds = vestingScheduleIds.data?.map(
         (scheduleId, index) => ({
-          amount: (amounts[index]?.result as bigint) ?? 0n,
+          amount: (amounts[index] as bigint) ?? 0n,
           id: scheduleId.result,
         }),
       );
@@ -131,15 +154,12 @@ export const useVesting = () => {
   }, [vestingSchedules.data, releasableAmounts.data]);
 
   const totalAmount = useMemo(
-    () =>
-      vestingSchedules.data?.reduce((a, b) => a + b.result.amountTotal, 0n) ??
-      0n,
+    () => vestingSchedules.data?.reduce((a, b) => a + b.amountTotal, 0n) ?? 0n,
     [vestingSchedules.data],
   );
 
   const releasedAmount = useMemo(
-    () =>
-      vestingSchedules.data?.reduce((a, b) => a + b.result.released, 0n) ?? 0n,
+    () => vestingSchedules.data?.reduce((a, b) => a + b.released, 0n) ?? 0n,
     [vestingSchedules.data],
   );
 
