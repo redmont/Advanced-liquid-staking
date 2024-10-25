@@ -28,7 +28,6 @@ import {
   chains,
 } from './utils';
 import { memeCoins } from './memeCoins';
-import { Tooltip } from '../../components/Tooltip';
 import {
   useDynamicContext,
   useIsLoggedIn,
@@ -38,6 +37,13 @@ import {
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { Wallet2 } from 'lucide-react';
 import { getChainIcon } from '@/config/chainIcons';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@radix-ui/react-popover';
+import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
+import { useToken } from '@/hooks/useToken';
 
 const createInitialAllocations = (): Allocations => {
   return {
@@ -69,12 +75,13 @@ const createInitialAllocations = (): Allocations => {
 
 let allocations: Allocations = createInitialAllocations();
 
-const Page = () => {
+const BonusPage = () => {
+  const token = useToken();
+  const isAuthenticated = useIsLoggedIn();
   const [allocation, setAllocation] = useState<Allocations>(allocations);
   const [progressMessage, setProgressMessage] = useState('');
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
 
-  const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
   const userWallets = useUserWallets();
@@ -201,71 +208,60 @@ const Page = () => {
 
   return (
     <div className="flex flex-col gap-5 p-5">
-      <Banner>
-        <div className="space-y-4">
-          <p className="py-4 text-lg tracking-widest md:max-w-[50%]">
-            SHUFFLE | STAKE | ROLLBIT
-          </p>
-          <h3 className="inline rounded-md bg-[#A40505] px-2 font-monoline text-3xl text-white xl:text-4xl">
-            Check your Real Bonus
-          </h3>
-          <p className="text-lg md:max-w-[50%]">
-            <li>
-              Connect your wallet to see your available token sale bonus from
-              participating in REAL token sale here.
-            </li>
-            <li>Link multiple cross-chain wallets to boost your score.</li>
-          </p>
-          <div className="flex items-center gap-3 md:max-w-2xl">
-            <p className="text-lg md:max-w-[50%]">
-              How is my bonus calculated ?{' '}
-            </p>
-            <Tooltip
-              content={
-                <p className="max-w-80 rounded-xl border border-[#F0AC5D] bg-black p-2 text-left text-sm">
-                  <li>
-                    If there is at least 1 txn on any supported casinos
-                    (Shuffle, Stake or Rollbit) on any supported chains (BTC
-                    ,SOL, ETH, BNB) then <b>points += 100</b>
-                  </li>
-                  <li>
-                    Calculate Total deposits on all supported casinos on all
-                    supported chains. Then{' '}
-                    <b>points += (Total deposit/100) * 100</b>
-                  </li>
-                  <li>
-                    For each meme coins that the user currently holds from our
-                    supported meme coin list, <b>points += 100</b>
-                  </li>
-                </p>
-              }
-            >
-              <div>
-                <svg
-                  width="17"
-                  height="17"
-                  viewBox="0 0 17 17"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M8.50016 0.581787C12.8733 0.581787 16.4184 4.12687 16.4184 8.50004C16.4184 12.8724 12.8733 16.4167 8.50016 16.4167C4.127 16.4167 0.583496 12.8724 0.583496 8.50004C0.582705 4.12687 4.127 0.581787 8.50016 0.581787ZM8.50016 1.76929C7.61018 1.75963 6.72712 1.92659 5.90209 2.26049C5.07706 2.5944 4.32644 3.08862 3.69369 3.71454C3.06093 4.34047 2.5586 5.08568 2.21577 5.90705C1.87294 6.72841 1.69642 7.60961 1.69642 8.49964C1.69642 9.38968 1.87294 10.2709 2.21577 11.0922C2.5586 11.9136 3.06093 12.6588 3.69369 13.2847C4.32644 13.9107 5.07706 14.4049 5.90209 14.7388C6.72712 15.0727 7.61018 15.2397 8.50016 15.23C10.2725 15.2108 11.9658 14.4932 13.2123 13.2331C14.4588 11.973 15.1579 10.2721 15.1579 8.49964C15.1579 6.72718 14.4588 5.02626 13.2123 3.76616C11.9658 2.50606 10.2725 1.78851 8.50016 1.76929ZM8.497 7.31096C8.64061 7.31077 8.77943 7.36264 8.88773 7.45697C8.99603 7.55129 9.06647 7.68167 9.086 7.82396L9.09154 7.90471L9.09471 12.2605C9.09625 12.412 9.03981 12.5583 8.93695 12.6696C8.83409 12.7808 8.69259 12.8485 8.54143 12.8589C8.39027 12.8692 8.24088 12.8213 8.12385 12.7251C8.00683 12.6289 7.93102 12.4915 7.91196 12.3412L7.90721 12.2612L7.90404 7.9055C7.90404 7.74802 7.96659 7.597 8.07794 7.48565C8.18929 7.3743 8.34032 7.31175 8.49779 7.31175M8.50175 4.54329C8.60766 4.53994 8.71317 4.5579 8.812 4.59612C8.91083 4.63434 9.00098 4.69202 9.07708 4.76576C9.15319 4.83949 9.2137 4.92777 9.25502 5.02534C9.29635 5.12292 9.31764 5.2278 9.31764 5.33377C9.31764 5.43973 9.29635 5.54462 9.25502 5.64219C9.2137 5.73977 9.15319 5.82804 9.07708 5.90178C9.00098 5.97551 8.91083 6.0332 8.812 6.07142C8.71317 6.10963 8.60766 6.1276 8.50175 6.12425C8.29643 6.11775 8.1017 6.03162 7.95876 5.88408C7.81582 5.73655 7.73589 5.53919 7.73589 5.33377C7.73589 5.12835 7.81582 4.93098 7.95876 4.78345C8.1017 4.63592 8.29643 4.54979 8.50175 4.54329Z"
-                    fill="#FEFEFE"
-                    fill-opacity="0.6"
-                  />
-                </svg>
-              </div>
-            </Tooltip>
+      <Banner className="flex flex-col justify-center xl:min-h-[26rem]">
+        <h2 className="mb-3 text-xl font-medium tracking-widest md:max-w-[50%]">
+          SHUFFLE | STAKE | ROLLBIT
+        </h2>
+        <div className="mb-3 inline-block rounded-md bg-destructive px-4 py-2 font-monoline text-3xl text-accent-foreground xl:text-4xl">
+          Check your {token.symbol} Bonus
+        </div>
+        <ul className="mb-3 list-disc pl-5 text-lg md:max-w-[50%]">
+          <li>
+            Enter your wallet to see your available token sale bonus from
+            participating in {token.symbol} token sale here.
+          </li>
+          <li>Link multiple cross-chain wallets to boost your score.</li>
+        </ul>
+        <div className="mb-3 flex items-center gap-3 md:max-w-2xl">
+          <div className="text-lg md:max-w-[50%]">
+            <Popover>
+              <PopoverTrigger className="hover:text-primary">
+                <span className="inline-flex items-center gap-1 hover:text-primary">
+                  How is my bonus calculated
+                  <QuestionMarkCircledIcon />
+                </span>
+              </PopoverTrigger>
+              <PopoverContent align="start">
+                <div className="max-w-80 rounded-xl border border-border bg-black p-2 text-left text-sm">
+                  <ul className="list-disc space-y-2 pl-5">
+                    <li>
+                      If there is at least 1 txn on any supported casinos
+                      (Shuffle, Stake or Rollbit) on any supported chains (BTC
+                      ,SOL, ETH, BNB) then <b>points += 100</b>
+                    </li>
+                    <li>
+                      Calculate Total deposits on all supported casinos on all
+                      supported chains. Then{' '}
+                      <b>points += (Total deposit/100) * 100</b>
+                    </li>
+                    <li>
+                      For each meme coins that the user currently holds from our
+                      supported meme coin list, <b>points += 100</b>
+                    </li>
+                  </ul>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-          <div className="flex items-center gap-5 md:max-w-2xl">
-            {sdkHasLoaded && !isAuthenticated && (
-              <div className="space-between no-wrap flex flex-row items-center justify-center gap-5">
-                <Button onClick={handleDynamicAuthClick}>
-                  Connect Wallet <Wallet2 className="ml-2" />
-                </Button>
-              </div>
-            )}
-          </div>
+        </div>
+        <div className="flex items-center gap-5 md:max-w-2xl">
+          {sdkHasLoaded && !isAuthenticated && (
+            <div className="space-between no-wrap flex flex-row items-center justify-center gap-5">
+              <Button onClick={handleDynamicAuthClick}>
+                Connect Wallet <Wallet2 className="ml-2" />
+              </Button>
+            </div>
+          )}
         </div>
       </Banner>
       {isAuthenticated && userWallets.length > 0 && (
@@ -303,10 +299,13 @@ const Page = () => {
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-5 py-3">
                 <div className="grid grid-cols-1 items-center justify-between gap-3 rounded-xl border border-orange-100/20 bg-red-500/5 px-2 py-4 md:w-[48%]">
                   <h3 className="text-md flex justify-center gap-2 text-center">
-                    <span>Total Degen Score</span>
-                    <Tooltip
-                      content={
-                        <p className="max-w-80 rounded-xl border border-[#F0AC5D] bg-black p-2 text-left text-sm">
+                    <Popover>
+                      <PopoverTrigger className="hover:text-primary">
+                        Total Degen Score{' '}
+                        <QuestionMarkCircledIcon className="inline" />
+                      </PopoverTrigger>
+                      <PopoverContent className="z-30" align="start">
+                        <ul className="max-w-80 list-disc space-y-3 rounded-xl border border-border bg-light p-2 pl-5 text-left text-sm">
                           <li>
                             If there is at least 1 txn on any supported casinos
                             (Shuffle, Stake or Rollbit) on any supported chains
@@ -322,25 +321,9 @@ const Page = () => {
                             from our supported meme coin list,{' '}
                             <b>points += 100</b>
                           </li>
-                        </p>
-                      }
-                    >
-                      <div className="place-self-center">
-                        <svg
-                          width="17"
-                          height="17"
-                          viewBox="0 0 17 17"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M8.50016 0.581787C12.8733 0.581787 16.4184 4.12687 16.4184 8.50004C16.4184 12.8724 12.8733 16.4167 8.50016 16.4167C4.127 16.4167 0.583496 12.8724 0.583496 8.50004C0.582705 4.12687 4.127 0.581787 8.50016 0.581787ZM8.50016 1.76929C7.61018 1.75963 6.72712 1.92659 5.90209 2.26049C5.07706 2.5944 4.32644 3.08862 3.69369 3.71454C3.06093 4.34047 2.5586 5.08568 2.21577 5.90705C1.87294 6.72841 1.69642 7.60961 1.69642 8.49964C1.69642 9.38968 1.87294 10.2709 2.21577 11.0922C2.5586 11.9136 3.06093 12.6588 3.69369 13.2847C4.32644 13.9107 5.07706 14.4049 5.90209 14.7388C6.72712 15.0727 7.61018 15.2397 8.50016 15.23C10.2725 15.2108 11.9658 14.4932 13.2123 13.2331C14.4588 11.973 15.1579 10.2721 15.1579 8.49964C15.1579 6.72718 14.4588 5.02626 13.2123 3.76616C11.9658 2.50606 10.2725 1.78851 8.50016 1.76929ZM8.497 7.31096C8.64061 7.31077 8.77943 7.36264 8.88773 7.45697C8.99603 7.55129 9.06647 7.68167 9.086 7.82396L9.09154 7.90471L9.09471 12.2605C9.09625 12.412 9.03981 12.5583 8.93695 12.6696C8.83409 12.7808 8.69259 12.8485 8.54143 12.8589C8.39027 12.8692 8.24088 12.8213 8.12385 12.7251C8.00683 12.6289 7.93102 12.4915 7.91196 12.3412L7.90721 12.2612L7.90404 7.9055C7.90404 7.74802 7.96659 7.597 8.07794 7.48565C8.18929 7.3743 8.34032 7.31175 8.49779 7.31175M8.50175 4.54329C8.60766 4.53994 8.71317 4.5579 8.812 4.59612C8.91083 4.63434 9.00098 4.69202 9.07708 4.76576C9.15319 4.83949 9.2137 4.92777 9.25502 5.02534C9.29635 5.12292 9.31764 5.2278 9.31764 5.33377C9.31764 5.43973 9.29635 5.54462 9.25502 5.64219C9.2137 5.73977 9.15319 5.82804 9.07708 5.90178C9.00098 5.97551 8.91083 6.0332 8.812 6.07142C8.71317 6.10963 8.60766 6.1276 8.50175 6.12425C8.29643 6.11775 8.1017 6.03162 7.95876 5.88408C7.81582 5.73655 7.73589 5.53919 7.73589 5.33377C7.73589 5.12835 7.81582 4.93098 7.95876 4.78345C8.1017 4.63592 8.29643 4.54979 8.50175 4.54329Z"
-                            fill="#FEFEFE"
-                            fill-opacity="0.6"
-                          />
-                        </svg>
-                      </div>
-                    </Tooltip>{' '}
+                        </ul>
+                      </PopoverContent>
+                    </Popover>
                   </h3>
                   <h3 className="text-md text-center">
                     <span className="text-xl text-primary">
@@ -352,14 +335,16 @@ const Page = () => {
                   </h3>
                 </div>
                 <div className="grid grid-cols-1 items-center justify-between gap-3 rounded-xl border border-orange-100/20 bg-red-500/5 px-2 py-4 md:w-[48%]">
-                  <h3 className="text-md text-center">Total $REAL Rewards</h3>
+                  <h3 className="text-md text-center">
+                    Total {token.symbol} Rewards
+                  </h3>
                   <h3 className="text-md text-center">
                     <span className="text-xl text-primary">
                       {totalDegenScore(
                         allocation.totalDeposited,
                         allocation.totalTokenRewards,
                       )}{' '}
-                      REAL
+                      {token.symbol}
                     </span>
                   </h3>
                 </div>
@@ -371,9 +356,11 @@ const Page = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="px-5 font-normal">
-                      Eligible deposits
+                      Eligible Deposits
                     </TableHead>
-                    <TableHead className="px-5 font-normal">Deposit</TableHead>
+                    <TableHead className="px-5 font-normal">
+                      Deposited
+                    </TableHead>
                     <TableHead className="px-5 text-right font-normal">
                       Score
                     </TableHead>
@@ -485,4 +472,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default BonusPage;

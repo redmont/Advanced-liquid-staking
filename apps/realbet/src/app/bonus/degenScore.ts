@@ -1,16 +1,21 @@
-import { CHAIN_RPC_URLS, Chains } from './utils';
-import type { AxiosResponse } from 'axios';
-import axios from 'axios';
+import { CHAIN_RPC_URLS, type Chains } from './utils';
+import { z } from 'zod';
 
-interface AlchemyAssetBalanceResponse {
-  jsonrpc: string;
-  id: number;
-  result: {
-    address: string;
-    pageKey?: string;
-    tokenBalances: TokenBalance[];
-  };
-}
+const AlchemyAssetBalanceResponseSchema = z.object({
+  jsonrpc: z.string(),
+  id: z.number(),
+  result: z.object({
+    address: z.string(),
+    pageKey: z.string().optional(),
+    tokenBalances: z.array(
+      z.object({
+        contractAddress: z.string(),
+        tokenBalance: z.string(),
+      }),
+    ),
+  }),
+});
+
 interface TokenBalance {
   contractAddress: string;
   tokenBalance: string;
@@ -32,17 +37,21 @@ export const getTokenBalances = async (
     throw new Error(`Alchemy API URL not defined for chain: ${chain}`);
   }
 
-  const requestOptions = {
-    url: baseURL,
-    method: 'post',
+  const response = await fetch(baseURL, {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    data,
-  };
+    body: data,
+  });
 
-  const response: AxiosResponse<AlchemyAssetBalanceResponse> =
-    await axios(requestOptions);
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
 
-  return response.data.result.tokenBalances;
+  const responseData = AlchemyAssetBalanceResponseSchema.parse(
+    await response.json(),
+  );
+
+  return responseData.result.tokenBalances;
 };
 
 export const totalDegenScore = (

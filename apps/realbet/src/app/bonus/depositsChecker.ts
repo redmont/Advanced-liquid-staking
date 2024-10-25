@@ -1,15 +1,15 @@
-import { ethers } from 'ethers';
-import axios from 'axios';
-import type { AxiosResponse } from 'axios';
 import dayjs from '@/dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
+import { z } from 'zod';
+import { toHex } from 'viem';
+
 import {
   getCasinoTreasuryWallet,
   CHAIN_RPC_URLS,
-  Casinos,
-  Chains,
+  type Casinos,
+  type Chains,
 } from './utils';
 import pLimit from 'p-limit';
+
 const limit = pLimit(10);
 
 interface Txn {
@@ -27,22 +27,31 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-dayjs.extend(relativeTime);
-
 export const displayRelativeTime = (date: string): string => {
   return dayjs(date).fromNow();
 };
 
 let wallet2: string | null = null;
 
-interface AlchemyAssetTransfersResponse {
-  jsonrpc: string;
-  id: number;
-  result: {
-    transfers: Txn[];
-    pageKey?: string;
-  };
-}
+const AlchemyAssetTransfersResponseSchema = z.object({
+  jsonrpc: z.string(),
+  id: z.number(),
+  result: z.object({
+    transfers: z.array(
+      z.object({
+        hash: z.string(),
+        from: z.string(),
+        to: z.string(),
+        value: z.number(),
+        asset: z.string(),
+        metadata: z.object({
+          blockTimestamp: z.string(),
+        }),
+      }),
+    ),
+    pageKey: z.string().optional(),
+  }),
+});
 
 async function fetchAllTransactions(
   fromAddress: string,
@@ -50,7 +59,7 @@ async function fetchAllTransactions(
   blockStart: number,
   toAddress?: string,
 ): Promise<Txn[]> {
-  const fromBlockHex = ethers.toBeHex(blockStart);
+  const fromBlockHex = toHex(blockStart);
 
   let allTransfers: Txn[] = [];
   let pageKey: string | undefined = undefined;
@@ -93,15 +102,13 @@ async function fetchAllTransactions(
 
       const fetchURL = baseURL;
 
-      const response: AxiosResponse<AlchemyAssetTransfersResponse> =
-        await axios(fetchURL, requestOptions);
+      const response = await fetch(fetchURL, requestOptions);
+      const assetsTransfers = AlchemyAssetTransfersResponseSchema.parse(
+        await response.json(),
+      );
 
-      if (!response.data.result) {
-        throw new Error(JSON.stringify(response));
-      }
-
-      const transfers = response.data.result.transfers;
-      const newPageKey = response.data.result.pageKey;
+      const transfers = assetsTransfers.result.transfers;
+      const newPageKey = assetsTransfers.result.pageKey;
 
       if (transfers && transfers.length > 0) {
         allTransfers = allTransfers.concat(transfers);
@@ -116,20 +123,23 @@ async function fetchAllTransactions(
   return allTransfers;
 }
 
-interface CoinDataResponse {
-  data: Record<
-    string,
-    Array<{
-      quotes: Array<{
-        quote: {
-          USD: {
-            price: number;
-          };
-        };
-      }>;
-    }>
-  >;
-}
+const CoinDataResponseSchema = z.object({
+  data: z.record(
+    z.array(
+      z.object({
+        quotes: z.array(
+          z.object({
+            quote: z.object({
+              USD: z.object({
+                price: z.number(),
+              }),
+            }),
+          }),
+        ),
+      }),
+    ),
+  ),
+});
 
 async function getHistoricalPriceAtTime(
   symbol: string,
@@ -137,38 +147,40 @@ async function getHistoricalPriceAtTime(
 ): Promise<number | null> {
   const url = `/api/coinData`;
 
-  const params = {
+  const params = new URLSearchParams({
     symbol: symbol,
     time_start: timestamp,
     interval: '24h',
     count: '1',
     convert: 'USD',
-  };
+  });
 
   try {
-    const response: AxiosResponse<CoinDataResponse> = await axios.get(url, {
-      params: params,
+    const response = await fetch(`${url}?${params}`, {
+      method: 'GET',
     });
 
-    const quotes = response.data.data[symbol]?.[0]?.quotes;
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = CoinDataResponseSchema.parse(await response.json());
+    const quotes = data.data[symbol]?.[0]?.quotes;
     if (quotes && quotes.length > 0) {
       const price = quotes[0]?.quote.USD.price;
       return price ?? null;
     }
     return null;
   } catch {
-    // eslint-disable-next-line no-console
-    // console.error('Error fetching historical price:', error);
     return null;
   }
 }
 
-// Function to process batches with a delay and early exit condition
-async function processInBatches<T>(
-  tasks: (() => Promise<T>)[],
+async function processInBatches(
+  tasks: (() => Promise<string | null>)[],
   batchSize: number,
   delayMs: number,
-): Promise<T | null> {
+): Promise<string | null> {
   for (let i = 0; i < tasks.length; i += batchSize) {
     if (wallet2 !== null) {
       break; // Stop processing further batches if a wallet is found
@@ -278,24 +290,31 @@ function getUnixTimestampNDaysAgo(n: number): number {
   return Math.floor((now - n * millisecondsInADay) / 1000);
 }
 
-interface BlockHeightResponse {
-  height: number;
-}
+const BlockHeightResponse = z.object({
+  height: z.number(),
+});
 
 async function getClosestBlockToATimestamp(
   chain: string,
   timestamp: number,
 ): Promise<number> {
-  const config = {
-    method: 'get',
-    maxBodyLength: Infinity,
-    url: `https://coins.llama.fi/block/${chain}/${timestamp}`,
-    headers: {},
-  };
+  const url = `https://coins.llama.fi/block/${chain}/${timestamp}`;
 
-  const response: AxiosResponse<BlockHeightResponse> =
-    await axios.request(config);
-  return response.data.height;
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = BlockHeightResponse.parse(await response.json());
+
+    return data.height;
+  } catch {
+    throw new Error('Failed to fetch block height');
+  }
 }
 
 export async function checkUserDeposits(
@@ -331,13 +350,6 @@ export async function checkUserDeposits(
 
     return totalDeposited;
   } catch {
-    // console.error(
-    //   'Error checking user deposits:',
-    //   casino,
-    //   chain,
-    //   userWallet,
-    //   error,
-    // );
     return { totalDepositedInUSD: 0, lastDeposited: '' };
   }
 }

@@ -1,13 +1,12 @@
 'use client';
 
 import { env } from '@/env';
-import { DynamicContextProvider, FilterChain } from '../lib/dynamic';
+import { DynamicContextProvider } from '../lib/dynamic';
 import {
   EthereumWalletConnectors,
   SolanaWalletConnectors,
   BitcoinWalletConnectors,
 } from '../lib/dynamic';
-import { pipe } from '@dynamic-labs/utils';
 
 export default function ProviderWrapper({ children }: React.PropsWithChildren) {
   return (
@@ -19,7 +18,6 @@ export default function ProviderWrapper({ children }: React.PropsWithChildren) {
           SolanaWalletConnectors,
           BitcoinWalletConnectors,
         ],
-        walletsFilter: pipe(FilterChain('EVM')),
       }}
     >
       {children}

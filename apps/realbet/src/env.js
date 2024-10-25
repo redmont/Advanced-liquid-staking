@@ -11,6 +11,7 @@ export const env = createEnv({
       .enum(['development', 'test', 'production'])
       .default('development'),
     SENTRY_AUTH_TOKEN: z.string().optional(),
+    COINMARKETCAP_API_KEY: z.string(),
   },
 
   /**
@@ -32,6 +33,7 @@ export const env = createEnv({
   runtimeEnv: {
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     NODE_ENV: process.env.NODE_ENV,
+    COINMARKETCAP_API_KEY: process.env.COINMARKETCAP_API_KEY,
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??
       '21452bd4-902f-40be-9b8f-5bc817b00e0e',

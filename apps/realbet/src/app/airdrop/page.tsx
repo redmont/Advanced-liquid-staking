@@ -39,7 +39,8 @@ export default function Airdrop() {
         <Box className="inline size-8" /> Airdrop Eligibility
       </h2>
       <p className="mb-8 text-xl font-medium leading-tight text-white/80">
-        Earn REAL for holding raW Passes. See your upcoming airdrop eligibility.
+        Earn {token.symbol} for holding raW Passes. See your upcoming airdrop
+        eligibility.
       </p>
       <Card className="relative">
         <div
