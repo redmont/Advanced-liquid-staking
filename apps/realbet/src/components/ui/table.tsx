@@ -113,6 +113,21 @@ const TableCaption = React.forwardRef<
 ));
 TableCaption.displayName = 'TableCaption';
 
+export const TableBodySkeleton: React.FC<{ cols: number; rows: number }> = ({
+  cols,
+  rows,
+}) => (
+  <TableBody className="[&_tr:last-child]:border-0">
+    {Array.from({ length: rows }).map((_, rowIndex) => (
+      <TableRow className="animate-pulse" key={rowIndex}>
+        <TableCell colSpan={cols}>
+          <Skeleton className="h-6 w-full" />
+        </TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+);
+
 export const TableSkeleton: React.FC<{ cols: number; rows: number }> = ({
   cols,
   rows,
@@ -128,15 +143,7 @@ export const TableSkeleton: React.FC<{ cols: number; rows: number }> = ({
           ))}
         </TableRow>
       </TableHeader>
-      <TableBody className="[&_tr:last-child]:border-0">
-        {Array.from({ length: rows }).map((_, rowIndex) => (
-          <TableRow className="animate-pulse" key={rowIndex}>
-            <TableCell colSpan={cols}>
-              <Skeleton className="h-6 w-full" />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
+      <TableBodySkeleton cols={cols} rows={rows} />
     </Table>
   );
 };

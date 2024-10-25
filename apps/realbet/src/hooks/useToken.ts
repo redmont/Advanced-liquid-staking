@@ -29,11 +29,12 @@ export const useToken = () => {
     queryKey: ['symbol', token?.address],
     enabled: !!token,
     queryFn: () =>
-      readContract(config, {
-        abi: token!.abi,
-        address: token!.address,
-        functionName: 'symbol',
-      }) as Promise<string>,
+      // readContract(config, {
+      //   abi: token!.abi,
+      //   address: token!.address,
+      //   functionName: 'symbol',
+      // }) as Promise<string>,
+      'REAL',
   });
 
   const decimals = useQuery({

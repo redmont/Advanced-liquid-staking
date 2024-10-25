@@ -20,9 +20,9 @@ import {
 } from './degenScore';
 import {
   CHAIN_RPC_URLS,
-  Chains,
-  Casinos,
-  Allocations,
+  type Chains,
+  type Casinos,
+  type Allocations,
   shorten,
   casinos,
   chains,

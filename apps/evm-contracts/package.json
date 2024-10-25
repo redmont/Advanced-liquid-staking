@@ -19,6 +19,9 @@
     "build": "pnpm run clean && pnpm run compile && pnpm tsc && pnpm run lint",
     "deploy:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TestStakingVault.ts --network sepolia"
   },
+  "dependencies": {
+    "rimraf": "^5.0.10"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.7",
     "@nomicfoundation/hardhat-ignition": "^0.15.6",
@@ -38,7 +41,6 @@
     "hardhat": "^2.22.9",
     "prettier": "^3.3.3",
     "prettier-plugin-solidity": "^1.4.1",
-    "rimraf": "^5.0.10",
     "solhint": "^5.0.3",
     "solhint-plugin-prettier": "^0.1.0",
     "typescript": "~5.0.4",
