@@ -1,4 +1,10 @@
 import { env } from '@/env';
+import type { AxiosResponse } from 'axios';
+import axios from 'axios';
+
+import pLimit from 'p-limit';
+const limit = pLimit(10);
+
 export const alchemyApiKey = env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
 export const SHUFFLE_TREASURY_WALLET =
@@ -48,3 +54,50 @@ export const getCasinoTreasuryWallet = (casino: Casinos) => {
 
 export const shorten = (address: string, size = 6) =>
   address.slice(0, size) + '...' + address.slice(-size);
+
+interface CoinDataResponse {
+  data: Record<
+    number,
+    {
+      logo: string;
+    }
+  >;
+}
+
+async function getTokenLogo(contractAddress: string) {
+  const url = `/api/coinMetaData`;
+
+  const params = {
+    address: contractAddress,
+    aux: 'logo',
+  };
+
+  try {
+    const response: AxiosResponse<CoinDataResponse> = await axios.get(url, {
+      params: params,
+    });
+    const keys = Object.keys(response.data.data);
+    if (keys.length === 0) {
+      throw new Error('API error');
+    }
+    const tokenId = Number(keys[0]);
+    const logo = response.data.data[tokenId]?.logo;
+    return logo;
+  } catch {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return getTokenLogo(contractAddress);
+  }
+}
+
+export async function getBulkTokenLogos(contractAddresses: string[]) {
+  const promises = contractAddresses.map((contractAddress) =>
+    limit(async () => {
+      const tokenLogo = (await getTokenLogo(contractAddress)) ?? '';
+      return tokenLogo;
+    }),
+  );
+
+  const results = await Promise.all(promises);
+
+  return results;
+}

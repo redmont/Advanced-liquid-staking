@@ -109,7 +109,8 @@ async function fetchAllTransactions(
 
       pageKey = newPageKey;
     } catch {
-      // console.error('Error fetching all transactions:', error);
+      // wait for 1250 milliseconds before retrying
+      await new Promise((resolve) => setTimeout(resolve, 1250));
     }
   } while (pageKey);
 
@@ -157,8 +158,6 @@ async function getHistoricalPriceAtTime(
     }
     return null;
   } catch {
-    // eslint-disable-next-line no-console
-    // console.error('Error fetching historical price:', error);
     return null;
   }
 }
@@ -286,16 +285,25 @@ async function getClosestBlockToATimestamp(
   chain: string,
   timestamp: number,
 ): Promise<number> {
-  const config = {
-    method: 'get',
-    maxBodyLength: Infinity,
-    url: `https://coins.llama.fi/block/${chain}/${timestamp}`,
-    headers: {},
-  };
+  try {
+    const config = {
+      method: 'get',
+      maxBodyLength: Infinity,
+      url: `https://coins.llama.fi/block/${chain}/${timestamp}`,
+      headers: {},
+    };
 
-  const response: AxiosResponse<BlockHeightResponse> =
-    await axios.request(config);
-  return response.data.height;
+    const response: AxiosResponse<BlockHeightResponse> =
+      await axios.request(config);
+    if (!response.data.height) {
+      throw new Error('No height found');
+    }
+    return response.data.height;
+  } catch {
+    // wait for 1250 milliseconds before retrying
+    await new Promise((resolve) => setTimeout(resolve, 1250));
+    return getClosestBlockToATimestamp(chain, timestamp);
+  }
 }
 
 export async function checkUserDeposits(

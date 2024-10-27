@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useReducer } from 'react';
+import React, { useState, useReducer, useEffect } from 'react';
 import Banner from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -26,7 +26,9 @@ import {
   shorten,
   casinos,
   chains,
+  getBulkTokenLogos,
 } from './utils';
+
 import { memeCoins } from './memeCoins';
 import { Tooltip } from '../../components/Tooltip';
 import {
@@ -73,6 +75,7 @@ const Page = () => {
   const [allocation, setAllocation] = useState<Allocations>(allocations);
   const [progressMessage, setProgressMessage] = useState('');
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
+  const [memeCoinsLogos, setMemeCoinsLogos] = useState<string[]>([]);
 
   const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
@@ -140,11 +143,11 @@ const Page = () => {
             setProgressMessage(
               `Checking deposits for ${shorten(userWallet, 4)} (${chain}) on ${currentCasino}....`,
             );
-            // random number between 20 and 50
-            const randomNumber = Math.floor(Math.random() * (50 - 20) + 20);
+            const daysBefore = 365; // 1year
             const { totalDepositedInUSD } = await checkUserDeposits(
               wallet.address, //'0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
-              randomNumber,
+              // '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
+              daysBefore,
               chain,
               currentCasino,
             );
@@ -198,6 +201,18 @@ const Page = () => {
     setAllocation(allocations);
     forceUpdate();
   };
+
+  const getTokenLogos = async () => {
+    const contractAddresses = memeCoins.map((token) => token.address);
+    const tokenLogos = await getBulkTokenLogos(contractAddresses);
+    return tokenLogos;
+  };
+  useEffect(() => {
+    void (async () => {
+      const tokenLogos = await getTokenLogos();
+      setMemeCoinsLogos(tokenLogos);
+    })();
+  }, []);
 
   return (
     <div className="flex flex-col gap-5 p-5">
@@ -448,12 +463,13 @@ const Page = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {memeCoins.map((memeCoin) => (
+                  {memeCoins.map((memeCoin, index) => (
                     <TableRow
                       key={memeCoin.symbol}
                       className="odd:bg-lighter/1 even:bg-lighter/1 border-b-5 border border-lighter/50"
                     >
                       <TableCell className="flex items-center gap-2 px-5 font-normal capitalize">
+                        <img width={26} src={memeCoinsLogos[index]} />{' '}
                         {memeCoin.symbol}
                       </TableCell>
                       <TableCell className="px-5 text-right"></TableCell>
