@@ -30,5 +30,5 @@ export const useAlchemy = () => {
       const alchemy = new Alchemy(settings);
       return alchemy;
     },
-  });
+  })?.data;
 };

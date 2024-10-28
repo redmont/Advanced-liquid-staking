@@ -14,7 +14,7 @@ const passGroups = [
 
 export function useRawPasses() {
   const { primaryWallet, sdkHasLoaded } = useDynamicContext();
-  const { data: alchemy } = useAlchemy();
+  const alchemy = useAlchemy();
   const address = primaryWallet?.address ?? '';
 
   const nfts = useInfiniteQuery({
