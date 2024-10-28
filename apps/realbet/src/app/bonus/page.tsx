@@ -140,8 +140,8 @@ const Page = () => {
           if (wallet.chain !== 'EVM') {
             continue;
           }
-          // const userWallet = wallet.address;
-          const userWallet = '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f';
+          const userWallet = wallet.address;
+          // const userWallet = '0x911A978F0CAC392079b51DB03E6f3027Dfe6F96E';
           try {
             setProgressMessage(
               `Checking deposits for ${shorten(userWallet, 4)} (${chain}) on ${currentCasino}....`,
