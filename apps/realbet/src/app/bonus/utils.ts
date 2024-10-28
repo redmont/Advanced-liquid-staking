@@ -1,6 +1,7 @@
 import { env } from '@/env';
 import type { AxiosResponse } from 'axios';
 import axios from 'axios';
+import { atom } from 'jotai';
 
 import pLimit from 'p-limit';
 const limit = pLimit(10);
@@ -101,3 +102,5 @@ export async function getBulkTokenLogos(contractAddresses: string[]) {
 
   return results;
 }
+
+export const progressPercentageAtom = atom<number>(0);

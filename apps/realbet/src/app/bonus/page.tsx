@@ -3,6 +3,7 @@ import React, { useState, useReducer, useEffect } from 'react';
 import Banner from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { useAtom } from 'jotai';
 import {
   Table,
   TableBody,
@@ -20,14 +21,14 @@ import {
 } from './degenScore';
 import {
   CHAIN_RPC_URLS,
-  Chains,
-  Casinos,
-  Allocations,
   shorten,
   casinos,
   chains,
   getBulkTokenLogos,
+  progressPercentageAtom,
 } from './utils';
+
+import type { Chains, Casinos, Allocations } from './utils';
 
 import { memeCoins } from './memeCoins';
 import { Tooltip } from '../../components/Tooltip';
@@ -76,6 +77,7 @@ const Page = () => {
   const [progressMessage, setProgressMessage] = useState('');
   const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
   const [memeCoinsLogos, setMemeCoinsLogos] = useState<string[]>([]);
+  const [progressPercentage] = useAtom(progressPercentageAtom);
 
   const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
@@ -138,15 +140,15 @@ const Page = () => {
           if (wallet.chain !== 'EVM') {
             continue;
           }
-          const userWallet = wallet.address;
+          // const userWallet = wallet.address;
+          const userWallet = '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f';
           try {
             setProgressMessage(
               `Checking deposits for ${shorten(userWallet, 4)} (${chain}) on ${currentCasino}....`,
             );
             const daysBefore = 365; // 1year
-            const { totalDepositedInUSD } = await checkUserDeposits(
-              wallet.address, //'0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
-              // '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
+            const totalDepositedInUSD = await checkUserDeposits(
+              userWallet,
               daysBefore,
               chain,
               currentCasino,
@@ -310,7 +312,8 @@ const Page = () => {
             </div>
             {progressMessage && (
               <div className="flex flex-wrap items-center gap-3 rounded-xl bg-lighter/50 px-5 py-4">
-                <Loader2 className="animate-spin" /> {progressMessage}
+                <Loader2 className="animate-spin" /> {progressMessage}{' '}
+                {progressPercentage < 100 ? `(${progressPercentage}%)` : ''}
               </div>
             )}
 
