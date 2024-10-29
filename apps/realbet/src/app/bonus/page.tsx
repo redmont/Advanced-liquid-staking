@@ -407,7 +407,9 @@ const BonusPage = () => {
                       <TableCell className="px-5 text-right">
                         {memeCoinTracking.interactions.includes(
                           memeCoin.contractAddress,
-                        )}
+                        )
+                          ? POINTS_PER_MEME_COIN_INTERACTION
+                          : 0}
                       </TableCell>
                     </TableRow>
                   ))}
