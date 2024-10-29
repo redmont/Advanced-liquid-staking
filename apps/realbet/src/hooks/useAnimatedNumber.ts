@@ -3,13 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 interface UseAnimatedNumberOptions {
   duration?: number;
   decimals?: number;
+  locale?: string;
 }
 
 export const useAnimatedNumber = (
   value: number | bigint | string,
   options: UseAnimatedNumberOptions = {},
 ) => {
-  const { duration = 350, decimals = 0 } = options;
+  const { duration = 350, decimals = 0, locale } = options;
   const [displayValue, setDisplayValue] = useState(0);
   const previousValueRef = useRef<number>(0);
 
@@ -51,5 +52,13 @@ export const useAnimatedNumber = (
 
   const finalDisplayValue = isNaN(displayValue) ? 0 : displayValue;
 
-  return finalDisplayValue.toFixed(decimals);
+  // Localize the number using Intl.NumberFormat
+  const formattedValue = locale
+    ? new Intl.NumberFormat(locale, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }).format(finalDisplayValue)
+    : finalDisplayValue.toFixed(decimals);
+
+  return formattedValue;
 };

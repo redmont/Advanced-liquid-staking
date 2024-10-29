@@ -1,0 +1,45 @@
+{
+  "name": "@bltzr-gg/realbet-vesting-contracts",
+  "version": "1.0.1",
+  "description": "ERC20 token vesting smart contracts 💰⏳",
+  "main": "dist/exports.js",
+  "scripts": {
+    "prettier": "npx prettier --write .",
+    "test": "hardhat test",
+    "coverage": "npx hardhat coverage --solcoverjs ./.solcover.js",
+    "flatten": "npx hardhat flatten",
+    "check:format": "solhint contracts/*.sol --fix",
+    "compile": "hardhat compile",
+    "deploy:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TestVestingContract.ts --network sepolia"
+  },
+  "files": [
+    "build/abi",
+    "src"
+  ],
+  "dependencies": {
+    "solc": "npm:solc@^0.8.4",
+    "solidity-coverage": "^0.7.16",
+    "solidity-docgen": "^0.5.13",
+    "surya": "^0.4.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^0.15.6",
+    "@nomicfoundation/hardhat-ignition-viem": "^0.15.6",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.11",
+    "@nomicfoundation/ignition-core": "^0.15.5",
+    "@openzeppelin/contracts": "^5.0.1",
+    "chai": "^4.3.4",
+    "hardhat": "^2.22.9",
+    "hardhat-abi-exporter": "^2.2.1",
+    "hardhat-chai-matchers-viem": "^2.0.8",
+    "hardhat-docgen": "^1.1.1",
+    "hardhat-gas-reporter": "^1.0.4",
+    "hardhat-preprocessor": "^0.1.5",
+    "hardhat-tracer": "^1.0.0-alpha.6",
+    "prettier": "^3.3.3",
+    "prettier-plugin-solidity": "^1.4.1",
+    "solmate": "6.7.0",
+    "typescript": "~5.0.4",
+    "viem": "^2.20.0"
+  }
+}

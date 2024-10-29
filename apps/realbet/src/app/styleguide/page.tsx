@@ -122,8 +122,89 @@ export default function Styleguide() {
             Loading
           </label>
         </div>
+        <label
+          htmlFor="left-align"
+          className="block text-sm font-medium text-muted-foreground"
+        >
+          Small Input
+        </label>
         <Input
+          size="sm"
+          className="mb-3"
+          id="left-align"
           loading={inputIsLoading}
+          placeholder="Placeholder text"
+          startAdornment={<span className="px-2">Start Adornment</span>}
+          endAdornment={
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mr-1 text-sm"
+            >
+              Max
+            </Button>
+          }
+        />
+        <label
+          htmlFor="left-align"
+          className="block text-sm font-medium text-muted-foreground"
+        >
+          Left Aligned Input (Default)
+        </label>
+        <Input
+          className="mb-3"
+          id="left-align"
+          loading={inputIsLoading}
+          placeholder="Placeholder text"
+          startAdornment={<span className="px-2">Start Adornment</span>}
+          endAdornment={
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mr-1 text-sm"
+            >
+              Max
+            </Button>
+          }
+        />
+        <label
+          htmlFor="right-align"
+          className="block text-sm font-medium text-muted-foreground"
+        >
+          Right Aligned Input
+        </label>
+        <Input
+          className="mb-3"
+          id="right-align"
+          align="right"
+          loading={inputIsLoading}
+          placeholder="Placeholder text"
+          startAdornment={<span className="px-2">Start Adornment</span>}
+          endAdornment={
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mr-1 text-sm"
+            >
+              Max
+            </Button>
+          }
+        />
+        <label
+          htmlFor="left-align"
+          className="block text-sm font-medium text-muted-foreground"
+        >
+          Large Input
+        </label>
+        <Input
+          size="lg"
+          className="mb-3"
+          id="left-align"
+          loading={inputIsLoading}
+          placeholder="Placeholder text"
           startAdornment={<span className="px-2">Start Adornment</span>}
           endAdornment={
             <Button

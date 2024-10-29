@@ -2,11 +2,14 @@ import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { readContract, waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
-import { useContracts } from './useContracts';
 import { useWriteContract } from 'wagmi';
 import { useMemo } from 'react';
 import { z } from 'zod';
-import { useToken } from './useToken';
+import { useToken, address as tokenAddress } from './useToken';
+import useNetworkId from './useNetworkId';
+import { testStakingVaultConfig, testTokenAbi } from '@/contracts/generated';
+
+const contractAddress = testStakingVaultConfig.address['11155111'];
 
 export type Tier = {
   lockupTime: number;
@@ -26,7 +29,7 @@ const TierSchema = z
     ...tier,
   }));
 
-const TiersSchema = z.array(TierSchema);
+// const TiersSchema = z.array(TierSchema);
 
 const DepositSchema = z.object({
   amount: z.bigint(),
@@ -38,22 +41,22 @@ const DepositSchema = z.object({
 export type Deposit = z.infer<typeof DepositSchema>;
 
 export const useVault = () => {
+  const { isSuccess } = useNetworkId();
   const {
     queries: { balance },
   } = useToken();
   const { primaryWallet, setShowAuthFlow } = useDynamicContext();
-  const { vault, token } = useContracts();
   const { writeContractAsync } = useWriteContract();
 
   const deposits = useQuery({
-    enabled: !!primaryWallet && !!vault,
-    queryKey: ['getDeposits', vault?.address, primaryWallet?.address],
+    enabled: !!primaryWallet && isSuccess,
+    queryKey: ['getDeposits', contractAddress, primaryWallet?.address],
     queryFn: async () => {
       const amounts = await (readContract(config, {
-        abi: vault!.abi,
-        address: vault!.address,
+        abi: testStakingVaultConfig.abi,
+        address: contractAddress,
         functionName: 'getDeposits',
-        args: [primaryWallet?.address],
+        args: [primaryWallet?.address as `0x${string}`],
       }) as Promise<unknown[]>);
 
       return amounts
@@ -63,12 +66,12 @@ export const useVault = () => {
   });
 
   const isAdmin = useQuery({
-    enabled: !!vault && !!primaryWallet?.address,
-    queryKey: ['admin', vault?.address, primaryWallet?.address],
+    enabled: isSuccess && !!primaryWallet?.address,
+    queryKey: ['admin', contractAddress, primaryWallet?.address],
     queryFn: async () => {
       const admin = (await readContract(config, {
-        abi: vault!.abi,
-        address: vault!.address,
+        abi: testStakingVaultConfig.abi,
+        address: contractAddress,
         functionName: 'owner',
       })) as string;
       return primaryWallet!.address === admin;
@@ -77,9 +80,6 @@ export const useVault = () => {
 
   const setTier = useMutation({
     mutationFn: async ({ tier, index }: { tier: Tier; index: number }) => {
-      if (!vault) {
-        throw new Error('Vault contract required');
-      }
       if (!primaryWallet) {
         throw new Error('Wallet required');
       }
@@ -88,12 +88,12 @@ export const useVault = () => {
       }
 
       const tx = await writeContractAsync({
-        address: vault.address,
-        abi: vault.abi,
+        address: contractAddress,
+        abi: testStakingVaultConfig.abi,
         functionName: 'setTier',
         args: [
-          index,
-          tier.lockupTime,
+          BigInt(index),
+          BigInt(tier.lockupTime),
           tier.multiplier,
           tier.multiplierDecimals,
         ],
@@ -105,16 +105,49 @@ export const useVault = () => {
   });
 
   const tiers = useQuery({
-    enabled: !!vault,
-    queryKey: ['tiers', vault?.address],
+    enabled: isSuccess,
+    queryKey: ['tiers', contractAddress],
     queryFn: async () => {
-      const tiers = await readContract(config, {
-        abi: vault!.abi,
-        address: vault!.address,
-        functionName: 'getTiers',
-      });
+      // const tiers = await readContract(config, {
+      //   abi: testStakingVaultConfig.abi,
+      //   address: contractAddress,
+      //   functionName: 'getTiers',
+      // });
 
-      return TiersSchema.parse(tiers);
+      // return TiersSchema.parse(tiers);
+
+      return [
+        {
+          lockupTime: 90 * 24 * 60 * 60,
+          multiplier: 100,
+          multiplierDecimals: 3,
+          decimalMult: 0.1,
+        },
+        {
+          lockupTime: 180 * 24 * 60 * 60,
+          multiplier: 500,
+          multiplierDecimals: 3,
+          decimalMult: 0.5,
+        },
+        {
+          lockupTime: 365 * 24 * 60 * 60,
+          multiplier: 1100,
+          multiplierDecimals: 3,
+          decimalMult: 1.1,
+        },
+        {
+          lockupTime: 730 * 24 * 60 * 60,
+          multiplier: 1500,
+          multiplierDecimals: 3,
+          decimalMult: 1.5,
+        },
+        {
+          lockupTime: 1460 * 24 * 60 * 60,
+          multiplier: 2100,
+          multiplierDecimals: 3,
+          decimalMult: 2.1,
+        },
+      ];
     },
   });
 
@@ -141,43 +174,34 @@ export const useVault = () => {
   );
 
   const shares = useQuery({
-    enabled: !!primaryWallet && !!vault,
-    queryKey: ['shares', vault?.address, primaryWallet?.address],
+    enabled: !!primaryWallet && isSuccess,
+    queryKey: ['shares', contractAddress, primaryWallet?.address],
     queryFn: () =>
       readContract(config, {
-        abi: vault!.abi,
-        address: vault!.address,
+        abi: testStakingVaultConfig.abi,
+        address: contractAddress,
         functionName: 'shares',
-        args: [primaryWallet!.address],
-      }) as Promise<bigint>,
+        args: [primaryWallet!.address as `0x${string}`],
+      }),
   });
 
   const allowance = useQuery({
-    enabled: !!primaryWallet && !!vault && !!token,
-    queryKey: [
-      'allowance',
-      vault?.address,
-      primaryWallet?.address,
-      token?.address,
-    ],
+    enabled: !!primaryWallet && isSuccess && isSuccess,
+    queryKey: ['allowance', contractAddress, primaryWallet?.address, ,],
     queryFn: () =>
       readContract(config, {
-        abi: token!.abi,
-        address: token!.address,
+        abi: testTokenAbi,
+        address: tokenAddress,
         functionName: 'allowance',
-        args: [primaryWallet!.address, vault!.address],
-      }) as Promise<bigint>,
+        args: [primaryWallet!.address as `0x${string}`, contractAddress],
+      }),
   });
 
   const stake = useMutation({
     mutationFn: async ({ amount, tier }: { amount: bigint; tier: string }) => {
-      if (!vault) {
-        throw new Error('Vault contract required');
-      }
-
       const tx = await writeContractAsync({
-        address: vault.address,
-        abi: vault.abi,
+        address: contractAddress,
+        abi: testStakingVaultConfig.abi,
         functionName: 'deposit',
         args: [amount, BigInt(tier)],
       });
@@ -199,15 +223,12 @@ export const useVault = () => {
         setShowAuthFlow(true);
         return;
       }
-      if (!vault || !token) {
-        throw new Error('Vault and token contract required');
-      }
 
       const tx = await writeContractAsync({
-        address: token.address,
-        abi: token.abi,
+        address: tokenAddress,
+        abi: testTokenAbi,
         functionName: 'approve',
-        args: [vault.address, amount],
+        args: [contractAddress, amount],
       });
 
       await waitForTransactionReceipt(config, { hash: tx });
@@ -217,19 +238,15 @@ export const useVault = () => {
 
   const unstake = useMutation({
     mutationFn: async ({ amount }: { amount: bigint }) => {
-      if (!vault) {
-        throw new Error('Vault contract required');
-      }
-
       if (!primaryWallet) {
         throw new Error('Wallet required');
       }
 
       const tx = await writeContractAsync({
-        address: vault.address,
-        abi: vault.abi,
+        address: contractAddress,
+        abi: testStakingVaultConfig.abi,
         functionName: 'withdraw',
-        args: [amount, primaryWallet.address],
+        args: [amount, primaryWallet.address as `0x${string}`],
       });
 
       await waitForTransactionReceipt(config, { hash: tx });

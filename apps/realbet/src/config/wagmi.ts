@@ -2,7 +2,7 @@ import { type Environment } from '@/types';
 import { createConfig } from 'wagmi';
 import { mainnet } from 'wagmi/chains';
 import { http } from 'viem';
-import * as chains from './networks';
+import * as chains from '@/config/networks';
 import { env } from '@/env';
 
 const getAlchemyTransport = (alchemyChainId: string) =>
