@@ -11,7 +11,7 @@ export const env = createEnv({
       .enum(['development', 'test', 'production'])
       .default('development'),
     SENTRY_AUTH_TOKEN: z.string().optional(),
-    COINMARKETCAP_API_KEY: z.string(),
+    COINMARKETCAP_API_KEY: z.string().optional(),
   },
 
   /**

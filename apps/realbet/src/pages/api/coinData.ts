@@ -16,6 +16,10 @@ export default async function handler(
       throw new Error('Invalid query parameters');
     }
 
+    if (!env.COINMARKETCAP_API_KEY) {
+      throw new Error('COINMARKETCAP_API_KEY is not set');
+    }
+
     const url = `https://pro-api.coinmarketcap.com/v3/cryptocurrency/quotes/historical?symbol=${symbol}&time_start=${time_start}&interval=${interval}&count=${count}&convert=USD`;
 
     const response = await fetch(url, {
