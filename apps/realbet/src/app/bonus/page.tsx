@@ -18,15 +18,7 @@ import {
   totalDegenScore,
   getTokenBalances,
 } from './degenScore';
-import {
-  CHAIN_RPC_URLS,
-  type Chains,
-  type Casinos,
-  type Allocations,
-  shorten,
-  casinos,
-  chains,
-} from './utils';
+import { type Casinos, type Allocations, shorten, casinos } from './utils';
 import { memeCoins } from './memeCoins';
 import {
   useDynamicContext,
@@ -44,6 +36,7 @@ import {
 } from '@radix-ui/react-popover';
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { useToken } from '@/hooks/useToken';
+import { Network } from 'alchemy-sdk';
 
 const createInitialAllocations = (): Allocations => {
   return {
@@ -57,16 +50,16 @@ const createInitialAllocations = (): Allocations => {
         totalDeposited: null,
         totalScore: null,
         chainsDepositsDetected: {
-          ethereum: false,
-          bsc: false,
+          [Network.ETH_MAINNET]: false,
+          [Network.BNB_MAINNET]: false,
         },
       },
       rollbit: {
         totalDeposited: null,
         totalScore: null,
         chainsDepositsDetected: {
-          ethereum: false,
-          bsc: false,
+          [Network.ETH_MAINNET]: false,
+          [Network.BNB_MAINNET]: false,
         },
       },
     },
@@ -74,6 +67,8 @@ const createInitialAllocations = (): Allocations => {
 };
 
 let allocations: Allocations = createInitialAllocations();
+
+const chains = [Network.ETH_MAINNET, Network.BNB_MAINNET];
 
 const BonusPage = () => {
   const token = useToken();
@@ -113,7 +108,6 @@ const BonusPage = () => {
     const memeCoinScore: Record<string, number> = {};
     for (const wallet of userWallets) {
       const userWallet = wallet.address;
-      const chains = Object.keys(CHAIN_RPC_URLS);
       for (const chain of chains) {
         const tokenBalances = await getTokenBalances(userWallet, chain);
         for (const { contractAddress } of tokenBalances) {
@@ -135,7 +129,6 @@ const BonusPage = () => {
     setAllocation(allocations);
     forceUpdate();
 
-    const chains = Object.keys(CHAIN_RPC_URLS);
     for (const currentCasino of casinos) {
       for (const chain of chains) {
         for (const wallet of userWallets) {
@@ -147,18 +140,16 @@ const BonusPage = () => {
             setProgressMessage(
               `Checking deposits for ${shorten(userWallet, 4)} (${chain}) on ${currentCasino}....`,
             );
-            // random number between 20 and 50
-            const randomNumber = Math.floor(Math.random() * (50 - 20) + 20);
+
             const { totalDepositedInUSD } = await checkUserDeposits(
               wallet.address, //'0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
-              randomNumber,
               chain,
               currentCasino,
             );
             if (totalDepositedInUSD > 0) {
               allocations.casinoAllocations[
                 currentCasino
-              ].chainsDepositsDetected[chain as Chains] = true;
+              ].chainsDepositsDetected[chain] = true;
             }
             if (
               allocations.casinoAllocations[currentCasino].totalDeposited ===
@@ -376,9 +367,9 @@ const BonusPage = () => {
                         <span className="pr-3">{casino} </span>
                         <span className="flex gap-1">
                           {chains.map(
-                            (chain: string) =>
+                            (chain) =>
                               allocation.casinoAllocations[casino as Casinos]
-                                .chainsDepositsDetected[chain as Chains] && (
+                                .chainsDepositsDetected[chain] && (
                                 <div key={chain}>
                                   {getChainIcon(chain, {
                                     height: 20,

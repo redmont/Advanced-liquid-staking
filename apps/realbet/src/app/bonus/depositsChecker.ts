@@ -1,27 +1,17 @@
 import dayjs from '@/dayjs';
 import { z } from 'zod';
-import { toHex } from 'viem';
 
-import {
-  getCasinoTreasuryWallet,
-  CHAIN_RPC_URLS,
-  type Casinos,
-  type Chains,
-} from './utils';
+import { getCasinoTreasuryWallet, type Casinos } from './utils';
 import pLimit from 'p-limit';
+import {
+  Alchemy,
+  AssetTransfersCategory,
+  Network,
+  type AssetTransfersWithMetadataResult,
+} from 'alchemy-sdk';
+import { env } from '@/env.js';
 
 const limit = pLimit(10);
-
-interface Txn {
-  hash: string;
-  from: string;
-  to: string;
-  value: number;
-  asset: string;
-  metadata: {
-    blockTimestamp: string;
-  };
-}
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -33,88 +23,33 @@ export const displayRelativeTime = (date: string): string => {
 
 let wallet2: string | null = null;
 
-const AlchemyAssetTransfersResponseSchema = z.object({
-  jsonrpc: z.string(),
-  id: z.number(),
-  result: z.object({
-    transfers: z.array(
-      z.object({
-        hash: z.string(),
-        from: z.string(),
-        to: z.string(),
-        value: z.number(),
-        asset: z.string(),
-        metadata: z.object({
-          blockTimestamp: z.string(),
-        }),
-      }),
-    ),
-    pageKey: z.string().optional(),
-  }),
-});
-
 async function fetchAllTransactions(
   fromAddress: string,
-  chain: string,
-  blockStart: number,
+  chain: Network,
   toAddress?: string,
-): Promise<Txn[]> {
-  const fromBlockHex = toHex(blockStart);
+) {
+  const alchemy = new Alchemy({
+    network: chain,
+    apiKey: env.NEXT_PUBLIC_ALCHEMY_API_KEY,
+  });
 
-  let allTransfers: Txn[] = [];
+  let allTransfers: AssetTransfersWithMetadataResult[] = [];
   let pageKey: string | undefined = undefined;
 
   do {
     try {
-      const params: Record<string, unknown> = {
-        fromBlock: fromBlockHex,
-        fromAddress: fromAddress,
-        category: ['erc20', 'external'],
-        maxCount: '0x3e8', // 1000 in hex
+      const transfers = await alchemy.core.getAssetTransfers({
+        fromAddress,
+        toAddress,
+        category: [AssetTransfersCategory.ERC20],
         withMetadata: true,
-      };
-
-      if (toAddress) {
-        params.toAddress = toAddress;
-      }
-
-      if (pageKey) {
-        params.pageKey = pageKey;
-      }
-
-      const data = JSON.stringify({
-        jsonrpc: '2.0',
-        id: 0,
-        method: 'alchemy_getAssetTransfers',
-        params: [params],
       });
 
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        data,
-      };
-
-      const baseURL = CHAIN_RPC_URLS[chain as Chains];
-      if (!baseURL) {
-        throw new Error(`Alchemy API URL not defined for chain: ${chain}`);
+      if (transfers && transfers.transfers.length > 0) {
+        allTransfers = allTransfers.concat(transfers.transfers);
       }
 
-      const fetchURL = baseURL;
-
-      const response = await fetch(fetchURL, requestOptions);
-      const assetsTransfers = AlchemyAssetTransfersResponseSchema.parse(
-        await response.json(),
-      );
-
-      const transfers = assetsTransfers.result.transfers;
-      const newPageKey = assetsTransfers.result.pageKey;
-
-      if (transfers && transfers.length > 0) {
-        allTransfers = allTransfers.concat(transfers);
-      }
-
-      pageKey = newPageKey;
+      pageKey = transfers.pageKey;
     } catch {
       // console.error('Error fetching all transactions:', error);
     }
@@ -208,13 +143,12 @@ async function processInBatches(
 
 async function findIntermediaryWallet(
   userWallet: string,
-  chain: string,
-  blockStart: number,
+  chain: Network,
   treasuryWallet: string,
 ): Promise<string | null> {
-  const allTxns = await fetchAllTransactions(userWallet, chain, blockStart);
+  const allTxns = await fetchAllTransactions(userWallet, chain);
 
-  const tasks = allTxns.map((tx: Txn) => async () => {
+  const tasks = allTxns.map((tx) => async () => {
     if (wallet2 !== null) {
       return wallet2;
     }
@@ -224,7 +158,6 @@ async function findIntermediaryWallet(
       const wallet2Txns = await fetchAllTransactions(
         potentialWallet2,
         chain,
-        blockStart,
         treasuryWallet,
       );
 
@@ -249,21 +182,24 @@ async function findIntermediaryWallet(
 }
 
 async function traceDepositsFromWallet2(
-  chain: string,
-  blockStart: number,
+  chain: Network,
   wallet2: string | null,
 ): Promise<{ totalDepositedInUSD: number; lastDeposited: string | undefined }> {
   if (!wallet2) {
     throw new Error('Wallet 2 not found');
   }
 
-  const allTxns = await fetchAllTransactions(wallet2, chain, blockStart);
+  const allTxns = await fetchAllTransactions(wallet2, chain);
 
   const promises = allTxns.map((tx) =>
     limit(async () => {
       const timestamp = tx.metadata.blockTimestamp;
       const asset = tx.asset;
       const value = tx.value;
+
+      if (!asset || !timestamp || !value) {
+        return 0;
+      }
 
       // Get the price of the token at the timestamp
       const tokenPriceAtTimestamp =
@@ -284,55 +220,17 @@ async function traceDepositsFromWallet2(
   return { totalDepositedInUSD, lastDeposited };
 }
 
-function getUnixTimestampNDaysAgo(n: number): number {
-  const now = Date.now();
-  const millisecondsInADay = 24 * 60 * 60 * 1000;
-  return Math.floor((now - n * millisecondsInADay) / 1000);
-}
-
-const BlockHeightResponse = z.object({
-  height: z.number(),
-});
-
-async function getClosestBlockToATimestamp(
-  chain: string,
-  timestamp: number,
-): Promise<number> {
-  const url = `https://coins.llama.fi/block/${chain}/${timestamp}`;
-
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-    });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    const data = BlockHeightResponse.parse(await response.json());
-
-    return data.height;
-  } catch {
-    throw new Error('Failed to fetch block height');
-  }
-}
-
 export async function checkUserDeposits(
   userWallet: string,
-  days: number,
-  chain = 'ethereum',
+  chain: Network = Network.ETH_MAINNET,
   casino: Casinos = 'shuffle',
 ): Promise<{ totalDepositedInUSD: number; lastDeposited: string | undefined }> {
   try {
-    const timestamp = getUnixTimestampNDaysAgo(days);
-    const blockStart = await getClosestBlockToATimestamp(chain, timestamp);
-
     const treasuryWallet = getCasinoTreasuryWallet(casino);
 
     const foundWallet = await findIntermediaryWallet(
       userWallet,
       chain,
-      blockStart,
       treasuryWallet,
     );
 
@@ -340,11 +238,7 @@ export async function checkUserDeposits(
       return { totalDepositedInUSD: 0, lastDeposited: '' };
     }
 
-    const totalDeposited = await traceDepositsFromWallet2(
-      chain,
-      blockStart,
-      foundWallet,
-    );
+    const totalDeposited = await traceDepositsFromWallet2(chain, foundWallet);
 
     wallet2 = null;
 

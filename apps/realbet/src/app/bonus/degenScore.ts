@@ -1,57 +1,16 @@
-import { CHAIN_RPC_URLS, type Chains } from './utils';
-import { z } from 'zod';
-
-const AlchemyAssetBalanceResponseSchema = z.object({
-  jsonrpc: z.string(),
-  id: z.number(),
-  result: z.object({
-    address: z.string(),
-    pageKey: z.string().optional(),
-    tokenBalances: z.array(
-      z.object({
-        contractAddress: z.string(),
-        tokenBalance: z.string(),
-      }),
-    ),
-  }),
-});
-
-interface TokenBalance {
-  contractAddress: string;
-  tokenBalance: string;
-}
+import { Alchemy, type Network } from 'alchemy-sdk';
+import { env } from '@/env.js';
 
 export const getTokenBalances = async (
   walletAddress: string,
-  chain: string,
-): Promise<TokenBalance[]> => {
-  const data = JSON.stringify({
-    jsonrpc: '2.0',
-    method: 'alchemy_getTokenBalances',
-    params: [walletAddress],
-    id: 42,
+  chain: Network,
+) => {
+  const alchemy = new Alchemy({
+    network: chain,
+    apiKey: env.NEXT_PUBLIC_ALCHEMY_API_KEY,
   });
 
-  const baseURL = CHAIN_RPC_URLS[chain as Chains];
-  if (!baseURL) {
-    throw new Error(`Alchemy API URL not defined for chain: ${chain}`);
-  }
-
-  const response = await fetch(baseURL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: data,
-  });
-
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  }
-
-  const responseData = AlchemyAssetBalanceResponseSchema.parse(
-    await response.json(),
-  );
-
-  return responseData.result.tokenBalances;
+  return (await alchemy.core.getTokenBalances(walletAddress)).tokenBalances;
 };
 
 export const totalDegenScore = (

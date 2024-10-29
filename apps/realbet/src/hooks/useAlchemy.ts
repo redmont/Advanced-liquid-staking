@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 // };
 
 const alchemySettings: AlchemySettings = {
-  apiKey: env.NEXT_PUBLIC_ALCHEMY_API_KEY, // Insert your Alchemy API key here
+  apiKey: env.NEXT_PUBLIC_ALCHEMY_API_KEY,
 };
 
 export const useAlchemy = () => {

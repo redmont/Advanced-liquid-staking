@@ -1,4 +1,4 @@
-import { env } from '@/env';
+import { type Network } from 'alchemy-sdk';
 
 export const SHUFFLE_TREASURY_WALLET =
   '0xdfaa75323fb721e5f29d43859390f62cc4b600b8';
@@ -9,20 +9,14 @@ export const ROLLBIT_TREASURY_WALLET =
 export const casinos = ['shuffle', 'rollbit'] as const;
 export const chains = ['ethereum', 'bsc'] as const;
 
-export type Chains = (typeof chains)[number];
 export type Casinos = (typeof casinos)[number];
-
-export const CHAIN_RPC_URLS: Record<Chains, string> = {
-  ethereum: `https://eth-mainnet.g.alchemy.com/v2/${env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-  bsc: `https://bnb-mainnet.g.alchemy.com/v2/${env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-};
 
 export type Status = 'notInit' | 'loading' | 'success' | 'error';
 
 export interface CasinoScore {
   totalDeposited: number | null;
   totalScore: number | null;
-  chainsDepositsDetected: Record<Chains, boolean>;
+  chainsDepositsDetected: Partial<Record<Network, boolean>>;
 }
 
 export interface Allocations {
