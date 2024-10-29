@@ -16,7 +16,7 @@ import {
   TableBody,
   TableCell,
 } from '../ui/table';
-import { TiersData } from '@/constants';
+import { TIERS } from '@/constants';
 import { formatWithSeparators } from '@/utils';
 
 interface TokenTiersProps extends PropsWithChildren {
@@ -73,7 +73,7 @@ const TokenTiers: FC<TokenTiersProps> = ({ children }) => {
                 <TableHead>Rakeback of house edge</TableHead>
               </TableRow>
             </TableHeader>
-            {TiersData.map((item, index) => (
+            {TIERS.map((item, index) => (
               <TableBody key={index}>
                 <TableRow>
                   <TableCell>${formatWithSeparators(item.tier)}</TableCell>

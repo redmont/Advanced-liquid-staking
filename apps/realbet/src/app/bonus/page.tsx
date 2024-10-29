@@ -13,13 +13,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { checkUserDeposits } from './depositsChecker';
-import {
-  getScoreFromDeposit,
-  totalDegenScore,
-  getTokenBalances,
-} from './degenScore';
+import { getScoreFromDeposit, totalDegenScore } from './degenScore';
 import { type Casinos, type Allocations, shorten, casinos } from './utils';
-import { memeCoins } from './memeCoins';
+import {
+  memeCoins,
+  POINTS_PER_MEME_COIN_INTERACTION,
+} from '@/config/memeCoins';
 import {
   useDynamicContext,
   useIsLoggedIn,
@@ -37,34 +36,31 @@ import {
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { useToken } from '@/hooks/useToken';
 import { Network } from 'alchemy-sdk';
+import useMemeCoinTracking from '@/hooks/useMemeCoinTracking';
 
-const createInitialAllocations = (): Allocations => {
-  return {
-    totalDeposited: 0,
-    totalScore: 0,
-    tokenRewards: {},
-    totalTokenRewards: 0,
-    status: 'notInit',
-    casinoAllocations: {
-      shuffle: {
-        totalDeposited: null,
-        totalScore: null,
-        chainsDepositsDetected: {
-          [Network.ETH_MAINNET]: false,
-          [Network.BNB_MAINNET]: false,
-        },
-      },
-      rollbit: {
-        totalDeposited: null,
-        totalScore: null,
-        chainsDepositsDetected: {
-          [Network.ETH_MAINNET]: false,
-          [Network.BNB_MAINNET]: false,
-        },
+const createInitialAllocations = (): Allocations => ({
+  totalDeposited: 0,
+  totalScore: 0,
+  status: 'notInit',
+  casinoAllocations: {
+    shuffle: {
+      totalDeposited: null,
+      totalScore: null,
+      chainsDepositsDetected: {
+        [Network.ETH_MAINNET]: false,
+        [Network.BNB_MAINNET]: false,
       },
     },
-  };
-};
+    rollbit: {
+      totalDeposited: null,
+      totalScore: null,
+      chainsDepositsDetected: {
+        [Network.ETH_MAINNET]: false,
+        [Network.BNB_MAINNET]: false,
+      },
+    },
+  },
+});
 
 let allocations: Allocations = createInitialAllocations();
 
@@ -72,6 +68,7 @@ const chains = [Network.ETH_MAINNET, Network.BNB_MAINNET];
 
 const BonusPage = () => {
   const token = useToken();
+  const memeCoinTracking = useMemeCoinTracking();
   const isAuthenticated = useIsLoggedIn();
   const [allocation, setAllocation] = useState<Allocations>(allocations);
   const [progressMessage, setProgressMessage] = useState('');
@@ -82,46 +79,9 @@ const BonusPage = () => {
   const userWallets = useUserWallets();
   const { setShowLinkNewWalletModal } = useDynamicModals();
 
-  const connectedWalletList = (
-    <div className="flex items-center gap-2">
-      {userWallets.slice(0, 3).map((wallet, i) => (
-        <span key={wallet.address}>
-          {wallet.address && shorten(wallet.address, 4)}
-          {i !== userWallets.length - 1 && ','}
-        </span>
-      ))}
-      {userWallets.length > 3 && (
-        <span className="no-wrap whitespace-nowrap">
-          {'+ '}
-          <a
-            className="cursor-pointer font-semibold underline underline-offset-2 hover:text-primary"
-            onClick={() => setShowDynamicUserProfile(true)}
-          >
-            {userWallets.length - 3} more
-          </a>
-        </span>
-      )}
-    </div>
-  );
-
-  const getTokenRewards = async () => {
-    const memeCoinScore: Record<string, number> = {};
-    for (const wallet of userWallets) {
-      const userWallet = wallet.address;
-      for (const chain of chains) {
-        const tokenBalances = await getTokenBalances(userWallet, chain);
-        for (const { contractAddress } of tokenBalances) {
-          const tokenIndex = memeCoins.findIndex(
-            (token) => token.address === contractAddress,
-          );
-          if (tokenIndex > -1) {
-            memeCoinScore[contractAddress] = 100;
-          }
-        }
-      }
-    }
-    return memeCoinScore;
-  };
+  const totalTokenReward =
+    memeCoinTracking.isSuccess &&
+    memeCoinTracking.interactions.length * POINTS_PER_MEME_COIN_INTERACTION;
 
   const calculateRewards = async () => {
     allocations = createInitialAllocations();
@@ -180,16 +140,6 @@ const BonusPage = () => {
       setAllocation(allocations);
       forceUpdate();
     }
-
-    setProgressMessage(`Checking token interaction rewards...`);
-    await getTokenRewards().then((tokenRewards) => {
-      allocations.tokenRewards = tokenRewards;
-      for (const tokenReward of Object.values(tokenRewards)) {
-        allocations.totalTokenRewards += tokenReward;
-      }
-      setAllocation(allocations);
-      forceUpdate();
-    });
 
     allocations.status = 'success';
     setProgressMessage(``);
@@ -260,7 +210,26 @@ const BonusPage = () => {
           <div className="space-y-4 md:max-w-[65%]">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-5 py-4">
               <span>
-                Connected Wallets: {userWallets.length} {connectedWalletList}
+                Connected Wallets: {userWallets.length}
+                <div className="flex items-center gap-2">
+                  {userWallets.slice(0, 3).map((wallet, i) => (
+                    <span key={wallet.address}>
+                      {wallet.address && shorten(wallet.address, 4)}
+                      {i !== userWallets.length - 1 && ','}
+                    </span>
+                  ))}
+                  {userWallets.length > 3 && (
+                    <span className="no-wrap whitespace-nowrap">
+                      {'+ '}
+                      <a
+                        className="cursor-pointer font-semibold underline underline-offset-2 hover:text-primary"
+                        onClick={() => setShowDynamicUserProfile(true)}
+                      >
+                        {userWallets.length - 3} more
+                      </a>
+                    </span>
+                  )}
+                </div>
               </span>
               <div className="flex items-center gap-3">
                 <Button
@@ -286,7 +255,7 @@ const BonusPage = () => {
               </div>
             )}
 
-            {allocation.status !== 'notInit' && (
+            {allocation.status !== 'notInit' && totalTokenReward !== false && (
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-5 py-3">
                 <div className="grid grid-cols-1 items-center justify-between gap-3 rounded-xl border border-orange-100/20 bg-red-500/5 px-2 py-4 md:w-[48%]">
                   <h3 className="text-md flex justify-center gap-2 text-center">
@@ -320,7 +289,7 @@ const BonusPage = () => {
                     <span className="text-xl text-primary">
                       {totalDegenScore(
                         allocation.totalDeposited,
-                        allocation.totalTokenRewards,
+                        totalTokenReward,
                       )}
                     </span>
                   </h3>
@@ -333,7 +302,7 @@ const BonusPage = () => {
                     <span className="text-xl text-primary">
                       {totalDegenScore(
                         allocation.totalDeposited,
-                        allocation.totalTokenRewards,
+                        totalTokenReward,
                       )}{' '}
                       {token.symbol}
                     </span>
@@ -428,17 +397,17 @@ const BonusPage = () => {
                 <TableBody>
                   {memeCoins.map((memeCoin) => (
                     <TableRow
-                      key={memeCoin.symbol}
+                      key={memeCoin.ticker}
                       className="odd:bg-lighter/1 even:bg-lighter/1 border-b-5 border border-lighter/50"
                     >
                       <TableCell className="flex items-center gap-2 px-5 font-normal capitalize">
-                        {memeCoin.symbol}
+                        {memeCoin.ticker}
                       </TableCell>
                       <TableCell className="px-5 text-right"></TableCell>
                       <TableCell className="px-5 text-right">
-                        {allocation.tokenRewards[memeCoin.address]
-                          ? `+ ${allocation.tokenRewards[memeCoin.address]}`
-                          : '0'}
+                        {memeCoinTracking.interactions.includes(
+                          memeCoin.contractAddress,
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -448,9 +417,7 @@ const BonusPage = () => {
                     <TableHead className="px-5 font-normal"></TableHead>
                     <TableHead className="px-5 font-normal">Total</TableHead>
                     <TableHead className="px-5 text-right font-normal text-primary">
-                      {allocation.totalTokenRewards
-                        ? `+ ${allocation.totalTokenRewards}`
-                        : '0'}
+                      {totalTokenReward ? `+ ${totalTokenReward}` : '0'}
                     </TableHead>
                   </TableRow>
                 </TableFooter>

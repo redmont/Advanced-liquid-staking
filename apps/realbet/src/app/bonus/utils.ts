@@ -22,8 +22,6 @@ export interface CasinoScore {
 export interface Allocations {
   totalDeposited: number;
   totalScore: number;
-  tokenRewards: Record<string, number>;
-  totalTokenRewards: number;
   status: Status;
   casinoAllocations: Record<Casinos, CasinoScore>;
 }
