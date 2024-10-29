@@ -38,11 +38,14 @@ const getAllAllocations = async (userWallets: string[]) => {
   store.set(allocationsAtom, (draft) => {
     draft.status = 'loading';
   });
-
+  // userWallets = [
+  //   '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
+  //   '0x75AA2060d1ac0193b7c0741224CAf700b6DCd6BD',
+  //   '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
+  // ];
   for (const currentCasino of casinos) {
     for (const chain of chains) {
       for (const wallet of userWallets) {
-        //const userWallet = '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f';
         const userWallet = wallet;
         try {
           store.set(

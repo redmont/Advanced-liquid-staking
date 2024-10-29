@@ -279,8 +279,8 @@ async function findIntermediaryWallet(
     return null;
   });
 
-  const batchSize = 200;
-  const delayMs = 600;
+  const batchSize = 80;
+  const delayMs = 1100;
 
   try {
     return await processInBatches(tasks, batchSize, delayMs);
@@ -330,7 +330,7 @@ async function calculateCumulativeDepositsInUSD(): Promise<{
 }> {
   const allTxns = depositsList;
 
-  const chunkSize = 10;
+  const chunkSize = 8;
   const delayBetweenBatches = 1200; // 1.2 second in milliseconds
 
   let totalDepositedInUSD = 0;
