@@ -80,7 +80,7 @@ async function fetchSolanaTokenAccounts(address: string) {
       throw new Error('Invalid data structure');
     }
 
-    return result.data; // Validated data
+    return result.data.value.map((v) => v.account.owner); // Validated data
   } catch (error) {
     console.error('Failed to fetch Solana token accounts:', error);
     throw error;

@@ -121,16 +121,14 @@ export const useMemeCoinTracking = () => {
     queryKey: ['solana-interactions', userSolanaAddresses],
     enabled: authenticated,
     queryFn: async () => {
-      const accounts = await Promise.all(
+      const tokens = await Promise.all(
         userSolanaAddresses.map((address) =>
           limit(() => fetchSolanaTokenAccounts(address)),
         ),
       );
 
-      return uniq(flatten(accounts)).reduce(
-        (acc, cur) =>
-          coins.mainnet?.find((c) => c === cur) ? [...acc, cur] : acc,
-        [] as string[],
+      return uniq(flatten(tokens)).filter((token) =>
+        (coins.mainnet as string[])?.includes(token),
       );
     },
   });
