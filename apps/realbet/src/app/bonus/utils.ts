@@ -1,5 +1,6 @@
 import { env } from '@/env';
 import { atom } from 'jotai';
+import { atomWithImmer } from 'jotai-immer';
 
 import pLimit from 'p-limit';
 const limit = pLimit(10);
@@ -39,6 +40,34 @@ export interface Allocations {
   status: Status;
   casinoAllocations: Record<Casinos, Casino>;
 }
+
+export const createInitialAllocations = (): Allocations => {
+  return {
+    totalDeposited: 0,
+    totalScore: 0,
+    tokenRewards: {},
+    totalTokenRewards: 0,
+    status: 'notInit',
+    casinoAllocations: {
+      shuffle: {
+        totalDeposited: null,
+        totalScore: null,
+        chainsDepositsDetected: {
+          ethereum: false,
+          bsc: false,
+        },
+      },
+      rollbit: {
+        totalDeposited: null,
+        totalScore: null,
+        chainsDepositsDetected: {
+          ethereum: false,
+          bsc: false,
+        },
+      },
+    },
+  };
+};
 
 export const getCasinoTreasuryWallet = (casino: Casinos) => {
   switch (casino) {
@@ -121,3 +150,6 @@ export async function getBulkTokenLogos(contractAddresses: string[]) {
 }
 
 export const progressPercentageAtom = atom<number>(0);
+export const allocationsAtom = atomWithImmer<Allocations>(
+  createInitialAllocations(),
+);

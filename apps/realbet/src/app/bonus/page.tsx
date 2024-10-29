@@ -47,6 +47,7 @@ import {
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { Wallet2 } from 'lucide-react';
 import { getChainIcon } from '@/config/chainIcons';
+import { useAllocations } from '../../hooks/useAllocations';
 
 const createInitialAllocations = (): Allocations => {
   return {
@@ -91,6 +92,7 @@ const Page = () => {
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
   const userWallets = useUserWallets();
   const { setShowLinkNewWalletModal } = useDynamicModals();
+  // const { allocations: alloc, progressMessage: msg } = useAllocations(userWallets);
 
   const connectedWalletList = (
     <div className="flex items-center gap-2">
@@ -230,18 +232,21 @@ const Page = () => {
           <p className="py-4 text-lg tracking-widest md:max-w-[50%]">
             SHUFFLE | STAKE | ROLLBIT
           </p>
-          <h3 className="bg-accent2 inline rounded-md px-2 font-monoline text-3xl text-white xl:text-4xl">
+          <h3 className="inline rounded-md bg-accent2 px-2 font-monoline text-3xl text-white xl:text-4xl">
             Check your {token.symbol} Bonus
           </h3>
-          <p className="text-lg md:max-w-[50%]">
-            <ul style={{ listStyleType: 'disc' }}>
-              <li>
-                Connect your wallet to see your available token sale bonus from
-                participating in {token.symbol} token sale here.
-              </li>
-              <li>Link multiple cross-chain wallets to boost your score.</li>
-            </ul>
-          </p>
+
+          <ul
+            className="text-lg md:max-w-[50%]"
+            style={{ listStyleType: 'disc' }}
+          >
+            <li>
+              Connect your wallet to see your available token sale bonus from
+              participating in {token.symbol} token sale here.
+            </li>
+            <li>Link multiple cross-chain wallets to boost your score.</li>
+          </ul>
+
           <div className="flex items-center gap-3 md:max-w-2xl">
             <p className="text-lg md:max-w-[50%]">
               How is my bonus calculated ?{' '}
@@ -253,24 +258,22 @@ const Page = () => {
                 </span>
               </PopoverTrigger>
               <PopoverContent align="start">
-                <p className="px-3 py-1">
-                  <ul style={{ listStyleType: 'disc' }}>
-                    <li>
-                      If there is at least 1 txn on any supported casinos
-                      (Shuffle, Stake or Rollbit) on any supported chains (BTC
-                      ,SOL, ETH, BNB) then <b>points += 100</b>
-                    </li>
-                    <li>
-                      Calculate Total deposits on all supported casinos on all
-                      supported chains. Then{' '}
-                      <b>points += (Total deposit/100) * 100</b>
-                    </li>
-                    <li>
-                      For each meme coins that the user currently holds from our
-                      supported meme coin list, <b>points += 100</b>
-                    </li>
-                  </ul>
-                </p>
+                <ul className="px-3 py-1" style={{ listStyleType: 'disc' }}>
+                  <li>
+                    If there is at least 1 txn on any supported casinos
+                    (Shuffle, Stake or Rollbit) on any supported chains (BTC
+                    ,SOL, ETH, BNB) then <b>points += 100</b>
+                  </li>
+                  <li>
+                    Calculate Total deposits on all supported casinos on all
+                    supported chains. Then{' '}
+                    <b>points += (Total deposit/100) * 100</b>
+                  </li>
+                  <li>
+                    For each meme coins that the user currently holds from our
+                    supported meme coin list, <b>points += 100</b>
+                  </li>
+                </ul>
               </PopoverContent>
             </Popover>
           </div>
@@ -329,26 +332,26 @@ const Page = () => {
                         </span>
                       </PopoverTrigger>
                       <PopoverContent align="start">
-                        <p className="px-3 py-1">
-                          <ul style={{ listStyleType: 'disc' }}>
-                            <li>
-                              If there is at least 1 txn on any supported
-                              casinos (Shuffle, Stake or Rollbit) on any
-                              supported chains (BTC ,SOL, ETH, BNB) then{' '}
-                              <b>points += 100</b>
-                            </li>
-                            <li>
-                              Calculate Total deposits on all supported casinos
-                              on all supported chains. Then{' '}
-                              <b>points += (Total deposit/100) * 100</b>
-                            </li>
-                            <li>
-                              For each meme coins that the user currently holds
-                              from our supported meme coin list,{' '}
-                              <b>points += 100</b>
-                            </li>
-                          </ul>
-                        </p>
+                        <ul
+                          className="px-3 py-1"
+                          style={{ listStyleType: 'disc' }}
+                        >
+                          <li>
+                            If there is at least 1 txn on any supported casinos
+                            (Shuffle, Stake or Rollbit) on any supported chains
+                            (BTC ,SOL, ETH, BNB) then <b>points += 100</b>
+                          </li>
+                          <li>
+                            Calculate Total deposits on all supported casinos on
+                            all supported chains. Then{' '}
+                            <b>points += (Total deposit/100) * 100</b>
+                          </li>
+                          <li>
+                            For each meme coins that the user currently holds
+                            from our supported meme coin list,{' '}
+                            <b>points += 100</b>
+                          </li>
+                        </ul>
                       </PopoverContent>
                     </Popover>
                   </h3>

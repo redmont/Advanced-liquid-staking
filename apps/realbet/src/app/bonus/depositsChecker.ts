@@ -1,4 +1,5 @@
 import { toHex } from 'viem';
+import { z } from 'zod';
 import {
   getCasinoTreasuryWallet,
   CHAIN_RPC_URLS,
@@ -27,14 +28,24 @@ function delay(ms: number): Promise<void> {
 
 //let wallet2: string | null = null;
 
-interface AlchemyAssetTransfersResponse {
-  jsonrpc: string;
-  id: number;
-  result: {
-    transfers: Txn[];
-    pageKey?: string;
-  };
-}
+const TxnSchema = z.object({
+  hash: z.string(),
+  from: z.string(),
+  to: z.string(),
+  value: z.number(),
+  asset: z.string(),
+  metadata: z.object({
+    blockTimestamp: z.string(),
+  }),
+});
+const AlchemyAssetTransfersResponseSchema = z.object({
+  jsonrpc: z.string(),
+  id: z.number(),
+  result: z.object({
+    transfers: z.array(TxnSchema),
+    pageKey: z.string().optional(),
+  }),
+});
 
 async function fetchAllTransactions(
   fromAddress: string,
@@ -94,8 +105,9 @@ async function fetchAllTransactions(
         );
       }
 
-      const responseData: AlchemyAssetTransfersResponse =
-        (await response.json()) as unknown as AlchemyAssetTransfersResponse;
+      const responseData = AlchemyAssetTransfersResponseSchema.parse(
+        await response.json(),
+      );
 
       if (!responseData.result) {
         throw new Error(
@@ -121,20 +133,23 @@ async function fetchAllTransactions(
   return allTransfers;
 }
 
-interface CoinDataResponse {
-  data: Record<
-    string,
-    Array<{
-      quotes: Array<{
-        quote: {
-          USD: {
-            price: number;
-          };
-        };
-      }>;
-    }>
-  >;
-}
+const CoinDataResponseSchema = z.object({
+  data: z.record(
+    z.array(
+      z.object({
+        quotes: z.array(
+          z.object({
+            quote: z.object({
+              USD: z.object({
+                price: z.number(),
+              }),
+            }),
+          }),
+        ),
+      }),
+    ),
+  ),
+});
 
 async function getHistoricalPriceAtTime(
   symbol: string,
@@ -161,10 +176,9 @@ async function getHistoricalPriceAtTime(
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const responseData: CoinDataResponse =
-      (await response.json()) as CoinDataResponse;
+    const data = CoinDataResponseSchema.parse(await response.json());
 
-    const quotes = responseData.data[symbol]?.[0]?.quotes;
+    const quotes = data.data[symbol]?.[0]?.quotes;
     if (quotes && quotes.length > 0) {
       const price = quotes[0]?.quote.USD.price;
       if (price) {
@@ -367,9 +381,9 @@ function getUnixTimestampNDaysAgo(n: number): number {
   return Math.floor((now - n * millisecondsInADay) / 1000);
 }
 
-interface BlockHeightResponse {
-  height: number;
-}
+const BlockHeightResponseSchema = z.object({
+  height: z.number(),
+});
 
 async function getClosestBlockToATimestamp(
   chain: string,
@@ -386,8 +400,7 @@ async function getClosestBlockToATimestamp(
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const responseData: BlockHeightResponse =
-      (await response.json()) as BlockHeightResponse;
+    const responseData = BlockHeightResponseSchema.parse(await response.json());
 
     if (!responseData.height) {
       throw new Error('No height found');
