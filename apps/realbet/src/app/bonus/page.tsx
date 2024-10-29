@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useReducer, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Banner from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -13,20 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { checkUserDeposits } from './depositsChecker';
 import { useToken } from '@/hooks/useToken';
+import { totalDegenScore } from './degenScore';
 import {
-  getScoreFromDeposit,
-  totalDegenScore,
-  getTokenBalances,
-} from './degenScore';
-import {
-  CHAIN_RPC_URLS,
   shorten,
-  casinos,
   chains,
   getBulkTokenLogos,
   progressPercentageAtom,
+  allocationsAtom,
+  progressMessageAtom,
 } from './utils';
 import {
   Popover,
@@ -35,7 +30,7 @@ import {
 } from '@/components/ui/popover';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 
-import type { Chains, Casinos, Allocations } from './utils';
+import type { Chains, Casinos } from './utils';
 
 import { memeCoins } from './memeCoins';
 import {
@@ -49,50 +44,19 @@ import { Wallet2 } from 'lucide-react';
 import { getChainIcon } from '@/config/chainIcons';
 import { useAllocations } from '../../hooks/useAllocations';
 
-const createInitialAllocations = (): Allocations => {
-  return {
-    totalDeposited: 0,
-    totalScore: 0,
-    tokenRewards: {},
-    totalTokenRewards: 0,
-    status: 'notInit',
-    casinoAllocations: {
-      shuffle: {
-        totalDeposited: null,
-        totalScore: null,
-        chainsDepositsDetected: {
-          ethereum: false,
-          bsc: false,
-        },
-      },
-      rollbit: {
-        totalDeposited: null,
-        totalScore: null,
-        chainsDepositsDetected: {
-          ethereum: false,
-          bsc: false,
-        },
-      },
-    },
-  };
-};
-
-let allocations: Allocations = createInitialAllocations();
-
 const Page = () => {
   const token = useToken();
-  const [allocation, setAllocation] = useState<Allocations>(allocations);
-  const [progressMessage, setProgressMessage] = useState('');
-  const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
   const [memeCoinsLogos, setMemeCoinsLogos] = useState<string[]>([]);
   const [progressPercentage] = useAtom(progressPercentageAtom);
-
+  const [allocation] = useAtom(allocationsAtom);
+  const [progressMessage] = useAtom(progressMessageAtom);
   const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
   const userWallets = useUserWallets();
   const { setShowLinkNewWalletModal } = useDynamicModals();
-  // const { allocations: alloc, progressMessage: msg } = useAllocations(userWallets);
+  const wallets = userWallets.map((wallet) => wallet.address);
+  const { refetch: refetchAllocations } = useAllocations(wallets);
 
   const connectedWalletList = (
     <div className="flex items-center gap-2">
@@ -115,103 +79,6 @@ const Page = () => {
       )}
     </div>
   );
-
-  const getTokenRewards = async () => {
-    const memeCoinScore: Record<string, number> = {};
-    for (const wallet of userWallets) {
-      const userWallet = wallet.address;
-      const chains = Object.keys(CHAIN_RPC_URLS);
-      for (const chain of chains) {
-        const tokenBalances = await getTokenBalances(userWallet, chain);
-        for (const { contractAddress } of tokenBalances) {
-          const tokenIndex = memeCoins.findIndex(
-            (token) => token.address === contractAddress,
-          );
-          if (tokenIndex > -1) {
-            memeCoinScore[contractAddress] = 100;
-          }
-        }
-      }
-    }
-    return memeCoinScore;
-  };
-
-  const calculateRewards = async () => {
-    allocations = createInitialAllocations();
-    allocations.status = 'loading';
-    setAllocation(allocations);
-    forceUpdate();
-
-    const chains = Object.keys(CHAIN_RPC_URLS);
-    for (const currentCasino of casinos) {
-      for (const chain of chains) {
-        for (const wallet of userWallets) {
-          if (wallet.chain !== 'EVM') {
-            continue;
-          }
-          // const userWallet = wallet.address;
-          const userWallet = '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f';
-          try {
-            setProgressMessage(
-              `Checking deposits for ${shorten(userWallet, 4)} (${chain}) on ${currentCasino}....`,
-            );
-            const daysBefore = 365; // 1year
-            const totalDepositedInUSD = await checkUserDeposits(
-              userWallet,
-              daysBefore,
-              chain,
-              currentCasino,
-            );
-            if (totalDepositedInUSD > 0) {
-              allocations.casinoAllocations[
-                currentCasino
-              ].chainsDepositsDetected[chain as Chains] = true;
-            }
-            if (
-              allocations.casinoAllocations[currentCasino].totalDeposited ===
-              null
-            ) {
-              allocations.casinoAllocations[currentCasino].totalDeposited =
-                totalDepositedInUSD;
-              allocations.casinoAllocations[currentCasino].totalScore =
-                getScoreFromDeposit(totalDepositedInUSD);
-            } else {
-              allocations.casinoAllocations[currentCasino].totalDeposited +=
-                totalDepositedInUSD;
-              allocations.casinoAllocations[currentCasino].totalScore =
-                getScoreFromDeposit(
-                  allocations.casinoAllocations[currentCasino].totalDeposited,
-                );
-            }
-            allocations.totalDeposited += totalDepositedInUSD;
-            allocations.totalScore = getScoreFromDeposit(
-              allocations.totalDeposited,
-            );
-            setAllocation(allocations);
-            forceUpdate();
-          } finally {
-          }
-        }
-      }
-      setAllocation(allocations);
-      forceUpdate();
-    }
-
-    setProgressMessage(`Checking token interaction rewards...`);
-    await getTokenRewards().then((tokenRewards) => {
-      allocations.tokenRewards = tokenRewards;
-      for (const tokenReward of Object.values(tokenRewards)) {
-        allocations.totalTokenRewards += tokenReward;
-      }
-      setAllocation(allocations);
-      forceUpdate();
-    });
-
-    allocations.status = 'success';
-    setProgressMessage(``);
-    setAllocation(allocations);
-    forceUpdate();
-  };
 
   const getTokenLogos = async () => {
     const contractAddresses = memeCoins.map((token) => token.address);
@@ -305,7 +172,7 @@ const Page = () => {
                 </Button>
 
                 <Button
-                  onClick={() => calculateRewards()}
+                  onClick={() => refetchAllocations()}
                   className="place-self-end"
                   disabled={allocation.status === 'loading'}
                 >

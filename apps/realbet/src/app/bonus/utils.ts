@@ -153,3 +153,4 @@ export const progressPercentageAtom = atom<number>(0);
 export const allocationsAtom = atomWithImmer<Allocations>(
   createInitialAllocations(),
 );
+export const progressMessageAtom = atom<string>('');
