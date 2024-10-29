@@ -23,6 +23,7 @@ export const env = createEnv({
     NEXT_PUBLIC_VERCEL_ENV: z.enum(['production', 'preview', 'development']),
     NEXT_PUBLIC_ALCHEMY_API_KEY: z.string(),
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS: z.string(),
+    NEXT_PUBLIC_COINMARKETCAP_API_KEY: z.string(),
   },
 
   /**
@@ -42,6 +43,9 @@ export const env = createEnv({
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS:
       process.env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS ??
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
+    NEXT_PUBLIC_COINMARKETCAP_API_KEY:
+      process.env.COINMARKETCAP_API_KEY ??
+      'ef6125ad-b96b-412a-859d-0bbf9a81b0ae',
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -1,15 +1,10 @@
-import { ethers } from 'ethers';
-import axios from 'axios';
-import type { AxiosResponse } from 'axios';
-import dayjs from '@/dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
+import { toHex } from 'viem';
 import {
   getCasinoTreasuryWallet,
   CHAIN_RPC_URLS,
-  Casinos,
-  Chains,
   progressPercentageAtom,
 } from './utils';
+import type { Casinos, Chains } from './utils';
 import { getDefaultStore } from 'jotai';
 const store = getDefaultStore();
 import pLimit from 'p-limit';
@@ -30,12 +25,6 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-dayjs.extend(relativeTime);
-
-export const displayRelativeTime = (date: string): string => {
-  return dayjs(date).fromNow();
-};
-
 //let wallet2: string | null = null;
 
 interface AlchemyAssetTransfersResponse {
@@ -53,11 +42,16 @@ async function fetchAllTransactions(
   blockStart: number,
   toAddress?: string,
 ): Promise<Txn[]> {
-  const fromBlockHex = ethers.toBeHex(blockStart);
+  const fromBlockHex = toHex(blockStart);
 
   let allTransfers: Txn[] = [];
   let pageKey: string | undefined = undefined;
   let error = false;
+
+  const baseURL = CHAIN_RPC_URLS[chain as Chains];
+  if (!baseURL) {
+    throw new Error(`Alchemy API URL not defined for chain: ${chain}`);
+  }
 
   do {
     try {
@@ -68,8 +62,6 @@ async function fetchAllTransactions(
         maxCount: '0x3e8', // 1000 in hex
         withMetadata: true,
       };
-      //0xaa5ea09040d3931459a2f6c1a212cab6626a169f ext + erc20
-      //0xd13f12548825ea52f0027932321ad8a45a094e24 ext
 
       if (toAddress) {
         params.toAddress = toAddress;
@@ -86,28 +78,33 @@ async function fetchAllTransactions(
         params: [params],
       });
 
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        data,
-      };
-
-      const baseURL = CHAIN_RPC_URLS[chain as Chains];
-      if (!baseURL) {
-        throw new Error(`Alchemy API URL not defined for chain: ${chain}`);
-      }
-
       const fetchURL = baseURL;
 
-      const response: AxiosResponse<AlchemyAssetTransfersResponse> =
-        await axios(fetchURL, requestOptions);
+      const response = await fetch(fetchURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: data,
+      });
 
-      if (!response.data.result) {
-        throw new Error(JSON.stringify(response));
+      if (!response.ok) {
+        // Handle HTTP errors
+        const errorText = await response.text();
+        throw new Error(
+          `HTTP error! status: ${response.status}, message: ${errorText}`,
+        );
       }
 
-      const transfers = response.data.result.transfers;
-      const newPageKey = response.data.result.pageKey;
+      const responseData: AlchemyAssetTransfersResponse =
+        (await response.json()) as unknown as AlchemyAssetTransfersResponse;
+
+      if (!responseData.result) {
+        throw new Error(
+          `No result in response: ${JSON.stringify(responseData)}`,
+        );
+      }
+
+      const transfers = responseData.result.transfers;
+      const newPageKey = responseData.result.pageKey;
 
       if (transfers && transfers.length > 0) {
         allTransfers = allTransfers.concat(transfers);
@@ -142,23 +139,32 @@ interface CoinDataResponse {
 async function getHistoricalPriceAtTime(
   symbol: string,
   timestamp: string,
+  retries = 3, // Maximum number of retries
 ): Promise<number | null> {
   const url = `/api/coinData`;
 
-  const params = {
+  const params = new URLSearchParams({
     symbol: symbol,
     time_start: timestamp,
     interval: '24h',
     count: '1',
     convert: 'USD',
-  };
+  });
+
+  const urlWithParams = `${url}?${params.toString()}`;
 
   try {
-    const response: AxiosResponse<CoinDataResponse> = await axios.get(url, {
-      params: params,
-    });
+    const response = await fetch(urlWithParams);
 
-    const quotes = response.data.data[symbol]?.[0]?.quotes;
+    if (!response.ok) {
+      // Handle HTTP errors
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const responseData: CoinDataResponse =
+      (await response.json()) as CoinDataResponse;
+
+    const quotes = responseData.data[symbol]?.[0]?.quotes;
     if (quotes && quotes.length > 0) {
       const price = quotes[0]?.quote.USD.price;
       if (price) {
@@ -167,9 +173,13 @@ async function getHistoricalPriceAtTime(
     }
     throw new Error('No data available for the specified timestamp.');
   } catch {
-    // wait for 1100 milliseconds before retrying
-    await new Promise((resolve) => setTimeout(resolve, 1100));
-    return getHistoricalPriceAtTime(symbol, timestamp);
+    if (retries > 0) {
+      // wait for 1100 milliseconds before retrying
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+      return getHistoricalPriceAtTime(symbol, timestamp, retries - 1);
+    } else {
+      throw new Error('Maximum retries exceeded.');
+    }
   }
 }
 
@@ -307,7 +317,7 @@ async function calculateCumulativeDepositsInUSD(): Promise<{
   const allTxns = depositsList;
 
   const chunkSize = 10;
-  const delayBetweenBatches = 1000; // 1 second in milliseconds
+  const delayBetweenBatches = 1200; // 1.2 second in milliseconds
 
   let totalDepositedInUSD = 0;
 
@@ -364,25 +374,34 @@ interface BlockHeightResponse {
 async function getClosestBlockToATimestamp(
   chain: string,
   timestamp: number,
+  retries = 3, // Maximum number of retries
 ): Promise<number> {
   try {
-    const config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: `https://coins.llama.fi/block/${chain}/${timestamp}`,
-      headers: {},
-    };
+    const url = `https://coins.llama.fi/block/${chain}/${timestamp}`;
 
-    const response: AxiosResponse<BlockHeightResponse> =
-      await axios.request(config);
-    if (!response.data.height) {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      // Handle HTTP errors
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const responseData: BlockHeightResponse =
+      (await response.json()) as BlockHeightResponse;
+
+    if (!responseData.height) {
       throw new Error('No height found');
     }
-    return response.data.height;
+
+    return responseData.height;
   } catch {
-    // wait for 1250 milliseconds before retrying
-    await new Promise((resolve) => setTimeout(resolve, 1250));
-    return getClosestBlockToATimestamp(chain, timestamp);
+    if (retries > 0) {
+      // wait for 1250 milliseconds before retrying
+      await new Promise((resolve) => setTimeout(resolve, 1250));
+      return getClosestBlockToATimestamp(chain, timestamp, retries - 1);
+    } else {
+      throw new Error('Maximum retries exceeded.');
+    }
   }
 }
 
@@ -418,13 +437,6 @@ export async function checkUserDeposits(
 
     return totalDepositedInUSD;
   } catch {
-    // console.error(
-    //   'Error checking user deposits:',
-    //   casino,
-    //   chain,
-    //   userWallet,
-    //   error,
-    // );
     return 0;
   }
 }

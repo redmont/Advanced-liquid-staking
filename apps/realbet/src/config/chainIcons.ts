@@ -1,5 +1,5 @@
 // SVGs are from https://cryptofonts.com/icons.html
-import React from 'react';
+import type React from 'react';
 
 import Eth from '../assets/icons/chains/eth.svg';
 import Bnb from '../assets/icons/chains/bnb.svg';

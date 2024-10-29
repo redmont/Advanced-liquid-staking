@@ -1,6 +1,5 @@
-import { CHAIN_RPC_URLS, Chains } from './utils';
-import type { AxiosResponse } from 'axios';
-import axios from 'axios';
+import { CHAIN_RPC_URLS } from './utils';
+import type { Chains } from './utils';
 
 interface AlchemyAssetBalanceResponse {
   jsonrpc: string;
@@ -32,17 +31,23 @@ export const getTokenBalances = async (
     throw new Error(`Alchemy API URL not defined for chain: ${chain}`);
   }
 
-  const requestOptions = {
-    url: baseURL,
-    method: 'post',
+  const response = await fetch(baseURL, {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    data,
-  };
+    body: data,
+  });
 
-  const response: AxiosResponse<AlchemyAssetBalanceResponse> =
-    await axios(requestOptions);
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `HTTP error! status: ${response.status}, message: ${errorText}`,
+    );
+  }
 
-  return response.data.result.tokenBalances;
+  const responseData: AlchemyAssetBalanceResponse =
+    (await response.json()) as AlchemyAssetBalanceResponse;
+
+  return responseData.result.tokenBalances;
 };
 
 export const totalDegenScore = (

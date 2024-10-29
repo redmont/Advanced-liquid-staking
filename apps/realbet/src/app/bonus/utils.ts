@@ -1,6 +1,4 @@
 import { env } from '@/env';
-import type { AxiosResponse } from 'axios';
-import axios from 'axios';
 import { atom } from 'jotai';
 
 import pLimit from 'p-limit';
@@ -65,28 +63,47 @@ interface CoinDataResponse {
   >;
 }
 
-async function getTokenLogo(contractAddress: string) {
+async function getTokenLogo(
+  contractAddress: string,
+  retries = 3, // Maximum number of retries
+): Promise<string | null> {
   const url = `/api/coinMetaData`;
 
-  const params = {
+  const params = new URLSearchParams({
     address: contractAddress,
     aux: 'logo',
-  };
+  });
+
+  const urlWithParams = `${url}?${params.toString()}`;
 
   try {
-    const response: AxiosResponse<CoinDataResponse> = await axios.get(url, {
-      params: params,
-    });
-    const keys = Object.keys(response.data.data);
-    if (keys.length === 0) {
-      throw new Error('API error');
+    const response = await fetch(urlWithParams);
+
+    if (!response.ok) {
+      // Handle HTTP errors
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const responseData: CoinDataResponse =
+      (await response.json()) as CoinDataResponse;
+
+    const keys = Object.keys(responseData.data);
+    if (keys.length === 0) {
+      throw new Error('API error: No data returned');
+    }
+
     const tokenId = Number(keys[0]);
-    const logo = response.data.data[tokenId]?.logo;
-    return logo;
+    const logo = responseData.data[tokenId]?.logo;
+
+    return logo ?? null;
   } catch {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return getTokenLogo(contractAddress);
+    if (retries > 0) {
+      // Wait for 2000 milliseconds before retrying
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return getTokenLogo(contractAddress, retries - 1);
+    } else {
+      throw new Error(`Maximum retries exceeded`);
+    }
   }
 }
 
