@@ -5,6 +5,7 @@ import { type OwnedNftsResponse } from 'alchemy-sdk';
 import { env } from '@/env';
 import { useEffect, useMemo } from 'react';
 import { toBase26 } from '@/utils';
+import usePrimaryAddress from './usePrimaryAddress';
 
 const passGroups = [
   { title: 'Single Digit', bzrPerPass: 14_000 },
@@ -13,16 +14,16 @@ const passGroups = [
 ] as const;
 
 export function useRawPasses() {
-  const { primaryWallet, sdkHasLoaded } = useDynamicContext();
+  const { sdkHasLoaded } = useDynamicContext();
   const { data: alchemy } = useAlchemy();
-  const address = primaryWallet?.address ?? '';
+  const primaryAddress = usePrimaryAddress();
 
   const nfts = useInfiniteQuery({
     initialPageParam: undefined,
-    queryKey: ['nftList', address],
-    enabled: sdkHasLoaded && !!address && !!alchemy,
+    queryKey: ['nftList', primaryAddress],
+    enabled: sdkHasLoaded && !!primaryAddress && !!alchemy,
     queryFn: async (params) => {
-      return alchemy!.nft.getNftsForOwner(address, {
+      return alchemy!.nft.getNftsForOwner(primaryAddress!, {
         pageKey: params.pageParam,
         contractAddresses: [env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS],
       });
