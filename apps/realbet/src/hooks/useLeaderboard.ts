@@ -1,8 +1,8 @@
-import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useRawPasses } from './useRawPasses';
 import { z } from 'zod';
+import usePrimaryAddress from './usePrimaryAddress';
 
 const RpLeaderboardData = z.array(
   z.object({
@@ -25,8 +25,7 @@ export const useLeaderboard = () => {
     passes: rawPasses,
     nfts: { isLoading, isSuccess, error },
   } = useRawPasses();
-  const { primaryWallet } = useDynamicContext();
-  const walletAddress = primaryWallet?.address ?? '';
+  const walletAddress = usePrimaryAddress();
 
   const leaderboard = useQuery({
     queryKey: ['leaderboard', walletAddress],
