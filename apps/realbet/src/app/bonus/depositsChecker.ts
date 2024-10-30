@@ -161,7 +161,6 @@ async function getHistoricalPriceAtTime(
   const params = new URLSearchParams({
     symbol: symbol,
     time_start: timestamp,
-    interval: '24h',
     count: '1',
     convert: 'USD',
   });
