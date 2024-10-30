@@ -37,6 +37,28 @@ const getTokenRewards = async (userWallets: string[]) => {
 const getAllAllocations = async (userWallets: string[]) => {
   store.set(allocationsAtom, (draft) => {
     draft.status = 'loading';
+    draft.totalDeposited = 0;
+    draft.totalScore = 0;
+    draft.tokenRewards = {};
+    draft.totalTokenRewards = 0;
+    draft.casinoAllocations = {
+      shuffle: {
+        totalDeposited: null,
+        totalScore: null,
+        chainsDepositsDetected: {
+          ethereum: false,
+          bsc: false,
+        },
+      },
+      rollbit: {
+        totalDeposited: null,
+        totalScore: null,
+        chainsDepositsDetected: {
+          ethereum: false,
+          bsc: false,
+        },
+      },
+    };
   });
   // userWallets = [
   //   '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',

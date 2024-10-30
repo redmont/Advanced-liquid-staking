@@ -17,6 +17,7 @@ interface Txn {
   to: string;
   value: number;
   asset: string;
+  category: string;
   metadata: {
     blockTimestamp: string;
   };
@@ -26,14 +27,13 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-//let wallet2: string | null = null;
-
 const TxnSchema = z.object({
   hash: z.string(),
   from: z.string(),
   to: z.string(),
   value: z.number(),
   asset: z.string(),
+  category: z.string(),
   metadata: z.object({
     blockTimestamp: z.string(),
   }),
@@ -156,7 +156,7 @@ async function getHistoricalPriceAtTime(
   timestamp: string,
   retries = 3, // Maximum number of retries
 ): Promise<number | null> {
-  const url = `/api/coinData`;
+  const url = `/api/coinHistoricalData`;
 
   const params = new URLSearchParams({
     symbol: symbol,
@@ -249,6 +249,8 @@ async function findIntermediaryWallet(
     // }
 
     const potentialWallet2 = tx.to;
+
+    // Find txns from potentialWallet2 to treasuryWallet
     const wallet2Txns = await fetchAllTransactions(
       potentialWallet2,
       chain,
@@ -263,6 +265,10 @@ async function findIntermediaryWallet(
     // if there has been a txn from wallet2 to treasuryWallet
     // then this is one of the wallets we are looking for
     if (wallet2Txns.length > 0) {
+      // BUG FIX: alchemy API returns asset = ETH even for native BNB tokens on BSC chain
+      if (chain === 'bsc' && tx.asset === 'ETH' && tx.category === 'external') {
+        tx.asset = 'BNB';
+      }
       // push the original txn detail to the list
       depositsList.push({
         amount: tx.value,
@@ -270,10 +276,6 @@ async function findIntermediaryWallet(
         blockTimestamp: tx.metadata.blockTimestamp,
         txnHash: tx.hash,
       });
-      //console.log('wallet2List', wallet2List);
-      // wallet2 = potentialWallet2;
-      // store.set(progressPercentageAtom, 0);
-      //return potentialWallet2;
     }
 
     return null;
