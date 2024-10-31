@@ -22,7 +22,7 @@ import {
   PackagePlus,
   Paintbrush,
   Wallet2,
-  // Coins,
+  Coins,
   UserCog,
   Box,
   // Trophy,
@@ -159,7 +159,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
               <span>Home</span>
             </NextLink>
           </li>
-          {/* <li>
+          <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
               path="/bonus"
@@ -167,7 +167,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
               <Coins />
               <span>Bonus</span>
             </NextLink>
-          </li> */}
+          </li>
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"

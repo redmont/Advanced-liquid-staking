@@ -1,8 +1,9 @@
 'use client';
-import React, { useState, useReducer } from 'react';
+import React from 'react';
 import Banner from '@/components/banner';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { useAtom } from 'jotai';
 import {
   Table,
   TableBody,
@@ -12,13 +13,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { checkUserDeposits } from './depositsChecker';
-import { getScoreFromDeposit, totalDegenScore } from './degenScore';
-import { type Casinos, type Allocations, shorten, casinos } from './utils';
+import { totalDegenScore } from './degenScore';
+import {
+  type Casinos,
+  shorten,
+  progressPercentageAtom,
+  allocationsAtom,
+  progressMessageAtom,
+} from './utils';
 import {
   memeCoins,
   POINTS_PER_MEME_COIN_INTERACTION,
 } from '@/config/memeCoins';
+
 import {
   useDynamicContext,
   useIsLoggedIn,
@@ -28,6 +35,8 @@ import {
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { Wallet2 } from 'lucide-react';
 import { getChainIcon } from '@/config/chainIcons';
+import { useAllocations } from '../../hooks/useAllocations';
+
 import {
   Popover,
   PopoverContent,
@@ -38,171 +47,86 @@ import { useToken } from '@/hooks/useToken';
 import { Network } from 'alchemy-sdk';
 import useMemeCoinTracking from '@/hooks/useMemeCoinTracking';
 
-const createInitialAllocations = (): Allocations => ({
-  totalDeposited: 0,
-  totalScore: 0,
-  status: 'notInit',
-  casinoAllocations: {
-    shuffle: {
-      totalDeposited: null,
-      totalScore: null,
-      chainsDepositsDetected: {
-        [Network.ETH_MAINNET]: false,
-        [Network.BNB_MAINNET]: false,
-      },
-    },
-    rollbit: {
-      totalDeposited: null,
-      totalScore: null,
-      chainsDepositsDetected: {
-        [Network.ETH_MAINNET]: false,
-        [Network.BNB_MAINNET]: false,
-      },
-    },
-  },
-});
-
-let allocations: Allocations = createInitialAllocations();
-
 const chains = [Network.ETH_MAINNET, Network.BNB_MAINNET];
 
 const BonusPage = () => {
   const token = useToken();
   const memeCoinTracking = useMemeCoinTracking();
   const isAuthenticated = useIsLoggedIn();
-  const [allocation, setAllocation] = useState<Allocations>(allocations);
-  const [progressMessage, setProgressMessage] = useState('');
-  const [, forceUpdate] = useReducer((x: number) => x + 1, 0);
+  const [progressPercentage] = useAtom(progressPercentageAtom);
+  const [allocation] = useAtom(allocationsAtom);
+  const [progressMessage] = useAtom(progressMessageAtom);
+  const totalTokenReward =
+    memeCoinTracking.interactions.length * POINTS_PER_MEME_COIN_INTERACTION;
 
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
   const userWallets = useUserWallets();
   const { setShowLinkNewWalletModal } = useDynamicModals();
-
-  const totalTokenReward =
-    memeCoinTracking.isSuccess &&
-    memeCoinTracking.interactions.length * POINTS_PER_MEME_COIN_INTERACTION;
-
-  const calculateRewards = async () => {
-    allocations = createInitialAllocations();
-    allocations.status = 'loading';
-    setAllocation(allocations);
-    forceUpdate();
-
-    for (const currentCasino of casinos) {
-      for (const chain of chains) {
-        for (const wallet of userWallets) {
-          if (wallet.chain !== 'EVM') {
-            continue;
-          }
-          const userWallet = wallet.address;
-          try {
-            setProgressMessage(
-              `Checking deposits for ${shorten(userWallet, 4)} (${chain}) on ${currentCasino}....`,
-            );
-
-            const { totalDepositedInUSD } = await checkUserDeposits(
-              wallet.address, //'0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
-              chain,
-              currentCasino,
-            );
-            if (totalDepositedInUSD > 0) {
-              allocations.casinoAllocations[
-                currentCasino
-              ].chainsDepositsDetected[chain] = true;
-            }
-            if (
-              allocations.casinoAllocations[currentCasino].totalDeposited ===
-              null
-            ) {
-              allocations.casinoAllocations[currentCasino].totalDeposited =
-                totalDepositedInUSD;
-              allocations.casinoAllocations[currentCasino].totalScore =
-                getScoreFromDeposit(totalDepositedInUSD);
-            } else {
-              allocations.casinoAllocations[currentCasino].totalDeposited +=
-                totalDepositedInUSD;
-              allocations.casinoAllocations[currentCasino].totalScore =
-                getScoreFromDeposit(
-                  allocations.casinoAllocations[currentCasino].totalDeposited,
-                );
-            }
-            allocations.totalDeposited += totalDepositedInUSD;
-            allocations.totalScore = getScoreFromDeposit(
-              allocations.totalDeposited,
-            );
-            setAllocation(allocations);
-            forceUpdate();
-          } finally {
-          }
-        }
-      }
-      setAllocation(allocations);
-      forceUpdate();
-    }
-
-    allocations.status = 'success';
-    setProgressMessage(``);
-    setAllocation(allocations);
-    forceUpdate();
-  };
+  const wallets = userWallets.map((wallet) => wallet.address);
+  const { refetch: refetchAllocations } = useAllocations(wallets);
 
   return (
     <div className="flex flex-col gap-5 p-5">
-      <Banner className="flex flex-col justify-center xl:min-h-[26rem]">
-        <h2 className="mb-3 text-xl font-medium tracking-widest md:max-w-[50%]">
-          SHUFFLE | STAKE | ROLLBIT
-        </h2>
-        <div className="mb-3 inline-block rounded-md bg-destructive px-4 py-2 font-monoline text-3xl text-accent-foreground xl:text-4xl">
-          Check your {token.symbol} Bonus
-        </div>
-        <ul className="mb-3 list-disc pl-5 text-lg md:max-w-[50%]">
-          <li>
-            Enter your wallet to see your available token sale bonus from
-            participating in {token.symbol} token sale here.
-          </li>
-          <li>Link multiple cross-chain wallets to boost your score.</li>
-        </ul>
-        <div className="mb-3 flex items-center gap-3 md:max-w-2xl">
-          <div className="text-lg md:max-w-[50%]">
+      <Banner>
+        <div className="space-y-4">
+          <p className="py-4 text-lg tracking-widest md:max-w-[50%]">
+            SHUFFLE | STAKE | ROLLBIT
+          </p>
+          <h3 className="inline rounded-md bg-accent2 px-2 font-monoline text-3xl text-white xl:text-4xl">
+            Check your {token.symbol} Bonus
+          </h3>
+
+          <ul
+            className="pl-5 text-lg md:max-w-[50%]"
+            style={{ listStyleType: 'disc' }}
+          >
+            <li>
+              Connect your wallet to see your available token sale bonus from
+              participating in {token.symbol} token sale here.
+            </li>
+            <li>Link multiple cross-chain wallets to boost your score.</li>
+          </ul>
+
+          <div className="flex items-center gap-3 md:max-w-2xl">
             <Popover>
               <PopoverTrigger className="hover:text-primary">
                 <span className="inline-flex items-center gap-1 hover:text-primary">
-                  How is my bonus calculated
-                  <QuestionMarkCircledIcon />
+                  How is my bonus calculated <QuestionMarkCircledIcon />
                 </span>
               </PopoverTrigger>
               <PopoverContent align="start">
-                <div className="max-w-80 rounded-xl border border-border bg-black p-2 text-left text-sm">
-                  <ul className="list-disc space-y-2 pl-5">
-                    <li>
-                      If there is at least 1 txn on any supported casinos
-                      (Shuffle, Stake or Rollbit) on any supported chains (BTC
-                      ,SOL, ETH, BNB) then <b>points += 100</b>
-                    </li>
-                    <li>
-                      Calculate Total deposits on all supported casinos on all
-                      supported chains. Then{' '}
-                      <b>points += (Total deposit/100) * 100</b>
-                    </li>
-                    <li>
-                      For each meme coins that the user currently holds from our
-                      supported meme coin list, <b>points += 100</b>
-                    </li>
-                  </ul>
-                </div>
+                <ul
+                  className="max-w-xl rounded-lg border border-border bg-light py-3 pl-8 pr-5"
+                  style={{ listStyleType: 'disc' }}
+                >
+                  <li>
+                    If there is at least 1 txn on any supported casinos
+                    (Shuffle, Stake or Rollbit) on any supported chains (BTC
+                    ,SOL, ETH, BNB) then <b>points += 100</b>
+                  </li>
+                  <li>
+                    Calculate Total deposits on all supported casinos on all
+                    supported chains. Then{' '}
+                    <b>points += (Total deposit/100) * 100</b>
+                  </li>
+                  <li>
+                    For each meme coins that the user currently holds from our
+                    supported meme coin list, <b>points += 100</b>
+                  </li>
+                </ul>
               </PopoverContent>
             </Popover>
           </div>
-        </div>
-        <div className="flex items-center gap-5 md:max-w-2xl">
-          {sdkHasLoaded && !isAuthenticated && (
-            <div className="space-between no-wrap flex flex-row items-center justify-center gap-5">
-              <Button onClick={handleDynamicAuthClick}>
-                Connect Wallet <Wallet2 className="ml-2" />
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center gap-5 md:max-w-2xl">
+            {sdkHasLoaded && !isAuthenticated && (
+              <div className="space-between no-wrap flex flex-row items-center justify-center gap-5">
+                <Button onClick={handleDynamicAuthClick}>
+                  Connect Wallet <Wallet2 className="ml-2" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </Banner>
       {isAuthenticated && userWallets.length > 0 && (
@@ -241,7 +165,7 @@ const BonusPage = () => {
                 </Button>
 
                 <Button
-                  onClick={() => calculateRewards()}
+                  onClick={() => refetchAllocations()}
                   className="place-self-end"
                   disabled={allocation.status === 'loading'}
                 >
@@ -251,11 +175,12 @@ const BonusPage = () => {
             </div>
             {progressMessage && (
               <div className="flex flex-wrap items-center gap-3 rounded-xl bg-lighter/50 px-5 py-4">
-                <Loader2 className="animate-spin" /> {progressMessage}
+                <Loader2 className="animate-spin" /> {progressMessage}{' '}
+                {progressPercentage < 100 ? `(${progressPercentage}%)` : ''}
               </div>
             )}
 
-            {allocation.status !== 'notInit' && totalTokenReward !== false && (
+            {allocation.status !== 'notInit' && memeCoinTracking.isSuccess && (
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-5 py-3">
                 <div className="grid grid-cols-1 items-center justify-between gap-3 rounded-xl border border-orange-100/20 bg-red-500/5 px-2 py-4 md:w-[48%]">
                   <h3 className="text-md flex justify-center gap-2 text-center">
@@ -372,8 +297,10 @@ const BonusPage = () => {
                 </TableBody>
                 <TableFooter className="border-b-5 border border-lighter/50 bg-lighter/20">
                   <TableRow>
-                    <TableHead className="px-5"></TableHead>
                     <TableHead className="px-5 font-normal">Total</TableHead>
+                    <TableHead className="px-5 font-normal">
+                      {allocation.totalDeposited} USD
+                    </TableHead>
                     <TableHead className="px-5 text-right font-normal text-primary">
                       {allocation.totalScore ? '+' : ''} {allocation.totalScore}
                     </TableHead>
@@ -397,10 +324,15 @@ const BonusPage = () => {
                 <TableBody>
                   {memeCoins.map((memeCoin) => (
                     <TableRow
-                      key={memeCoin.ticker}
+                      key={`${memeCoin.ticker}-${memeCoin.chainId}`}
                       className="odd:bg-lighter/1 even:bg-lighter/1 border-b-5 border border-lighter/50"
                     >
                       <TableCell className="flex items-center gap-2 px-5 font-normal capitalize">
+                        <img
+                          alt=""
+                          width={26}
+                          src={`/icons/${memeCoin.ticker.toLowerCase()}.png`}
+                        />{' '}
                         {memeCoin.ticker}
                       </TableCell>
                       <TableCell className="px-5 text-right"></TableCell>
@@ -416,8 +348,8 @@ const BonusPage = () => {
                 </TableBody>
                 <TableFooter className="border-b-5 border border-lighter/50 bg-lighter/20">
                   <TableRow>
-                    <TableHead className="px-5 font-normal"></TableHead>
                     <TableHead className="px-5 font-normal">Total</TableHead>
+                    <TableHead className="px-5 font-normal"></TableHead>
                     <TableHead className="px-5 text-right font-normal text-primary">
                       {totalTokenReward ? `+ ${totalTokenReward}` : '0'}
                     </TableHead>

@@ -1,3 +1,5 @@
+// /pages/api/coinData.ts
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { env } from '@/env';
 
@@ -20,27 +22,38 @@ export default async function handler(
       throw new Error('COINMARKETCAP_API_KEY is not set');
     }
 
-    const url = `https://pro-api.coinmarketcap.com/v3/cryptocurrency/quotes/historical?symbol=${symbol}&time_start=${time_start}&interval=${interval}&count=${count}&convert=USD`;
+    const url =
+      'https://pro-api.coinmarketcap.com/v3/cryptocurrency/quotes/historical';
 
-    const response = await fetch(url, {
+    const params = new URLSearchParams({
+      symbol: symbol,
+      time_start: time_start,
+      interval: interval,
+      count: count,
+      convert: 'USD',
+    });
+
+    const fullUrl = `${url}?${params.toString()}`;
+
+    const response = await fetch(fullUrl, {
+      method: 'GET',
       headers: {
         'X-CMC_PRO_API_KEY': env.COINMARKETCAP_API_KEY,
       },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch data from CoinMarketCap API');
+      // Handle HTTP errors
+      const errorText = await response.text();
+      res.status(response.status).json({ error: errorText });
+      return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const data = await response.json();
+    const data = (await response.json()) as unknown;
 
     // Return the data from the CoinMarketCap API to the client
     res.status(200).json(data);
-  } catch (error) {
-    res.status(500).json({
-      error:
-        error instanceof Error ? error.message : 'An unknown error occurred',
-    });
+  } catch {
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 }
