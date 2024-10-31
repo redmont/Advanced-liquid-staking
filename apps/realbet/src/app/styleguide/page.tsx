@@ -19,13 +19,20 @@ import {
   TableRow,
   TableSkeleton,
 } from '@/components/ui/table';
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useEffect, useState } from 'react';
 import { Progress, Indicator } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
+import { Paintbrush } from 'lucide-react';
 
 export default function Styleguide() {
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +55,18 @@ export default function Styleguide() {
 
   return (
     <div className="space-y-8 p-3 sm:p-5">
+      <div>
+        <h2 className="mb-3 text-[2rem] font-medium">
+          <Paintbrush className="mb-1 inline size-9" /> Page Title
+        </h2>
+        <p className="mb-4 text-xl font-medium leading-tight text-white/80">
+          Page description is here with a bunch of bla bla blas so you can see
+          how the page description looks like without your typical ipsum lorem.
+          If you really loved the ipsum lorem we formally apologize for the
+          inconvenience. We&apos;re sorry for the inconvenience and we&apos;re
+          really sorry for the inconvenience.
+        </p>
+      </div>
       <div className="flex flex-wrap gap-3">
         <h2 className="border border-border bg-background p-2 text-foreground">
           Background
@@ -108,7 +127,7 @@ export default function Styleguide() {
           </span>
         </p>
       </div>
-      <div>
+      <div className="max-w-xl">
         <h2 className="mb-2 text-xl">Input states</h2>
         <div className="mb-3 flex items-center space-x-2">
           <Checkbox
@@ -135,7 +154,7 @@ export default function Styleguide() {
           id="left-align"
           loading={inputIsLoading}
           placeholder="Placeholder text"
-          startAdornment={<span className="px-2">Start Adornment</span>}
+          startAdornment={<span className="px-2 text-xs">Start Adornment</span>}
           endAdornment={
             <Button
               type="button"
@@ -218,6 +237,18 @@ export default function Styleguide() {
             </Button>
           }
         />
+      </div>
+      <div className="max-w-xl">
+        <Select>
+          <SelectTrigger>
+            <SelectValue placeholder="Theme" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="light">Light</SelectItem>
+            <SelectItem value="dark">Dark</SelectItem>
+            <SelectItem value="system">System</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <h2 className="mb-2 text-xl">Button States</h2>
