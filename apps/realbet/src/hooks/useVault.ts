@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { useToken, address as tokenAddress } from './useToken';
 import useNetworkId from './useNetworkId';
 import { testStakingVaultConfig, testTokenAbi } from '@/contracts/generated';
+import usePrimaryAddress from './usePrimaryAddress';
 
 const contractAddress = testStakingVaultConfig.address['11155111'];
 
@@ -47,16 +48,17 @@ export const useVault = () => {
   } = useToken();
   const { primaryWallet, setShowAuthFlow } = useDynamicContext();
   const { writeContractAsync } = useWriteContract();
+  const primaryAddress = usePrimaryAddress();
 
   const deposits = useQuery({
     enabled: !!primaryWallet && isSuccess,
-    queryKey: ['getDeposits', contractAddress, primaryWallet?.address],
+    queryKey: ['getDeposits', contractAddress, primaryAddress],
     queryFn: async () => {
       const amounts = await (readContract(config, {
         abi: testStakingVaultConfig.abi,
         address: contractAddress,
         functionName: 'getDeposits',
-        args: [primaryWallet?.address as `0x${string}`],
+        args: [primaryAddress as `0x${string}`],
       }) as Promise<unknown[]>);
 
       return amounts
@@ -66,8 +68,8 @@ export const useVault = () => {
   });
 
   const isAdmin = useQuery({
-    enabled: isSuccess && !!primaryWallet?.address,
-    queryKey: ['admin', contractAddress, primaryWallet?.address],
+    enabled: isSuccess && !!primaryAddress,
+    queryKey: ['admin', contractAddress, primaryAddress],
     queryFn: async () => {
       const admin = (await readContract(config, {
         abi: testStakingVaultConfig.abi,
@@ -175,7 +177,7 @@ export const useVault = () => {
 
   const shares = useQuery({
     enabled: !!primaryWallet && isSuccess,
-    queryKey: ['shares', contractAddress, primaryWallet?.address],
+    queryKey: ['shares', contractAddress, primaryAddress],
     queryFn: () =>
       readContract(config, {
         abi: testStakingVaultConfig.abi,
@@ -187,7 +189,7 @@ export const useVault = () => {
 
   const allowance = useQuery({
     enabled: !!primaryWallet && isSuccess && isSuccess,
-    queryKey: ['allowance', contractAddress, primaryWallet?.address, ,],
+    queryKey: ['allowance', contractAddress, primaryAddress, ,],
     queryFn: () =>
       readContract(config, {
         abi: testTokenAbi,
