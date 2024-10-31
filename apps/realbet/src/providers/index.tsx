@@ -2,7 +2,7 @@ import Dynamic from './dynamic';
 import Wagmi from './wagmi';
 import ReactQuery from './react-query';
 import { DynamicWagmiConnector } from '@dynamic-labs/wagmi-connector';
-import { Provider } from 'jotai';
+import JotaiProvider from './jotai';
 
 export default function ProviderWrapper({ children }: React.PropsWithChildren) {
   return (
@@ -10,7 +10,7 @@ export default function ProviderWrapper({ children }: React.PropsWithChildren) {
       <Dynamic>
         <Wagmi>
           <DynamicWagmiConnector>
-            <Provider>{children}</Provider>
+            <JotaiProvider>{children}</JotaiProvider>
           </DynamicWagmiConnector>
         </Wagmi>
       </Dynamic>

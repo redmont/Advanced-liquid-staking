@@ -12,10 +12,8 @@ import {
 import { useMemo } from 'react';
 import { flatten, groupBy, mapValues, uniq } from 'lodash';
 import { base, bsc, mainnet } from 'viem/chains';
-import pLimit from 'p-limit';
+import limit from '@/limiter';
 import fetchSolanaTokenAccounts from '@/utils/fetchSolanaTokenAccounts';
-
-const limit = pLimit(5);
 
 type ChainId = (typeof memeCoins)[number]['chainId'];
 
@@ -51,11 +49,13 @@ const getAllCoinInteractions = async (chain: ChainId, fromAddress: string) => {
   let transfers: AssetTransfersResult[] = [];
 
   while (pagekey !== undefined) {
-    const txs = await alchemy.core.getAssetTransfers({
-      contractAddresses,
-      fromAddress,
-      category: [AssetTransfersCategory.ERC20],
-    });
+    const txs = await limit(() =>
+      alchemy.core.getAssetTransfers({
+        contractAddresses,
+        fromAddress,
+        category: [AssetTransfersCategory.ERC20],
+      }),
+    );
 
     transfers = transfers.concat(txs.transfers);
     pagekey = txs.pageKey;
@@ -71,9 +71,7 @@ const getEVMAccountsCoinInteractions = async (
   addresses: `0x${string}`[],
 ) => {
   const interactions = await Promise.all(
-    addresses.map((address) =>
-      limit(() => getAllCoinInteractions(chain, address)),
-    ),
+    addresses.map((address) => getAllCoinInteractions(chain, address)),
   );
 
   return uniq(flatten(interactions));
@@ -142,6 +140,7 @@ export const useMemeCoinTracking = () => {
 
   return {
     isSuccess: calls.every((call) => call.isSuccess),
+    error: calls.find((call) => call.error)?.error,
     errors: calls.map((call) => call.error).filter(Boolean),
     interactions: calls.reduce(
       (acc, call) => acc.concat(call.data ?? []),
