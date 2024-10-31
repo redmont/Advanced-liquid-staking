@@ -54,6 +54,26 @@ const BonusPage = () => {
     return <ErrorComponent />;
   }
 
+  const degenScoreTooltip = (
+    <PopoverContent className="z-30" align="start">
+      <ul className="max-w-80 list-disc space-y-3 rounded-xl border border-border bg-light p-2 pl-5 text-left text-sm">
+        <li>
+          If there is at least 1 txn on any supported casinos (Shuffle, Stake or
+          Rollbit) on any supported chains (BTC ,SOL, ETH, BNB) then{' '}
+          <b>points += 100</b>
+        </li>
+        <li>
+          Calculate Total deposits on all supported casinos on all supported
+          chains. Then <b>points += (Total deposit/100) * 100</b>
+        </li>
+        <li>
+          For each meme coins that the user has ever interacted with in the meme
+          coin list, <b>points += 100</b>
+        </li>
+      </ul>
+    </PopoverContent>
+  );
+
   return (
     <div className="flex flex-col gap-5 p-5">
       <Banner>
@@ -83,27 +103,7 @@ const BonusPage = () => {
                   How is my bonus calculated <QuestionMarkCircledIcon />
                 </span>
               </PopoverTrigger>
-              <PopoverContent align="start">
-                <ul
-                  className="max-w-xl rounded-lg border border-border bg-light py-3 pl-8 pr-5"
-                  style={{ listStyleType: 'disc' }}
-                >
-                  <li>
-                    If there is at least 1 txn on any supported casinos
-                    (Shuffle, Stake or Rollbit) on any supported chains (BTC
-                    ,SOL, ETH, BNB) then <b>points += 100</b>
-                  </li>
-                  <li>
-                    Calculate Total deposits on all supported casinos on all
-                    supported chains. Then{' '}
-                    <b>points += (Total deposit/100) * 100</b>
-                  </li>
-                  <li>
-                    For each meme coins that the user currently holds from our
-                    supported meme coin list, <b>points += 100</b>
-                  </li>
-                </ul>
-              </PopoverContent>
+              {degenScoreTooltip}
             </Popover>
           </div>
           <div className="flex items-center gap-5 md:max-w-2xl">
@@ -175,26 +175,7 @@ const BonusPage = () => {
                           Total Degen Score{' '}
                           <QuestionMarkCircledIcon className="inline" />
                         </PopoverTrigger>
-                        <PopoverContent className="z-30" align="start">
-                          <ul className="max-w-80 list-disc space-y-3 rounded-xl border border-border bg-light p-2 pl-5 text-left text-sm">
-                            <li>
-                              If there is at least 1 txn on any supported
-                              casinos (Shuffle, Stake or Rollbit) on any
-                              supported chains (BTC ,SOL, ETH, BNB) then{' '}
-                              <b>points += 100</b>
-                            </li>
-                            <li>
-                              Calculate Total deposits on all supported casinos
-                              on all supported chains. Then{' '}
-                              <b>points += (Total deposit/100) * 100</b>
-                            </li>
-                            <li>
-                              For each meme coins that the user currently holds
-                              from our supported meme coin list,{' '}
-                              <b>points += 100</b>
-                            </li>
-                          </ul>
-                        </PopoverContent>
+                        {degenScoreTooltip}
                       </Popover>
                     </h3>
                     <h3 className="text-md text-center">
