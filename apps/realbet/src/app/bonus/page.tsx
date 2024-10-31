@@ -14,10 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { shorten } from './utils';
-import {
-  memeCoins,
-  POINTS_PER_MEME_COIN_INTERACTION,
-} from '@/config/memeCoins';
+import { memeCoins } from '@/config/memeCoins';
 
 import {
   useDynamicContext,
@@ -36,7 +33,9 @@ import {
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { useToken } from '@/hooks/useToken';
 import ErrorComponent from '@/components/error';
-import useDegenScore from './hooks/useDegenScore';
+import useDegenScore, {
+  POINTS_PER_MEME_COIN_INTERACTION,
+} from './hooks/useDegenScore';
 import { useAtomValue } from 'jotai';
 import { progressMessageAtom } from '@/store/degen';
 

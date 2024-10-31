@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useCasinoDeposits } from './useCasinoDeposits';
 import { useMemeCoinTracking } from './useMemeCoinTracking';
-import { POINTS_PER_MEME_COIN_INTERACTION } from '@/config/memeCoins';
 
+export const POINTS_PER_MEME_COIN_INTERACTION = 100;
 const POINTS_PER_USD_DEPOSITED = 1;
 const POINT_THRESHOLD = 100;
 
