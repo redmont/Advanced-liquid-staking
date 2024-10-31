@@ -250,10 +250,12 @@ export default function Token() {
                   loading={!sdkHasLoaded || release.isPending}
                   size="sm"
                   onClick={async () => {
-                    await release.mutateAsync({
-                      amount: nextWithdrawal?.releasableAmount ?? 0n,
-                      vestingScheduleId: nextWithdrawal?.id ?? '',
-                    });
+                    if (nextWithdrawal?.id) {
+                      await release.mutateAsync({
+                        amount: nextWithdrawal?.releasableAmount ?? 0n,
+                        vestingScheduleId: nextWithdrawal?.id,
+                      });
+                    }
                   }}
                 >
                   Withdraw{' '}

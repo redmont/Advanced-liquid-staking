@@ -1,34 +1,44 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useContracts } from './useContracts';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { multicall, readContract } from '@wagmi/core';
 import config from '@/config/wagmi';
 import { useMemo } from 'react';
 import { useWriteContract } from 'wagmi';
 import { waitForTransactionReceipt } from '@wagmi/core';
+import { tokenVestingAbi, tokenVestingConfig } from '@/contracts/generated';
 import assert from 'assert';
-import { type MulticallContracts } from 'viem';
+import useNetworkId from './useNetworkId';
+import type { ReadContractParameters } from 'viem';
 
 export const useVesting = () => {
   const { primaryWallet } = useDynamicContext();
-  const { vesting } = useContracts();
   const { writeContractAsync } = useWriteContract();
+  const { data: networkId } = useNetworkId();
+
+  const vestingContractAddress = useMemo(() => {
+    if (!networkId) {
+      return undefined;
+    }
+    return tokenVestingConfig.address[
+      networkId as keyof typeof tokenVestingConfig.address
+    ];
+  }, [networkId]);
 
   const vestingSchedulesCount = useQuery({
     queryKey: [
       'vestingSchedulesCount',
-      vesting?.address,
+      vestingContractAddress,
       primaryWallet?.address,
     ],
-    enabled: !!primaryWallet && !!vesting,
+    enabled: !!primaryWallet && !!vestingContractAddress,
     queryFn: async () => {
       const count = primaryWallet?.address
-        ? ((await readContract(config, {
-            abi: vesting!.abi,
-            address: vesting!.address,
+        ? await readContract(config, {
+            abi: tokenVestingAbi,
+            address: vestingContractAddress,
             functionName: 'getVestingSchedulesCountByBeneficiary',
-            args: [primaryWallet?.address],
-          })) as Promise<bigint>)
+            args: [primaryWallet.address as `0x${string}`],
+          } as ReadContractParameters)
         : Promise.resolve(0n);
 
       return Number(count);
@@ -38,25 +48,28 @@ export const useVesting = () => {
   const vestingScheduleIds = useQuery({
     queryKey: [
       'vestingScheduleIds',
-      vesting?.address,
+      vestingContractAddress,
       primaryWallet?.address,
       vestingSchedulesCount.data,
     ],
-    enabled: !!primaryWallet && !!vesting && !!vestingSchedulesCount.data,
+    enabled:
+      !!primaryWallet &&
+      !!vestingContractAddress &&
+      !!vestingSchedulesCount.data,
     queryFn: async () => {
-      assert(vesting, 'Vesting contract required');
+      assert(vestingContractAddress, 'Vesting contract required');
 
       const count = vestingSchedulesCount.data!;
       const contracts = Array.from(
         { length: count },
         (_, index) =>
           ({
-            address: vesting.address,
-            abi: vesting.abi,
+            address: vestingContractAddress,
+            abi: tokenVestingConfig.abi,
             functionName: 'computeVestingScheduleIdForAddressAndIndex',
             args: [primaryWallet?.address, index],
           }) as const,
-      ) as MulticallContracts<typeof vesting.abi>;
+      );
 
       const schedules = await multicall(config, {
         contracts,
@@ -69,25 +82,28 @@ export const useVesting = () => {
   const vestingSchedules = useQuery({
     queryKey: [
       'vestingSchedules',
-      vesting?.address,
+      vestingContractAddress,
       primaryWallet?.address,
       vestingSchedulesCount.data,
     ],
-    enabled: !!primaryWallet && !!vesting && !!vestingSchedulesCount.data,
+    enabled:
+      !!primaryWallet &&
+      !!vestingContractAddress &&
+      !!vestingSchedulesCount.data,
     queryFn: async () => {
-      assert(vesting, 'Vesting contract required');
+      assert(vestingContractAddress, 'Vesting contract required');
       assert(primaryWallet?.address, 'Wallet required');
 
       const count = vestingSchedulesCount.data!;
       const contracts = Array.from({ length: count }).map(
         (_, index: number) =>
           ({
-            address: vesting.address,
-            abi: vesting.abi,
+            address: vestingContractAddress,
+            abi: tokenVestingConfig.abi,
             functionName: 'getVestingScheduleByAddressAndIndex',
             args: [primaryWallet.address, index],
           }) as const,
-      ) as MulticallContracts<typeof vesting.abi>;
+      );
 
       const schedules = (await multicall(config, {
         contracts,
@@ -107,32 +123,37 @@ export const useVesting = () => {
   const releasableAmounts = useQuery({
     queryKey: [
       'vestingReleasableAmounts',
-      vesting?.address,
+      vestingContractAddress,
       vestingScheduleIds.data,
     ],
-    enabled: !!vesting && !!vestingScheduleIds.data,
+    enabled: !!vestingContractAddress && !!vestingScheduleIds.data,
     refetchInterval: 60_000,
     queryFn: async () => {
-      assert(vesting, 'Vesting contract required');
+      assert(vestingContractAddress, 'Vesting contract required');
+      assert(tokenVestingConfig.abi, 'Vesting contract ABI required');
+
+      if (!vestingScheduleIds.data) {
+        return [];
+      }
 
       const contracts = vestingScheduleIds.data?.map(
         (scheduleId) =>
           ({
-            address: vesting.address,
-            abi: vesting.abi,
+            address: vestingContractAddress,
+            abi: tokenVestingConfig.abi,
             functionName: 'computeReleasableAmount',
             args: [scheduleId.result],
           }) as const,
-      ) as MulticallContracts<typeof vesting.abi>;
+      );
 
       const amounts = await multicall(config, {
         contracts,
         allowFailure: false,
       });
 
-      const amountsWithIds = vestingScheduleIds.data?.map(
+      const amountsWithIds = vestingScheduleIds.data.map(
         (scheduleId, index) => ({
-          amount: (amounts[index] as bigint) ?? 0n,
+          amount: amounts?.[index] ?? 0n,
           id: scheduleId.result,
         }),
       );
@@ -146,7 +167,7 @@ export const useVesting = () => {
       vestingSchedules.data?.map((schedule, index) => {
         return {
           ...schedule,
-          id: (releasableAmounts.data?.[index]?.id as string) ?? '',
+          id: releasableAmounts.data?.[index]?.id,
           releasableAmount: releasableAmounts.data?.[index]?.amount ?? 0n,
         };
       }) ?? []
@@ -176,7 +197,7 @@ export const useVesting = () => {
   const nextWithdrawal = useMemo(() => {
     // The oldest vesting from vestingSchedulesWithAmounts that has a releasable amount
     if (!vestingSchedulesWithAmounts?.length) {
-      return;
+      return undefined;
     }
 
     const oldestReleasable = vestingSchedulesWithAmounts.find(
@@ -192,15 +213,15 @@ export const useVesting = () => {
       vestingScheduleId,
     }: {
       amount: bigint;
-      vestingScheduleId: string;
+      vestingScheduleId: `0x${string}`;
     }) => {
-      if (!vesting) {
+      if (!vestingContractAddress) {
         throw new Error('Vesting contract required');
       }
 
       const tx = await writeContractAsync({
-        address: vesting.address,
-        abi: vesting.abi,
+        address: vestingContractAddress,
+        abi: tokenVestingConfig.abi,
         functionName: 'release',
         args: [vestingScheduleId, amount],
       });
