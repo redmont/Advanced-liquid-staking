@@ -8,15 +8,13 @@ import {
 import type { Casinos, Chains } from './utils';
 import { getDefaultStore } from 'jotai';
 const store = getDefaultStore();
-import pLimit from 'p-limit';
-const limit = pLimit(10);
 
 interface Txn {
   hash: string;
   from: string;
   to: string;
-  value: number;
-  asset: string;
+  value: number | null;
+  asset: string | null;
   category: string;
   metadata: {
     blockTimestamp: string;
@@ -31,8 +29,8 @@ const TxnSchema = z.object({
   hash: z.string(),
   from: z.string(),
   to: z.string(),
-  value: z.number(),
-  asset: z.string(),
+  value: z.number().or(z.null()),
+  asset: z.string().or(z.null()),
   category: z.string(),
   metadata: z.object({
     blockTimestamp: z.string(),
@@ -203,10 +201,6 @@ async function processInBatches<T>(
   delayMs: number,
 ): Promise<T | null> {
   for (let i = 0; i < tasks.length; i += batchSize) {
-    // if (wallet2 !== null) {
-    //   break; // Stop processing further batches if a wallet is found
-    // }
-
     const batch = tasks.slice(i, i + batchSize).map((task) => task());
 
     const batchResults = await Promise.allSettled(batch);
@@ -227,8 +221,8 @@ async function processInBatches<T>(
   return null; // Return null if no wallet is found after processing all batches
 }
 type depositInfo = {
-  amount: number;
-  asset: string;
+  amount: number | null;
+  asset: string | null;
   blockTimestamp: string;
   txnHash: string;
 };
@@ -241,11 +235,10 @@ async function findIntermediaryWallet(
 ): Promise<string | null> {
   const allTxns = await fetchAllTransactions(userWallet, chain, blockStart);
   let txChecked = 0;
-
   const tasks = allTxns.map((tx: Txn) => async () => {
-    // if (wallet2 !== null) {
-    //   return wallet2;
-    // }
+    if (!tx.asset || !tx.value) {
+      return null;
+    }
 
     const potentialWallet2 = tx.to;
 
@@ -290,42 +283,6 @@ async function findIntermediaryWallet(
   }
 }
 
-export async function traceDepositsFromWallet2(
-  chain: string,
-  blockStart: number,
-  wallet2: string | null,
-): Promise<{ totalDepositedInUSD: number; lastDeposited: string | undefined }> {
-  if (!wallet2) {
-    throw new Error('Wallet 2 not found');
-  }
-
-  const allTxns = await fetchAllTransactions(wallet2, chain, blockStart);
-
-  const promises = allTxns.map((tx) =>
-    limit(async () => {
-      const timestamp = tx.metadata.blockTimestamp;
-      const asset = tx.asset;
-      const value = tx.value;
-
-      // Get the price of the token at the timestamp
-      const tokenPriceAtTimestamp =
-        (await getHistoricalPriceAtTime(asset, timestamp)) ?? 0;
-      return value * tokenPriceAtTimestamp;
-    }),
-  );
-
-  const results = await Promise.all(promises);
-
-  // Sum up the totalDepositedInUSD
-  const totalDepositedInUSD = results.reduce(
-    (sum, current) => sum + current,
-    0,
-  );
-
-  const lastDeposited = allTxns[allTxns.length - 1]?.metadata?.blockTimestamp;
-  return { totalDepositedInUSD, lastDeposited };
-}
-
 async function calculateCumulativeDepositsInUSD(): Promise<{
   totalDepositedInUSD: number;
 }> {
@@ -353,8 +310,8 @@ async function calculateCumulativeDepositsInUSD(): Promise<{
     // Process the transactions in the current chunk in parallel
     const promises = chunk.map(async (tx) => {
       const timestamp = tx.blockTimestamp;
-      const asset = tx.asset;
-      const value = tx.amount;
+      const asset = tx.asset ?? '';
+      const value = tx.amount ?? 0;
 
       // Get the price of the token at the timestamp
       const tokenPriceAtTimestamp =
@@ -440,14 +397,6 @@ export async function checkUserDeposits(
 
     const { totalDepositedInUSD } = await calculateCumulativeDepositsInUSD();
     depositsList = [];
-
-    // const totalDeposited = await traceDepositsFromWallet2(
-    //   chain,
-    //   blockStart,
-    //   foundWallet,
-    // );
-
-    // wallet2 = null;
 
     return totalDepositedInUSD;
   } catch {

@@ -61,7 +61,7 @@ const getAllAllocations = async (userWallets: string[]) => {
     };
   });
   // userWallets = [
-  //   '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
+  //   '0x52cc50A026AbA4c4221e21FE3fB9B047D968305c',
   //   '0x75AA2060d1ac0193b7c0741224CAf700b6DCd6BD',
   //   '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f',
   // ];
