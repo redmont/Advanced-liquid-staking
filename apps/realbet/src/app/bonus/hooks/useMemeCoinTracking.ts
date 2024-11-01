@@ -14,6 +14,8 @@ import { flatten, groupBy, mapValues, uniq } from 'lodash';
 import { base, bsc, mainnet } from 'viem/chains';
 import limit from '@/limiter';
 import fetchSolanaTokenAccounts from '@/utils/fetchSolanaTokenAccounts';
+import usePrimaryAddress from '@/hooks/usePrimaryAddress';
+import { PublicKey } from '@solana/web3.js';
 
 type ChainId = (typeof memeCoins)[number]['chainId'];
 
@@ -77,24 +79,31 @@ const getEVMAccountsCoinInteractions = async (
   return uniq(flatten(interactions));
 };
 
+const isSolanaAddress = (address: string) =>
+  PublicKey.isOnCurve(new PublicKey(address).toBytes());
+
 export const useMemeCoinTracking = () => {
   const authenticated = useIsLoggedIn();
   const userWallets = useUserWallets();
+  const primaryAddress = usePrimaryAddress();
 
   const userEvmAddresses = useMemo(
     () =>
       userWallets
-        .filter((wallet) => isAddress(wallet.address))
-        .map((w) => w.address as `0x${string}`),
-    [userWallets],
+        .map((w) => w.address)
+        .concat(primaryAddress ?? '')
+        .filter((address): address is `0x${string}` => isAddress(address)),
+    [userWallets, primaryAddress],
   );
 
   const userSolanaAddresses = useMemo(
     () =>
       userWallets
         .filter((wallet) => wallet.chain === 'solana')
-        .map((w) => w.address),
-    [userWallets],
+        .map((w) => w.address)
+        .concat(primaryAddress ?? '')
+        .filter((address) => isSolanaAddress(address)),
+    [userWallets, primaryAddress],
   );
 
   const ethInteractions = useQuery({

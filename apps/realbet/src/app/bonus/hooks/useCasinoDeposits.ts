@@ -6,12 +6,17 @@ import { useUserWallets } from '@dynamic-labs/sdk-react-core';
 import { flatten } from 'lodash';
 import { useMemo } from 'react';
 import { isAddress } from 'viem';
+import usePrimaryAddress from '@/hooks/usePrimaryAddress';
 
 export const useCasinoDeposits = () => {
   const userWalletAddresses = useUserWallets().map((wallet) => wallet.address);
+  const primaryAddress = usePrimaryAddress();
   const evmAddresses = useMemo(
-    () => userWalletAddresses.filter((addr) => isAddress(addr)),
-    [userWalletAddresses],
+    () =>
+      userWalletAddresses
+        .concat(primaryAddress ?? '')
+        .filter((addr) => isAddress(addr)),
+    [userWalletAddresses, primaryAddress],
   );
 
   return useQuery({
