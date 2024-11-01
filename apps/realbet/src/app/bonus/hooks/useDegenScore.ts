@@ -74,6 +74,7 @@ const useDegenScore = () => {
   return {
     isSuccess: calls.every((call) => call.isSuccess),
     errors: calls.map((call) => call.error).filter(Boolean),
+    totalScore: totalDepositScore + totalMemeInteractionScore,
     totalMemeInteractionScore,
     totalDepositScore,
     memeInteractions,

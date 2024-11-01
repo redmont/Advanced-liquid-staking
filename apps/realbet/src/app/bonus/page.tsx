@@ -38,6 +38,7 @@ import useDegenScore, {
 } from './hooks/useDegenScore';
 import { useAtomValue } from 'jotai';
 import { progressMessageAtom, transactionsScannedAtom } from '@/store/degen';
+import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 
 const BonusPage = () => {
   const [showResults, setShowResults] = useState(false);
@@ -45,6 +46,9 @@ const BonusPage = () => {
   const transactionsScanned = useAtomValue(transactionsScannedAtom);
   const token = useToken();
   const degenScore = useDegenScore();
+  const animatedTotalScore = useAnimatedNumber(degenScore.totalScore, {
+    locale: 'en-US',
+  });
   const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
@@ -190,7 +194,7 @@ const BonusPage = () => {
                     </h3>
                     <h3 className="text-md text-center">
                       <span className="text-xl text-primary">
-                        {degenScore.totalDepositScore}
+                        {animatedTotalScore}
                       </span>
                     </h3>
                   </div>
