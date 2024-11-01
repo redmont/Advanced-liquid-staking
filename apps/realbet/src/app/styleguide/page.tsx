@@ -33,6 +33,7 @@ import { useEffect, useState } from 'react';
 import { Progress, Indicator } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Paintbrush } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function Styleguide() {
   const [isLoading, setIsLoading] = useState(false);
@@ -237,6 +238,14 @@ export default function Styleguide() {
             </Button>
           }
         />
+
+        <label
+          htmlFor="textarea"
+          className="block text-sm font-medium text-muted-foreground"
+        >
+          Textarea
+        </label>
+        <Textarea id="textarea" placeholder="Placeholder text" />
       </div>
       <div className="max-w-xl">
         <Select>

@@ -19,7 +19,6 @@ import { memeCoins } from '@/config/memeCoins';
 import {
   useDynamicContext,
   useIsLoggedIn,
-  useUserWallets,
   useDynamicModals,
 } from '@dynamic-labs/sdk-react-core';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
@@ -39,6 +38,7 @@ import useDegenScore, {
 import { useAtomValue } from 'jotai';
 import { progressMessageAtom, transactionsScannedAtom } from '@/store/degen';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
+import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 
 const BonusPage = () => {
   const [showResults, setShowResults] = useState(false);
@@ -52,7 +52,7 @@ const BonusPage = () => {
   const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
-  const userWallets = useUserWallets();
+  const userAddresses = useWalletAddresses();
   const { setShowLinkNewWalletModal } = useDynamicModals();
 
   if (degenScore.errors.length > 0) {
@@ -122,27 +122,27 @@ const BonusPage = () => {
           </div>
         </div>
       </Banner>
-      {isAuthenticated && userWallets.length > 0 && (
+      {isAuthenticated && userAddresses.length > 0 && (
         <div>
           <div className="space-y-4 md:max-w-[65%]">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-5 py-4">
               <span>
-                Connected Wallets: {userWallets.length}
+                Connected Wallets: {userAddresses.length}
                 <div className="flex items-center gap-2">
-                  {userWallets.slice(0, 3).map((wallet, i) => (
-                    <span key={wallet.address}>
-                      {wallet.address && shorten(wallet.address, 4)}
-                      {i !== userWallets.length - 1 && ','}
+                  {userAddresses.slice(0, 3).map((address, i) => (
+                    <span key={`${address}-${i}`}>
+                      {address && shorten(address, 4)}
+                      {i !== address.length - 1 && ','}
                     </span>
                   ))}
-                  {userWallets.length > 3 && (
+                  {userAddresses.length > 3 && (
                     <span className="no-wrap whitespace-nowrap">
                       {'+ '}
                       <a
                         className="cursor-pointer font-semibold underline underline-offset-2 hover:text-primary"
                         onClick={() => setShowDynamicUserProfile(true)}
                       >
-                        {userWallets.length - 3} more
+                        {userAddresses.length - 3} more
                       </a>
                     </span>
                   )}

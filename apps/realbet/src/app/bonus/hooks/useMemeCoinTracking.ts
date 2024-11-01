@@ -1,4 +1,4 @@
-import { useIsLoggedIn, useUserWallets } from '@dynamic-labs/sdk-react-core';
+import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { memeCoins } from '@/config/memeCoins';
 import { useQuery } from '@tanstack/react-query';
 import { isAddress } from 'viem';
@@ -14,8 +14,8 @@ import { flatten, groupBy, mapValues, uniq } from 'lodash';
 import { base, bsc, mainnet } from 'viem/chains';
 import limit from '@/limiter';
 import fetchSolanaTokenAccounts from '@/utils/fetchSolanaTokenAccounts';
-import usePrimaryAddress from '@/hooks/usePrimaryAddress';
 import { PublicKey } from '@solana/web3.js';
+import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 
 type ChainId = (typeof memeCoins)[number]['chainId'];
 
@@ -89,26 +89,19 @@ const isSolanaAddress = (address: string) => {
 
 export const useMemeCoinTracking = () => {
   const authenticated = useIsLoggedIn();
-  const userWallets = useUserWallets();
-  const primaryAddress = usePrimaryAddress();
+  const userAddresses = useWalletAddresses();
 
   const userEvmAddresses = useMemo(
     () =>
-      userWallets
-        .map((w) => w.address)
-        .concat(primaryAddress ?? '')
-        .filter((address): address is `0x${string}` => isAddress(address)),
-    [userWallets, primaryAddress],
+      userAddresses.filter((address): address is `0x${string}` =>
+        isAddress(address),
+      ),
+    [userAddresses],
   );
 
   const userSolanaAddresses = useMemo(
-    () =>
-      userWallets
-        .filter((wallet) => wallet.chain === 'solana')
-        .map((w) => w.address)
-        .concat(primaryAddress ?? '')
-        .filter((address) => isSolanaAddress(address)),
-    [userWallets, primaryAddress],
+    () => userAddresses.filter((address) => isSolanaAddress(address)),
+    [userAddresses],
   );
 
   const ethInteractions = useQuery({

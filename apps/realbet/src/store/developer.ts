@@ -9,3 +9,9 @@ export const primaryWalletAddressOverrideAtom = atomWithStorage<string | null>(
 );
 
 export const networkOverrideAtom = atom<number | null>(null);
+export const connectedAddressesOverrideAtom = atomWithStorage<string | null>(
+  'connected_addresses',
+  null,
+  undefined,
+  { getOnInit: true },
+);

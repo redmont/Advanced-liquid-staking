@@ -73,8 +73,8 @@
     --popover-foreground: 0 0% 100%;
     --primary: 0 100% 81%;
     --primary-foreground: var(--background);
-    --muted: 0 0% 50%;
-    --muted-foreground: 0 10% 70%;
+    --muted: 0 0% 30%;
+    --muted-foreground: var(--background-lightest);
     --accent: 356 92% 60%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 97% 33%;

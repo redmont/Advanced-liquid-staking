@@ -2,21 +2,17 @@ import { useQuery } from '@tanstack/react-query';
 
 import { chains } from '../utils';
 import { getUserDeposits } from '../utils';
-import { useUserWallets } from '@dynamic-labs/sdk-react-core';
 import { flatten } from 'lodash';
 import { useMemo } from 'react';
 import { isAddress } from 'viem';
-import usePrimaryAddress from '@/hooks/usePrimaryAddress';
+import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 
 export const useCasinoDeposits = () => {
-  const userWalletAddresses = useUserWallets().map((wallet) => wallet.address);
-  const primaryAddress = usePrimaryAddress();
+  const userWalletAddresses = useWalletAddresses();
+
   const evmAddresses = useMemo(
-    () =>
-      userWalletAddresses
-        .concat(primaryAddress ?? '')
-        .filter((addr) => isAddress(addr)),
-    [userWalletAddresses, primaryAddress],
+    () => userWalletAddresses.filter((addr) => isAddress(addr)),
+    [userWalletAddresses],
   );
 
   return useQuery({

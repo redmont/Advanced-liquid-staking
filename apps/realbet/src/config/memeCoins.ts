@@ -245,5 +245,3 @@ export const memeCoins = [
     icon: 'ginnan.png',
   },
 ] as const;
-
-export const POINTS_PER_MEME_COIN_INTERACTION = 100;
