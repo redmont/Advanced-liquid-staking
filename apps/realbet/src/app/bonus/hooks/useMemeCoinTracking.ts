@@ -79,8 +79,13 @@ const getEVMAccountsCoinInteractions = async (
   return uniq(flatten(interactions));
 };
 
-const isSolanaAddress = (address: string) =>
-  PublicKey.isOnCurve(new PublicKey(address).toBytes());
+const isSolanaAddress = (address: string) => {
+  try {
+    return PublicKey.isOnCurve(new PublicKey(address).toBytes());
+  } catch {
+    return false;
+  }
+};
 
 export const useMemeCoinTracking = () => {
   const authenticated = useIsLoggedIn();

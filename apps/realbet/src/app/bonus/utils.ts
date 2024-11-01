@@ -9,7 +9,7 @@ import { env } from '@/env.js';
 import { flatten } from 'lodash';
 import limit from '@/limiter';
 import { store } from '@/store';
-import { progressMessageAtom } from '@/store/degen';
+import { progressMessageAtom, transactionsScannedAtom } from '@/store/degen';
 
 export const alchemyApiKey = env.NEXT_PUBLIC_ALCHEMY_API_KEY;
 
@@ -155,6 +155,12 @@ const findIntermediaryWallets = async (
       }),
     );
 
+    store.set(
+      transactionsScannedAtom,
+      store.get(transactionsScannedAtom) +
+        userWalletTransactions.transfers.length,
+    );
+
     for (const userTx of userWalletTransactions.transfers) {
       if (!userTx.to || Object.values(intermediaryWallets).every(Boolean)) {
         break;
@@ -169,6 +175,12 @@ const findIntermediaryWallets = async (
             category: [AssetTransfersCategory.ERC20],
             pageKey: innerPageKey,
           }),
+        );
+
+        store.set(
+          transactionsScannedAtom,
+          store.get(transactionsScannedAtom) +
+            intermediaryTransactions.transfers.length,
         );
 
         for (const intermediaryTx of intermediaryTransactions.transfers) {
@@ -202,6 +214,7 @@ export async function getUserDeposits(
   userWallet: string,
   chain: Network = Network.ETH_MAINNET,
 ) {
+  store.set(transactionsScannedAtom, 0);
   store.set(progressMessageAtom, 'Scanning wallets');
   const intermediaryWallets = await findIntermediaryWallets(
     userWallet,

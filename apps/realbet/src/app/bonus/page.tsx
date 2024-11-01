@@ -37,11 +37,12 @@ import useDegenScore, {
   POINTS_PER_MEME_COIN_INTERACTION,
 } from './hooks/useDegenScore';
 import { useAtomValue } from 'jotai';
-import { progressMessageAtom } from '@/store/degen';
+import { progressMessageAtom, transactionsScannedAtom } from '@/store/degen';
 
 const BonusPage = () => {
   const [showResults, setShowResults] = useState(false);
   const progressMessage = useAtomValue(progressMessageAtom);
+  const transactionsScanned = useAtomValue(transactionsScannedAtom);
   const token = useToken();
   const degenScore = useDegenScore();
   const isAuthenticated = useIsLoggedIn();
@@ -162,9 +163,18 @@ const BonusPage = () => {
             </div>
             {showResults && (
               <>
-                {progressMessage && (
+                {!degenScore.isSuccess && (
                   <div className="flex flex-wrap items-center gap-3 rounded-xl bg-lighter/50 px-5 py-4">
-                    <Loader2 className="animate-spin" /> {progressMessage}{' '}
+                    {!degenScore.isSuccess && (
+                      <Loader2 className="animate-spin" />
+                    )}
+                    {progressMessage && <p>{progressMessage}</p>}
+                    {transactionsScanned > 0 && (
+                      <p>
+                        {transactionsScanned.toLocaleString()} transactions
+                        scanned...
+                      </p>
+                    )}
                   </div>
                 )}
                 <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-lighter/50 px-5 py-3">
@@ -264,31 +274,35 @@ const BonusPage = () => {
                       </TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {memeCoins.map((memeCoin) => (
-                      <TableRow
-                        key={`${memeCoin.ticker}-${memeCoin.chainId}`}
-                        className="odd:bg-lighter/1 even:bg-lighter/1 border-b-5 border border-lighter/50"
-                      >
-                        <TableCell className="flex items-center gap-2 px-5 font-normal capitalize">
-                          <img
-                            alt=""
-                            width={26}
-                            src={`/icons/${memeCoin.ticker.toLowerCase()}.png`}
-                          />{' '}
-                          {memeCoin.ticker}
-                        </TableCell>
-                        <TableCell className="px-5 text-right"></TableCell>
-                        <TableCell className="px-5 text-right">
-                          {degenScore.memeInteractions.interactions.includes(
-                            memeCoin.contractAddress,
-                          )
-                            ? POINTS_PER_MEME_COIN_INTERACTION
-                            : 0}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                  {!degenScore.memeInteractions.isSuccess ? (
+                    <TableBodySkeleton cols={3} rows={memeCoins.length} />
+                  ) : (
+                    <TableBody>
+                      {memeCoins.map((memeCoin) => (
+                        <TableRow
+                          key={`${memeCoin.ticker}-${memeCoin.chainId}`}
+                          className="odd:bg-lighter/1 even:bg-lighter/1 border-b-5 border border-lighter/50"
+                        >
+                          <TableCell className="flex items-center gap-2 px-5 font-normal capitalize">
+                            <img
+                              alt=""
+                              width={26}
+                              src={`/icons/${memeCoin.ticker.toLowerCase()}.png`}
+                            />{' '}
+                            {memeCoin.ticker}
+                          </TableCell>
+                          <TableCell className="px-5 text-right"></TableCell>
+                          <TableCell className="px-5 text-right">
+                            {degenScore.memeInteractions.interactions.includes(
+                              memeCoin.contractAddress,
+                            )
+                              ? POINTS_PER_MEME_COIN_INTERACTION
+                              : 0}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  )}
                   <TableFooter className="border-b-5 border border-lighter/50 bg-lighter/20">
                     <TableRow>
                       <TableHead className="px-5 font-normal">Total</TableHead>
