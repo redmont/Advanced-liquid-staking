@@ -139,8 +139,9 @@ export const useMemeCoinTracking = () => {
         ),
       );
 
-      return uniq(flatten(tokens)).filter((token) =>
-        (coins.mainnet as string[])?.includes(token),
+      return uniq(flatten(tokens)).filter(
+        (token): token is string =>
+          !!token && (coins.mainnet as string[])?.includes(token),
       );
     },
   });

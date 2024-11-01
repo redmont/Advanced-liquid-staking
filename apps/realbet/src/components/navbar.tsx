@@ -34,6 +34,8 @@ import { env, isDev } from '@/env';
 import useClickOutside from '@/hooks/useClickOutside';
 import { useVault } from '@/hooks/useVault';
 import usePrimaryAddress from '@/hooks/usePrimaryAddress';
+import { primaryWalletAddressOverrideAtom } from '@/store/developer';
+import { useAtom } from 'jotai';
 
 const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
   className,
@@ -58,6 +60,10 @@ const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
 };
 
 const Navbar: React.FC<{ className?: string }> = ({ className }) => {
+  const [addressOverride, setAddressOverride] = useAtom(
+    primaryWalletAddressOverrideAtom,
+  );
+  const [hasOverride, setHasOverride] = useState(false);
   const pathname = usePathname();
   const isAuthenticated = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
@@ -67,6 +73,12 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const navRef = useRef<HTMLDivElement>(null);
   useClickOutside(navRef, () => setNavOpen(false));
   const vault = useVault();
+
+  // address override is in localstorage which the backend is not aware of,
+  // so we need to set this variable on mount to avoid hydration issues
+  useEffect(() => {
+    setHasOverride(!!addressOverride);
+  }, [addressOverride]);
 
   useEffect(() => {
     setNavOpen(false);
@@ -118,6 +130,14 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
                 <>Connect Wallet</>
               )}
             </Button>
+            {hasOverride && (
+              <button
+                className="text-accent"
+                onClick={() => setAddressOverride(null)}
+              >
+                clear override?
+              </button>
+            )}
             <DynamicUserProfile />
             {isAuthenticated && (
               <div className="font-regular space-y-1 py-3 text-xl">

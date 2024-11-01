@@ -40,6 +40,7 @@
     "@types/lodash": "^4.17.12",
     "@wagmi/core": "^2.13.7",
     "alchemy-sdk": "^3.4.4",
+    "bs58": "^6.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",

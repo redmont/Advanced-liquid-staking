@@ -1,43 +1,16 @@
 /* eslint-disable no-console */
 import { z } from 'zod';
-import { env } from '@/env'; // Assume you import your environment variables properly
-
-const TokenAmountSchema = z.object({
-  amount: z.string(),
-  decimals: z.number(),
-  uiAmount: z.number(),
-  uiAmountString: z.string(),
-});
-
-const AccountInfoSchema = z.object({
-  isNative: z.boolean(),
-  mint: z.string(),
-  owner: z.string(),
-  state: z.string(),
-  tokenAmount: TokenAmountSchema,
-});
-
-const ParsedDataSchema = z.object({
-  info: AccountInfoSchema,
-  type: z.string(),
-});
-
-const AccountDataSchema = z.object({
-  parsed: ParsedDataSchema,
-  program: z.string(),
-  space: z.number(),
-});
+import { env } from '@/env';
 
 const AccountSchema = z.object({
-  data: AccountDataSchema,
-  executable: z.boolean(),
-  lamports: z.number(),
   owner: z.string(),
-  rentEpoch: z.number(),
-});
-
-const ContextSchema = z.object({
-  slot: z.number(),
+  data: z.object({
+    parsed: z.object({
+      info: z.object({
+        mint: z.string(),
+      }),
+    }),
+  }),
 });
 
 const ValueSchema = z.object({
@@ -46,8 +19,8 @@ const ValueSchema = z.object({
 });
 
 const ResultSchema = z.object({
-  context: ContextSchema,
-  value: z.array(ValueSchema),
+  result: z.object({ value: z.array(ValueSchema).optional() }).optional(),
+  error: z.object({ message: z.string() }).optional(),
 });
 
 async function fetchSolanaTokenAccounts(address: string) {
@@ -63,7 +36,11 @@ async function fetchSolanaTokenAccounts(address: string) {
           method: 'getTokenAccountsByOwner',
           id: 1,
           jsonrpc: '2.0',
-          params: [address],
+          params: [
+            address,
+            { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
+            { encoding: 'jsonParsed' },
+          ],
         }),
       },
     );
@@ -72,15 +49,14 @@ async function fetchSolanaTokenAccounts(address: string) {
       throw new Error(`Network response was not ok: ${response.statusText}`);
     }
 
-    const data = ResultSchema.parse(await response.json());
+    const result = ResultSchema.parse(await response.json());
 
-    // Validate with Zod
-    const result = ResultSchema.safeParse(data);
-    if (!result.success) {
-      throw new Error('Invalid data structure');
+    if (result.error) {
+      console.error('Failed to fetch Solana token accounts:', result.error);
+      throw new Error('Something failed with the request.');
     }
 
-    return result.data.value.map((v) => v.account.owner); // Validated data
+    return result.result?.value?.map((v) => v.account.data.parsed.info.mint); // Validated data
   } catch (error) {
     console.error('Failed to fetch Solana token accounts:', error);
     throw error;
