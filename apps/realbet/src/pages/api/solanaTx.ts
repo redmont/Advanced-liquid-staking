@@ -10,7 +10,7 @@ export default async function handler(
   res: NextApiResponse,
 ) {
 
-  const API_BASE_URL = 'https://api-devnet.helius.xyz/v0/addresses';
+  const API_BASE_URL = 'https://api.helius.xyz/v0/addresses';
   const { fromAddress } = req.body as TransactionRequestBody;
 
   if (!fromAddress) {
@@ -19,7 +19,7 @@ export default async function handler(
 
   try {
     const response = await fetch(
-      `${API_BASE_URL}/${fromAddress}/transactions?api-key=${env.NEXT_PUBLIC_HELIUS_API_KEY}&type=TRANSFER`,
+      `${API_BASE_URL}/${fromAddress}/transactions?api-key=${env.HELIUS_API_KEY}&type=TRANSFER`,
       {
         method: 'GET',
         headers: {

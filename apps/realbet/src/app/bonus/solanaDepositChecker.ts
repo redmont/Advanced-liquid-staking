@@ -1,18 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 
-interface SolanaOriTxn {
+interface SolanaBaseTransaction {
   from: string;
   to: string;
   amount: number;
   timestamp: string;
 }
 
-interface SolanaSRCTxn {
-  from: string;
-  to: string;
-  amount: number;
-  timestamp: string;
+interface SolanaSRCTxn extends SolanaBaseTransaction {
   mint: string;
   toUserAccount: string;
   tokenStandard: string;
@@ -30,14 +26,29 @@ interface Transaction {
   }[];
 }
 
-interface TransactionWithValue {
-  from: string;
-  to: string;
-  amount: number;
-  timestamp: string;
+interface TransactionWithValue extends SolanaBaseTransaction {
   solAmount: number;
   usdValue: number;
+  tokenMetadata?: {
+    symbol: string;
+    decimals: number;
+    adjustedAmount: number;
+    pricePerToken: number;
+  };
 }
+
+// interface TokenPriceInfo {
+//   price_per_token: number;
+//   currency: string;
+// }
+
+// interface TokenMetadata {
+//   symbol: string;
+//   supply: number;
+//   decimals: number;
+//   token_program: string;
+//   price_info: TokenPriceInfo;
+// }
 
 const CoinDataResponseSchema = z.object({
   data: z.record(
@@ -57,150 +68,11 @@ const CoinDataResponseSchema = z.object({
   ),
 });
 
-export const FetchAllTransactions = (fromAddress: string) => {
-  const { data }: { data?: Transaction[] } = useQuery({
-    queryKey: ['address', fromAddress],
-    queryFn: async () => {
-      const response = await fetch('/api/solanaTx', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fromAddress: fromAddress,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const res = await response.json();
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-      return res;
-    },
-    enabled: fromAddress !== '',
-  });
-
-  return data;
-};
-
-//Native transfers tx
-export const useSolanaNativeTransactions = (fromAddress: string) => {
-  const origin = FetchAllTransactions(fromAddress);
-
-  if (origin) {
-    const alpha = origin.flatMap((txn: Transaction) => {
-      return txn.nativeTransfers
-        .filter(
-          (transfer) =>
-            transfer.toUserAccount !== fromAddress &&
-            transfer.fromUserAccount === fromAddress,
-        )
-        .map((transfer) => ({
-          from: transfer.fromUserAccount,
-          to: transfer.toUserAccount,
-          amount: transfer.amount,
-          timestamp: txn.timestamp,
-        }));
-    }) as SolanaOriTxn[];
-
-    return alpha;
-  }
-};
-
-export const useFindNativeTreasury = (
-  fromAddress: string,
-  treasuryAddress: string,
-) => {
-  const alpha = useSolanaNativeTransactions(fromAddress);
-
-  if (alpha !== undefined) {
-    const treasuryTxns = alpha.map((txn: SolanaOriTxn) => {
-      const wallet2 = txn.to;
-      const tx = FetchAllTransactions(txn.to);
-
-      if (tx) {
-        const alpha: SolanaOriTxn[] = tx.flatMap((txn: Transaction) => {
-          return txn.nativeTransfers
-            .filter(
-              (transfer) =>
-                transfer.toUserAccount === treasuryAddress &&
-                transfer.fromUserAccount === wallet2,
-            )
-            .map((transfer) => ({
-              from: transfer.fromUserAccount,
-              to: transfer.toUserAccount,
-              amount: transfer.amount,
-              timestamp: txn.timestamp,
-            }));
-        }) as SolanaOriTxn[];
-
-        return alpha;
-      }
-    });
-    return treasuryTxns;
-  }
-};
-
-export const useTraceSolanaDeposits = (
-  fromAddress: string,
-  treasuryAddress: string,
-) => {
-  const mapTxs = useFindNativeTreasury(fromAddress, treasuryAddress);
-
-  if (mapTxs !== undefined) {
-    const Deposits = mapTxs.flatMap((txn) => {
-      return txn?.map((innerTxn: SolanaOriTxn) => {
-        const price: number | undefined = useHistoricalPriceAtTime('SOL', innerTxn.timestamp);
-
-        if (price) {
-          const solAmount = innerTxn.amount / 10 ** 9;
-          const usdValue = solAmount * price;
-          return {
-            ...innerTxn,
-            solAmount,
-            usdValue,
-          } as TransactionWithValue;
-        }
-        return null;
-      });
-    });
-    return Deposits;
-  }
-};
-
-//src-20 transfers
-export const useSolanaSrc20Transactions = (fromAddress: string) => {
-  const origin = FetchAllTransactions(fromAddress);
-
-  if (origin) {
-    const beta = origin.flatMap((txn: Transaction) => {
-      return txn.tokenTransfers
-        .filter(
-          (transfer) =>
-            transfer.toUserAccount !== fromAddress &&
-            transfer.tokenStandard === 'Fungible' &&
-            transfer.fromUserAccount === fromAddress,
-        )
-        .map((transfer) => ({
-          from: transfer.fromUserAccount,
-          to: transfer.toUserAccount,
-          amount: transfer.tokenAmount,
-          timestamp: txn.timestamp,
-          mint: transfer.mint,
-        }));
-    });
-    return beta;
-  }
-
-  return origin;
-};
-
 export const useHistoricalPriceAtTime = (symbol: string, timestamp: string) => {
+  const isoString = new Date(+timestamp * 1000).toISOString();
   const params = new URLSearchParams({
     symbol: symbol,
-    time_start: timestamp,
+    time_start: isoString,
     count: '1',
     convert: 'USD',
   });
@@ -225,10 +97,185 @@ export const useHistoricalPriceAtTime = (symbol: string, timestamp: string) => {
         return price;
       }
     },
-    enabled: timestamp !== '',
+    enabled: Boolean(timestamp),
   });
 
   if (data) {
     return data;
   }
 };
+
+export const useFetchAllTransactions = (fromAddress: string) => {
+  const { data }: { data?: Transaction[] } = useQuery({
+    queryKey: ['address', fromAddress],
+    queryFn: async () => {
+      const response = await fetch('/api/solanaTx', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fromAddress: fromAddress,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+
+      const res = (await response.json()) as Promise<Transaction[]>;
+      return res;
+    },
+    enabled: fromAddress !== '',
+  });
+
+  return data;
+};
+
+//Native transfers tx
+const useSolanaNativeTransactions = (fromAddress: string) => {
+  const origin = useFetchAllTransactions(fromAddress);
+
+  if (origin) {
+    const alpha = origin.flatMap((txn: Transaction) => {
+      return txn.nativeTransfers
+        .filter(
+          (transfer) =>
+            transfer.toUserAccount !== fromAddress &&
+            transfer.fromUserAccount === fromAddress,
+        )
+        .map((transfer) => ({
+          from: transfer.fromUserAccount,
+          to: transfer.toUserAccount,
+          amount: transfer.amount,
+          timestamp: txn.timestamp,
+        }));
+    }) as SolanaSRCTxn[];
+
+    return alpha;
+  }
+};
+
+const useFindNativeTreasury = (
+  fromAddress: string,
+  treasuryAddress: string,
+) => {
+  const alpha = useSolanaNativeTransactions(fromAddress);
+
+  if (alpha !== undefined) {
+    const treasuryTxns = alpha.flatMap((txn: SolanaSRCTxn) => {
+      const wallet2 = txn.to;
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const tx = useFetchAllTransactions(txn.to);
+
+      if (!tx) {
+        return [];
+      }
+      if (tx) {
+        return tx.flatMap((txn: Transaction) => {
+          return txn.nativeTransfers
+            .filter(
+              (transfer) =>
+                transfer.toUserAccount === treasuryAddress &&
+                transfer.fromUserAccount === wallet2,
+            )
+            .map((transfer) => ({
+              from: transfer.fromUserAccount,
+              to: transfer.toUserAccount,
+              amount: transfer.amount,
+              timestamp: txn.timestamp,
+            }));
+        });
+      }
+    });
+    return treasuryTxns;
+  }
+};
+
+export const useTraceSolanaDeposits = (
+  fromAddress: string,
+  treasuryAddress: string,
+) => {
+  const mapTxs = useFindNativeTreasury(fromAddress, treasuryAddress);
+
+  if (!mapTxs) {
+    return { deposits: [], totalUsdValue: 0 };
+  }
+
+  const deposits = mapTxs
+    .map((txn) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const price = useHistoricalPriceAtTime('SOL', txn?.timestamp ?? '');
+
+      if (!price) {
+        return null;
+      }
+
+      if (!txn) {
+        return null;
+      }
+
+      const solAmount = txn?.amount / 10 ** 9;
+      const usdValue = solAmount * price;
+
+      return {
+        ...txn,
+        price,
+        solAmount,
+        usdValue,
+      } as TransactionWithValue;
+    })
+    .filter(Boolean) as TransactionWithValue[];
+  const totalUsdValue = deposits.reduce((acc, txn) => acc + txn.usdValue, 0);
+
+  return { deposits, totalUsdValue };
+};
+
+//src-20 transfers
+export const useSolanaSrc20Transactions = (fromAddress: string) => {
+  const origin = useFetchAllTransactions(fromAddress);
+
+  if (origin) {
+    const beta = origin.flatMap((txn: Transaction) => {
+      return txn.tokenTransfers
+        .filter(
+          (transfer) =>
+            transfer.toUserAccount !== fromAddress &&
+            transfer.tokenStandard === 'Fungible' &&
+            transfer.fromUserAccount === fromAddress,
+        )
+        .map((transfer) => ({
+          from: transfer.fromUserAccount,
+          to: transfer.toUserAccount,
+          amount: transfer.tokenAmount,
+          timestamp: txn.timestamp,
+          mint: transfer.mint,
+        }));
+    });
+    return beta;
+  }
+
+  return origin;
+};
+
+// const useTokenMetadata = (mintAddress: string) => {
+//   return useQuery({
+//     queryKey: ['tokenMetadata', mintAddress],
+//     queryFn: async () => {
+//       const response = await fetch('/api/splMetadata', {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({ mintAddress }),
+//       });
+
+//       if (!response.ok) {
+//         throw new Error(`Failed to fetch metadata for token ${mintAddress}`);
+//       }
+
+//       return response.json() as Promise<TokenMetadata>;
+//     },
+//     enabled: Boolean(mintAddress),
+//     staleTime: 5 * 60 * 1000,
+//   });
+// };
