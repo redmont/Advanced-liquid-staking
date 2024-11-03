@@ -37,18 +37,18 @@ interface TransactionWithValue extends SolanaBaseTransaction {
   };
 }
 
-// interface TokenPriceInfo {
-//   price_per_token: number;
-//   currency: string;
-// }
+interface TokenPriceInfo {
+  price_per_token: number;
+  currency: string;
+}
 
-// interface TokenMetadata {
-//   symbol: string;
-//   supply: number;
-//   decimals: number;
-//   token_program: string;
-//   price_info: TokenPriceInfo;
-// }
+interface TokenMetadata {
+  symbol: string;
+  supply: number;
+  decimals: number;
+  token_program: string;
+  price_info: TokenPriceInfo;
+}
 
 const CoinDataResponseSchema = z.object({
   data: z.record(
@@ -68,7 +68,29 @@ const CoinDataResponseSchema = z.object({
   ),
 });
 
-export const useHistoricalPriceAtTime = (symbol: string, timestamp: string) => {
+export const SHUFFLE_SOL_TREASURY_WALLET =
+  '76iXe9yKFDjGv3HicUVVy8AYxHLC71L1wYa12zaZzHHp';
+
+export const ROLLBIT_SOL_TREASURY_WALLET =
+  'RBHdGVfDfMjfU6iUfCb1LczMJcQLx7hGnxbzRsoDNvx';
+
+export const BCGAME_SOL_TREASURY_WALLET =
+  '97UQvPXbadGSsVaGuJCBLRm3Mkm7A5DVJ2HktRzrnDTB';
+
+export type Casinos = 'shuffle' | 'rollbit';
+
+export const getSolCasinoTreasuryWallet = (casino: Casinos) => {
+  switch (casino) {
+    case 'shuffle':
+      return SHUFFLE_SOL_TREASURY_WALLET;
+    case 'rollbit':
+      return ROLLBIT_SOL_TREASURY_WALLET;
+    default:
+      return SHUFFLE_SOL_TREASURY_WALLET;
+  }
+};
+
+const useHistoricalPriceAtTime = (symbol: string, timestamp: string) => {
   const isoString = new Date(+timestamp * 1000).toISOString();
   const params = new URLSearchParams({
     symbol: symbol,
@@ -105,7 +127,7 @@ export const useHistoricalPriceAtTime = (symbol: string, timestamp: string) => {
   }
 };
 
-export const useFetchAllTransactions = (fromAddress: string) => {
+const useFetchAllTransactions = (fromAddress: string) => {
   const { data }: { data?: Transaction[] } = useQuery({
     queryKey: ['address', fromAddress],
     queryFn: async () => {
@@ -149,8 +171,7 @@ const useSolanaNativeTransactions = (fromAddress: string) => {
           amount: transfer.amount,
           timestamp: txn.timestamp,
         }));
-    }) as SolanaSRCTxn[];
-
+    });
     return alpha;
   }
 };
@@ -162,7 +183,7 @@ const useFindNativeTreasury = (
   const alpha = useSolanaNativeTransactions(fromAddress);
 
   if (alpha !== undefined) {
-    const treasuryTxns = alpha.flatMap((txn: SolanaSRCTxn) => {
+    const treasuryTxns = alpha.flatMap((txn) => {
       const wallet2 = txn.to;
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const tx = useFetchAllTransactions(txn.to);
@@ -230,8 +251,8 @@ export const useTraceSolanaDeposits = (
   return { deposits, totalUsdValue };
 };
 
-//src-20 transfers
-export const useSolanaSrc20Transactions = (fromAddress: string) => {
+//SPL token transfers
+const useSolanaSrc20Transactions = (fromAddress: string) => {
   const origin = useFetchAllTransactions(fromAddress);
 
   if (origin) {
@@ -253,29 +274,128 @@ export const useSolanaSrc20Transactions = (fromAddress: string) => {
     });
     return beta;
   }
-
-  return origin;
 };
 
-// const useTokenMetadata = (mintAddress: string) => {
-//   return useQuery({
-//     queryKey: ['tokenMetadata', mintAddress],
-//     queryFn: async () => {
-//       const response = await fetch('/api/splMetadata', {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({ mintAddress }),
-//       });
+export const useFindSPLTreasury = (
+  fromAddress: string,
+  treasuryAddress: string,
+) => {
+  const alpha = useSolanaSrc20Transactions(fromAddress);
 
-//       if (!response.ok) {
-//         throw new Error(`Failed to fetch metadata for token ${mintAddress}`);
-//       }
+  if (alpha !== undefined) {
+    const treasuryTxns = alpha.flatMap((txn) => {
+      const wallet2 = txn.to;
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const tx = useFetchAllTransactions(txn.to);
 
-//       return response.json() as Promise<TokenMetadata>;
-//     },
-//     enabled: Boolean(mintAddress),
-//     staleTime: 5 * 60 * 1000,
-//   });
-// };
+      if (!tx) {
+        return [];
+      }
+      if (tx) {
+        return tx.flatMap((txn: Transaction) => {
+          return txn.tokenTransfers
+            .filter(
+              (transfer) =>
+                transfer.toUserAccount === treasuryAddress &&
+                transfer.fromUserAccount === wallet2,
+            )
+            .map((transfer) => ({
+              from: transfer.fromUserAccount,
+              to: transfer.toUserAccount,
+              amount: transfer.tokenAmount,
+              timestamp: txn.timestamp,
+              mint: transfer.mint,
+            }));
+        });
+      }
+    });
+    return treasuryTxns;
+  }
+};
+
+export const useTraceSPLDeposits = (
+  fromAddress: string,
+  treasuryAddress: string,
+) => {
+  const mapTxs = useFindSPLTreasury(fromAddress, treasuryAddress);
+
+  if (!mapTxs) {
+    return { deposits: [], totalUsdValue: 0 };
+  }
+
+  const deposits = mapTxs
+    .map((txn) => {
+      if (!txn) {
+        return null;
+      }
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const tokenMetadata = useTokenMetadata(txn.mint);
+
+      if (!tokenMetadata) {
+        return null;
+      }
+
+      const { price_per_token } = tokenMetadata.price_info;
+      const usdValue = +txn.amount * price_per_token;
+
+      return {
+        ...txn,
+        price: price_per_token,
+        usdValue,
+      };
+    })
+    .filter(Boolean) as Array<{
+    from: string;
+    to: string;
+    amount: number;
+    timestamp: number;
+    mint: string;
+    price: number;
+    amountInTokens: number;
+    usdValue: number;
+  } | null>;
+  const totalUsdValue = deposits.reduce(
+    (acc, txn) => acc + (txn?.usdValue ?? 1),
+    0,
+  );
+
+  return { deposits, totalUsdValue };
+};
+
+const useTokenMetadata = (mintAddress: string) => {
+  const { data } = useQuery({
+    queryKey: ['tokenMetadata', mintAddress],
+    queryFn: async () => {
+      const response = await fetch('/api/splMetadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ mintAddress }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch metadata for token ${mintAddress}`);
+      }
+
+      return response.json() as Promise<TokenMetadata>;
+    },
+    enabled: Boolean(mintAddress),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return data;
+};
+
+export const TraceSolanaDeposits = (
+  userWallet: string,
+  casino: Casinos = 'shuffle',
+) => {
+  const treasuryWallet = getSolCasinoTreasuryWallet(casino);
+  const solDeposits = useTraceSolanaDeposits(userWallet, treasuryWallet);
+  const splDeposits = useTraceSPLDeposits(userWallet, treasuryWallet);
+  const combinedUsdValue =
+    solDeposits.totalUsdValue + splDeposits.totalUsdValue;
+
+  return combinedUsdValue;
+};
