@@ -10,23 +10,25 @@ import {
   testTokenConfig,
 } from '@/contracts/generated';
 import useNetworkId from './useNetworkId';
+import usePrimaryAddress from './usePrimaryAddress';
 const contractAddress = testTokenAddress['11155111'];
 
 export const useToken = () => {
   const { primaryWallet, setShowAuthFlow } = useDynamicContext();
   const { writeContractAsync } = useWriteContract();
   const { isSuccess } = useNetworkId();
+  const primaryAddress = usePrimaryAddress();
 
   const balance = useQuery({
-    queryKey: ['balance', contractAddress, primaryWallet?.address],
+    queryKey: ['balance', contractAddress, primaryAddress],
     enabled: !!primaryWallet && isSuccess,
     queryFn: () =>
-      primaryWallet?.address
+      primaryAddress
         ? readContract(config, {
             abi: testTokenAbi,
             address: contractAddress,
             functionName: 'balanceOf',
-            args: [primaryWallet?.address as `0x${string}`],
+            args: [primaryAddress as `0x${string}`],
           })
         : Promise.resolve(0n),
   });

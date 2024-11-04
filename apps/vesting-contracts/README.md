@@ -9,16 +9,16 @@
 
 On-Chain vesting scheme enabled by smart contracts.
 
-`TokenVesting` contract can release its token balance gradually like a typical vesting scheme, with a cliff and vesting period.
-The vesting schedules are optionally revocable by the owner.
+`TokenVesting` contract can release its token balance gradually like a typical vesting scheme, with a cliff and vesting
+period. The vesting schedules are optionally revocable by the owner.
 
 ## 🎭🧑‍💻 Security audits
 
-- [Security audit](https://github.com/abdelhamidbakhta/token-vesting-contracts/blob/main/audits/hacken_audit_report.pdf) from [Hacken](https://hacken.io)
+- [Security audit](https://github.com/abdelhamidbakhta/token-vesting-contracts/blob/main/audits/hacken_audit_report.pdf)
+  from [Hacken](https://hacken.io)
 
-This repository is compatible with both Forge and Hardhat.
-Forge needs to be ran (install and build) before Hardhat is used in order to load dependency contracts.
-You can find the specific instructions for each tool below.
+This repository is compatible with both Forge and Hardhat. Forge needs to be ran (install and build) before Hardhat is
+used in order to load dependency contracts. You can find the specific instructions for each tool below.
 
 ### Forge
 
@@ -54,8 +54,8 @@ $ pnpm i
 $ pnpm compile
 ```
 
-This task will compile all smart contracts in the `contracts` directory.
-ABI files will be automatically exported in `build/abi` directory.
+This task will compile all smart contracts in the `contracts` directory. ABI files will be automatically exported in
+`build/abi` directory.
 
 #### 📚 Documentation
 
@@ -77,7 +77,8 @@ $ yarn test
 $ yarn coverage
 ```
 
-The report will be printed in the console and a static website containing full report will be generated in `coverage` directory.
+The report will be printed in the console and a static website containing full report will be generated in `coverage`
+directory.
 
 #### ✨ Code style
 
@@ -118,4 +119,5 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification.
+Contributions of any kind welcome!

@@ -3,12 +3,7 @@
 import React from 'react';
 import RealIcon from '@/assets/images/R.svg';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import dayjs from '@/dayjs';
 import { Progress } from '@/components/ui/progress';

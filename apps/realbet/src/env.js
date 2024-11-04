@@ -11,6 +11,7 @@ export const env = createEnv({
       .enum(['development', 'test', 'production'])
       .default('development'),
     SENTRY_AUTH_TOKEN: z.string().optional(),
+    COINMARKETCAP_API_KEY: z.string().optional(),
     HELIUS_API_KEY: z.string(),
   },
 
@@ -24,7 +25,6 @@ export const env = createEnv({
     NEXT_PUBLIC_VERCEL_ENV: z.enum(['production', 'preview', 'development']),
     NEXT_PUBLIC_ALCHEMY_API_KEY: z.string(),
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS: z.string(),
-    NEXT_PUBLIC_COINMARKETCAP_API_KEY: z.string(),
   },
 
   /**
@@ -34,6 +34,7 @@ export const env = createEnv({
   runtimeEnv: {
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     NODE_ENV: process.env.NODE_ENV,
+    COINMARKETCAP_API_KEY: process.env.COINMARKETCAP_API_KEY,
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??
       '21452bd4-902f-40be-9b8f-5bc817b00e0e',
@@ -44,9 +45,6 @@ export const env = createEnv({
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS:
       process.env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS ??
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
-    NEXT_PUBLIC_COINMARKETCAP_API_KEY:
-      process.env.COINMARKETCAP_API_KEY ??
-      'ef6125ad-b96b-412a-859d-0bbf9a81b0ae',
     HELIUS_API_KEY:
       process.env.HELIUS_API_KEY ??
       'ed9ec2da-06c9-424c-b50c-c616e98b0399',

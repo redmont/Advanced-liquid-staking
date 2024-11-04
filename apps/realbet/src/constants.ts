@@ -1,4 +1,4 @@
-export const TiersData = [
+export const TIERS = [
   { status: 'Bronze', rakeback: 0, tier: 0 },
   { status: 'Silver', rakeback: 1, tier: 100 },
   { status: 'Gold', rakeback: 2, tier: 1000 },
@@ -10,4 +10,4 @@ export const TiersData = [
   { status: 'Saphire+', rakeback: 8, tier: 100000 },
   { status: 'Black', rakeback: 9, tier: 250000 },
   { status: 'Black+', rakeback: 10, tier: 500000 },
-];
+] as const;

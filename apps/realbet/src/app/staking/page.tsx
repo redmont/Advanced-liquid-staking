@@ -34,6 +34,7 @@ import ErrorComponent from '@/components/error';
 import { Progress } from '@/components/ui/progress';
 import dayjs from '@/dayjs';
 import { Scrollable } from '@/components/ui/scrollable';
+import usePrimaryAddress from '@/hooks/usePrimaryAddress';
 
 const gradientTierButtonClasses = [
   (active: boolean) =>
@@ -93,7 +94,8 @@ export default function Stake() {
   const isAuthenticated = useIsLoggedIn();
   const token = useToken();
   const vault = useVault();
-  const { sdkHasLoaded, setShowAuthFlow, primaryWallet } = useDynamicContext();
+  const primaryAddress = usePrimaryAddress();
+  const { sdkHasLoaded, setShowAuthFlow } = useDynamicContext();
   const parallaxRef = useRef<HTMLDivElement>(null);
   const parallax = useParallaxEffect(parallaxRef);
 
@@ -184,7 +186,7 @@ export default function Stake() {
         setStakingStatus('Approving allowance...');
         try {
           await vault.increaseAllowance.mutateAsync(values.amount);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
           setStakingStatus('');
           stakeForm.setError('amount', {
@@ -233,7 +235,7 @@ export default function Stake() {
         return;
       }
 
-      if (!primaryWallet?.address) {
+      if (!primaryAddress) {
         unstakeForm.setError('amount', { message: 'Wallet required' });
         return;
       }
@@ -244,7 +246,7 @@ export default function Stake() {
     },
     [
       isAuthenticated,
-      primaryWallet?.address,
+      primaryAddress,
       setShowAuthFlow,
       unstakeForm,
       vault.unlockable,

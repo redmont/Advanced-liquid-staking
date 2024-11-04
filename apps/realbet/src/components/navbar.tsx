@@ -25,13 +25,20 @@ import {
   Coins,
   UserCog,
   Box,
+  Code,
   // Trophy,
 } from 'lucide-react';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { usePathname } from 'next/navigation';
-import { env } from '@/env';
+import { env, isDev } from '@/env';
 import useClickOutside from '@/hooks/useClickOutside';
 import { useVault } from '@/hooks/useVault';
+import usePrimaryAddress from '@/hooks/usePrimaryAddress';
+import {
+  connectedAddressesOverrideAtom,
+  primaryWalletAddressOverrideAtom,
+} from '@/store/developer';
+import { useAtom } from 'jotai';
 
 const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
   className,
@@ -56,14 +63,28 @@ const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
 };
 
 const Navbar: React.FC<{ className?: string }> = ({ className }) => {
+  const [addressOverride, setAddressOverride] = useAtom(
+    primaryWalletAddressOverrideAtom,
+  );
+  const [connectedAddressesOverride, setConnectedAddressesOverride] = useAtom(
+    connectedAddressesOverrideAtom,
+  );
+  const [hasOverride, setHasOverride] = useState(false);
   const pathname = usePathname();
   const isAuthenticated = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
-  const { primaryWallet, user } = useDynamicContext();
+  const primaryAddress = usePrimaryAddress();
+  const { user } = useDynamicContext();
   const [isNavOpen, setNavOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   useClickOutside(navRef, () => setNavOpen(false));
   const vault = useVault();
+
+  // address override is in localstorage which the backend is not aware of,
+  // so we need to set this variable on mount to avoid hydration issues
+  useEffect(() => {
+    setHasOverride(!!addressOverride || !!connectedAddressesOverride);
+  }, [addressOverride, connectedAddressesOverride]);
 
   useEffect(() => {
     setNavOpen(false);
@@ -107,19 +128,25 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
                 <>
                   <Wallet2 className="size-4 shrink-0" />
                   <span className="truncate">
-                    {primaryWallet?.address.slice(
-                      0,
-                      primaryWallet?.address.length - 4,
-                    )}
+                    {primaryAddress?.slice(0, primaryAddress?.length - 4)}
                   </span>
-                  <span className="-ml-1">
-                    {primaryWallet?.address.slice(-4)}
-                  </span>
+                  <span className="-ml-1">{primaryAddress?.slice(-4)}</span>
                 </>
               ) : (
                 <>Connect Wallet</>
               )}
             </Button>
+            {hasOverride && (
+              <button
+                className="text-accent"
+                onClick={() => {
+                  setAddressOverride(null);
+                  setConnectedAddressesOverride(null);
+                }}
+              >
+                clear overrides?
+              </button>
+            )}
             <DynamicUserProfile />
             {isAuthenticated && (
               <div className="font-regular space-y-1 py-3 text-xl">
@@ -195,6 +222,17 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
               <span>Airdrop</span>
             </NextLink>
           </li>
+          {isDev && (
+            <li>
+              <NextLink
+                className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+                path="/developer"
+              >
+                <Code />
+                <span>Developer</span>
+              </NextLink>
+            </li>
+          )}
         </ul>
       </div>
     </nav>
