@@ -77,7 +77,10 @@ export const ROLLBIT_SOL_TREASURY_WALLET =
 export const BCGAME_SOL_TREASURY_WALLET =
   '97UQvPXbadGSsVaGuJCBLRm3Mkm7A5DVJ2HktRzrnDTB';
 
-export type Casinos = 'shuffle' | 'rollbit';
+export const BETFURY_SOL_TREASURY_WALLET =
+  '2oUVDCMTKKCDHiuMmCgZX6Vq9irR92K2vjxTxQsNNrdS';
+
+export type Casinos = 'shuffle' | 'rollbit' | 'bcgame' | 'betfury';
 
 export const getSolCasinoTreasuryWallet = (casino: Casinos) => {
   switch (casino) {
@@ -85,6 +88,10 @@ export const getSolCasinoTreasuryWallet = (casino: Casinos) => {
       return SHUFFLE_SOL_TREASURY_WALLET;
     case 'rollbit':
       return ROLLBIT_SOL_TREASURY_WALLET;
+    case 'bcgame':
+      return BCGAME_SOL_TREASURY_WALLET;
+    case 'betfury':
+      return BETFURY_SOL_TREASURY_WALLET;
     default:
       return SHUFFLE_SOL_TREASURY_WALLET;
   }
@@ -131,18 +138,18 @@ const useFetchAllTransactions = (fromAddress: string) => {
   const { data }: { data?: Transaction[] } = useQuery({
     queryKey: ['address', fromAddress],
     queryFn: async () => {
-      const response = await fetch('/api/solanaTx', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fromAddress: fromAddress,
-        }),
-      });
-      if (!response.ok) {
+    const response = await fetch('/api/solanaTx', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fromAddress: fromAddress,
+      }),
+    });
+    if (!response.ok) {
         throw new Error('Failed to fetch data');
-      }
+    }
 
       const res = (await response.json()) as Promise<Transaction[]>;
       return res;
@@ -150,7 +157,7 @@ const useFetchAllTransactions = (fromAddress: string) => {
     enabled: fromAddress !== '',
   });
 
-  return data;
+    return data;
 };
 
 //Native transfers tx
@@ -184,29 +191,29 @@ const useFindNativeTreasury = (
 
   if (alpha !== undefined) {
     const treasuryTxns = alpha.flatMap((txn) => {
-      const wallet2 = txn.to;
-      // eslint-disable-next-line react-hooks/rules-of-hooks
+        const wallet2 = txn.to;
+        // eslint-disable-next-line react-hooks/rules-of-hooks
       const tx = useFetchAllTransactions(txn.to);
 
-      if (!tx) {
-        return [];
-      }
-      if (tx) {
-        return tx.flatMap((txn: Transaction) => {
-          return txn.nativeTransfers
-            .filter(
-              (transfer) =>
-                transfer.toUserAccount === treasuryAddress &&
-                transfer.fromUserAccount === wallet2,
-            )
-            .map((transfer) => ({
-              from: transfer.fromUserAccount,
-              to: transfer.toUserAccount,
-              amount: transfer.amount,
-              timestamp: txn.timestamp,
-            }));
-        });
-      }
+        if (!tx) {
+          return [];
+        }
+        if (tx) {
+          return tx.flatMap((txn: Transaction) => {
+            return txn.nativeTransfers
+              .filter(
+                (transfer) =>
+                  transfer.toUserAccount === treasuryAddress &&
+                  transfer.fromUserAccount === wallet2,
+              )
+              .map((transfer) => ({
+                from: transfer.fromUserAccount,
+                to: transfer.toUserAccount,
+                amount: transfer.amount,
+                timestamp: txn.timestamp,
+              }));
+          });
+        }
     });
     return treasuryTxns;
   }
@@ -222,33 +229,33 @@ export const useTraceSolanaDeposits = (
     return { deposits: [], totalUsdValue: 0 };
   }
 
-  const deposits = mapTxs
-    .map((txn) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const price = useHistoricalPriceAtTime('SOL', txn?.timestamp ?? '');
+    const deposits = mapTxs
+      .map((txn) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const price = useHistoricalPriceAtTime('SOL', txn?.timestamp ?? '');
 
-      if (!price) {
-        return null;
-      }
+        if (!price) {
+          return null;
+        }
 
-      if (!txn) {
-        return null;
-      }
+        if (!txn) {
+          return null;
+        }
 
-      const solAmount = txn?.amount / 10 ** 9;
-      const usdValue = solAmount * price;
+        const solAmount = txn?.amount / 10 ** 9;
+        const usdValue = solAmount * price;
 
-      return {
-        ...txn,
-        price,
-        solAmount,
-        usdValue,
-      } as TransactionWithValue;
-    })
-    .filter(Boolean) as TransactionWithValue[];
-  const totalUsdValue = deposits.reduce((acc, txn) => acc + txn.usdValue, 0);
+        return {
+          ...txn,
+          price,
+          solAmount,
+          usdValue,
+        } as TransactionWithValue;
+      })
+      .filter(Boolean) as TransactionWithValue[];
+    const totalUsdValue = deposits.reduce((acc, txn) => acc + txn.usdValue, 0);
 
-  return { deposits, totalUsdValue };
+    return { deposits, totalUsdValue };
 };
 
 //SPL token transfers
@@ -284,13 +291,13 @@ export const useFindSPLTreasury = (
 
   if (alpha !== undefined) {
     const treasuryTxns = alpha.flatMap((txn) => {
-      const wallet2 = txn.to;
+        const wallet2 = txn.to;
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const tx = useFetchAllTransactions(txn.to);
 
-      if (!tx) {
-        return [];
-      }
+        if (!tx) {
+          return [];
+        }
       if (tx) {
         return tx.flatMap((txn: Transaction) => {
           return txn.tokenTransfers
