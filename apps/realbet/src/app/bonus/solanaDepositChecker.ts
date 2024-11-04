@@ -1,4 +1,6 @@
+import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { z } from 'zod';
 
 interface SolanaBaseTransaction {
@@ -82,6 +84,8 @@ export const BETFURY_SOL_TREASURY_WALLET =
 
 export type Casinos = 'shuffle' | 'rollbit' | 'bcgame' | 'betfury';
 
+const Cas = ['shuffle', 'rollbit', 'bcgame', 'betfury'] as const;
+
 export const getSolCasinoTreasuryWallet = (casino: Casinos) => {
   switch (casino) {
     case 'shuffle':
@@ -138,18 +142,18 @@ const useFetchAllTransactions = (fromAddress: string) => {
   const { data }: { data?: Transaction[] } = useQuery({
     queryKey: ['address', fromAddress],
     queryFn: async () => {
-    const response = await fetch('/api/solanaTx', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        fromAddress: fromAddress,
-      }),
-    });
-    if (!response.ok) {
+      const response = await fetch('/api/solanaTx', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fromAddress: fromAddress,
+        }),
+      });
+      if (!response.ok) {
         throw new Error('Failed to fetch data');
-    }
+      }
 
       const res = (await response.json()) as Promise<Transaction[]>;
       return res;
@@ -157,7 +161,7 @@ const useFetchAllTransactions = (fromAddress: string) => {
     enabled: fromAddress !== '',
   });
 
-    return data;
+  return data;
 };
 
 //Native transfers tx
@@ -191,71 +195,68 @@ const useFindNativeTreasury = (
 
   if (alpha !== undefined) {
     const treasuryTxns = alpha.flatMap((txn) => {
-        const wallet2 = txn.to;
-        // eslint-disable-next-line react-hooks/rules-of-hooks
+      const wallet2 = txn.to;
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       const tx = useFetchAllTransactions(txn.to);
 
-        if (!tx) {
-          return [];
-        }
-        if (tx) {
-          return tx.flatMap((txn: Transaction) => {
-            return txn.nativeTransfers
-              .filter(
-                (transfer) =>
-                  transfer.toUserAccount === treasuryAddress &&
-                  transfer.fromUserAccount === wallet2,
-              )
-              .map((transfer) => ({
-                from: transfer.fromUserAccount,
-                to: transfer.toUserAccount,
-                amount: transfer.amount,
-                timestamp: txn.timestamp,
-              }));
-          });
-        }
+      if (!tx) {
+        return [];
+      }
+      if (tx) {
+        return tx.flatMap((txn: Transaction) => {
+          return txn.nativeTransfers
+            .filter(
+              (transfer) =>
+                transfer.toUserAccount === treasuryAddress &&
+                transfer.fromUserAccount === wallet2,
+            )
+            .map((transfer) => ({
+              from: transfer.fromUserAccount,
+              to: transfer.toUserAccount,
+              amount: transfer.amount,
+              timestamp: txn.timestamp,
+            }));
+        });
+      }
     });
     return treasuryTxns;
   }
 };
 
-export const useTraceSolanaDeposits = (
-  fromAddress: string,
-  treasuryAddress: string,
-) => {
+const TraceSolanaDeposits = (fromAddress: string, treasuryAddress: string) => {
   const mapTxs = useFindNativeTreasury(fromAddress, treasuryAddress);
 
   if (!mapTxs) {
     return { deposits: [], totalUsdValue: 0 };
   }
 
-    const deposits = mapTxs
-      .map((txn) => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const price = useHistoricalPriceAtTime('SOL', txn?.timestamp ?? '');
+  const deposits = mapTxs
+    .map((txn) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const price = useHistoricalPriceAtTime('SOL', txn?.timestamp ?? '');
 
-        if (!price) {
-          return null;
-        }
+      if (!price) {
+        return null;
+      }
 
-        if (!txn) {
-          return null;
-        }
+      if (!txn) {
+        return null;
+      }
 
-        const solAmount = txn?.amount / 10 ** 9;
-        const usdValue = solAmount * price;
+      const solAmount = txn?.amount / 10 ** 9;
+      const usdValue = solAmount * price;
 
-        return {
-          ...txn,
-          price,
-          solAmount,
-          usdValue,
-        } as TransactionWithValue;
-      })
-      .filter(Boolean) as TransactionWithValue[];
-    const totalUsdValue = deposits.reduce((acc, txn) => acc + txn.usdValue, 0);
+      return {
+        ...txn,
+        price,
+        solAmount,
+        usdValue,
+      } as TransactionWithValue;
+    })
+    .filter(Boolean) as TransactionWithValue[];
+  const totalUsdValue = deposits.reduce((acc, txn) => acc + txn.usdValue, 0);
 
-    return { deposits, totalUsdValue };
+  return { deposits, totalUsdValue };
 };
 
 //SPL token transfers
@@ -283,21 +284,18 @@ const useSolanaSrc20Transactions = (fromAddress: string) => {
   }
 };
 
-export const useFindSPLTreasury = (
-  fromAddress: string,
-  treasuryAddress: string,
-) => {
+const useFindSPLTreasury = (fromAddress: string, treasuryAddress: string) => {
   const alpha = useSolanaSrc20Transactions(fromAddress);
 
   if (alpha !== undefined) {
     const treasuryTxns = alpha.flatMap((txn) => {
-        const wallet2 = txn.to;
+      const wallet2 = txn.to;
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const tx = useFetchAllTransactions(txn.to);
 
-        if (!tx) {
-          return [];
-        }
+      if (!tx) {
+        return [];
+      }
       if (tx) {
         return tx.flatMap((txn: Transaction) => {
           return txn.tokenTransfers
@@ -320,10 +318,7 @@ export const useFindSPLTreasury = (
   }
 };
 
-export const useTraceSPLDeposits = (
-  fromAddress: string,
-  treasuryAddress: string,
-) => {
+const TraceSPLDeposits = (fromAddress: string, treasuryAddress: string) => {
   const mapTxs = useFindSPLTreasury(fromAddress, treasuryAddress);
 
   if (!mapTxs) {
@@ -394,15 +389,27 @@ const useTokenMetadata = (mintAddress: string) => {
   return data;
 };
 
-export const TraceSolanaDeposits = (
-  userWallet: string,
-  casino: Casinos = 'shuffle',
-) => {
-  const treasuryWallet = getSolCasinoTreasuryWallet(casino);
-  const solDeposits = useTraceSolanaDeposits(userWallet, treasuryWallet);
-  const splDeposits = useTraceSPLDeposits(userWallet, treasuryWallet);
-  const combinedUsdValue =
-    solDeposits.totalUsdValue + splDeposits.totalUsdValue;
+export const SolTraceAllDeposits = (userWallet: string) => {
+  return Cas.map((casino) => {
+    const treasuryWallet = getSolCasinoTreasuryWallet(casino);
+    const solDeposits = TraceSolanaDeposits(userWallet, treasuryWallet);
+    const splDeposits = TraceSPLDeposits(userWallet, treasuryWallet);
+    const combinedUsdValue =
+      solDeposits.totalUsdValue + splDeposits.totalUsdValue;
 
-  return combinedUsdValue;
+    return { casino, usdDeposit: combinedUsdValue };
+  });
+};
+
+export const useSolsDeposits = () => {
+  const userWalletAddresses = useWalletAddresses();
+  const nonEvmAddresses = useMemo(
+    () => userWalletAddresses.filter((addr) => !addr.startsWith('0x')),
+    [userWalletAddresses],
+  );
+  if (nonEvmAddresses.length === 0) {
+    return [];
+  }
+
+  return nonEvmAddresses.flatMap((address) => SolTraceAllDeposits(address));
 };

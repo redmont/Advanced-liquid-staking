@@ -257,7 +257,10 @@ const BonusPage = () => {
                     <TableRow>
                       <TableHead className="px-5 font-normal">Total</TableHead>
                       <TableHead className="px-5 font-normal">
-                        {degenScore.totalDeposited} USD
+                        {degenScore.totalDeposited.toLocaleString('en-US', {
+                          maximumFractionDigits: 2,
+                        })}{' '}
+                        USD
                       </TableHead>
                       <TableHead className="px-5 text-right font-normal text-primary">
                         {degenScore.totalDepositScore ? '+' : ''}{' '}

@@ -39,6 +39,9 @@ export default async function handler(
 ) {
   try {
     const { symbol, time_start, count } = req.query;
+    if (!env.COINMARKETCAP_API_KEY) {
+      throw new Error('COINMARKETCAP_API_KEY is not set');
+    }
 
     const url =
       'https://pro-api.coinmarketcap.com/v3/cryptocurrency/quotes/historical';
@@ -60,7 +63,7 @@ export default async function handler(
     const response = await fetch(fullUrl, {
       method: 'GET',
       headers: {
-        'X-CMC_PRO_API_KEY': env.NEXT_PUBLIC_COINMARKETCAP_API_KEY,
+        'X-CMC_PRO_API_KEY': env.COINMARKETCAP_API_KEY,
       },
     });
 
