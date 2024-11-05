@@ -12,7 +12,7 @@ const chainIdToAlchemyNetworkMap: Record<ChainId, Network | null> = {
   mainnet: null, // Solana mainnet does not exist for alchemy sdk yet
 };
 
-const getAllCoinInteractions = async (
+const getEligibleMemeCoinInteractions = async (
   chain: ChainId,
   fromAddress: `0x${string}`,
 ) => {
@@ -27,7 +27,9 @@ const getAllCoinInteractions = async (
     throw new Error(`Meme coins not defined for chain: ${chain}`);
   }
 
-  const transfers = await limit(() => getAssetTransfers(network, fromAddress));
+  const transfers = await limit(() =>
+    getAssetTransfers(network, fromAddress, { contractAddresses }),
+  );
 
   return transfers
     .map((tx) => tx.rawContract.address)
@@ -39,7 +41,7 @@ export const getEVMMemeCoinInteractions = async (
   addresses: `0x${string}`[],
 ) => {
   const interactions = await Promise.all(
-    addresses.map((address) => getAllCoinInteractions(chain, address)),
+    addresses.map((address) => getEligibleMemeCoinInteractions(chain, address)),
   );
 
   return uniq(flatten(interactions));

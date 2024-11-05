@@ -1,4 +1,4 @@
-import { AssetTransfersCategory, Network } from 'alchemy-sdk';
+import { AssetTransfersCategory, type Network } from 'alchemy-sdk';
 import { flatten } from 'lodash';
 import limit from '@/limiter';
 import { store } from '@/store';
@@ -10,7 +10,7 @@ import { TREASURIES, type Casino } from '@/config/walletChecker';
 
 export async function getUserDeposits(
   userWallet: `0x${string}`,
-  chain: Network = Network.ETH_MAINNET,
+  chain: Network,
 ) {
   store.set(transactionsScannedAtom, 0);
   store.set(progressMessageAtom, 'Scanning wallets');
