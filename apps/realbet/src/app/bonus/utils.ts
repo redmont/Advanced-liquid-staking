@@ -155,51 +155,44 @@ const findIntermediaryWallets = async (
       }),
     );
 
-    store.set(
-      transactionsScannedAtom,
-      store.get(transactionsScannedAtom) +
-        userWalletTransactions.transfers.length,
-    );
-
     for (const userTx of userWalletTransactions.transfers) {
       if (!userTx.to || Object.values(intermediaryWallets).every(Boolean)) {
         break;
       }
 
-      let innerPageKey: string | undefined;
+      // we only need one pass to find the intermediary wallets
+      // based on the assumption that intermediary wallets are always/only
+      // sending to the treasury wallets
+      const intermediaryTransactions = await limit(() =>
+        alchemy.core.getAssetTransfers({
+          fromAddress: userTx.to!,
+          category: [AssetTransfersCategory.ERC20],
+        }),
+      );
 
-      do {
-        const intermediaryTransactions = await limit(() =>
-          alchemy.core.getAssetTransfers({
-            fromAddress: userTx.to!,
-            category: [AssetTransfersCategory.ERC20],
-            pageKey: innerPageKey,
-          }),
-        );
+      for (const intermediaryTx of intermediaryTransactions.transfers) {
+        const casino = Object.entries(TREASURIES).find(
+          ([, treasury]) => treasury === intermediaryTx.to,
+        )?.[0];
 
-        store.set(
-          transactionsScannedAtom,
-          store.get(transactionsScannedAtom) +
-            intermediaryTransactions.transfers.length,
-        );
-
-        for (const intermediaryTx of intermediaryTransactions.transfers) {
-          const casino = Object.entries(TREASURIES).find(
-            ([, treasury]) => treasury === intermediaryTx.to,
-          )?.[0];
-
-          if (casino) {
-            intermediaryWallets[casino as Casino] =
-              intermediaryTx.to as `0x${string}`;
-          }
+        if (casino) {
+          intermediaryWallets[casino as Casino] =
+            intermediaryTx.to as `0x${string}`;
         }
+      }
 
-        innerPageKey = intermediaryTransactions.pageKey;
-        if (Object.values(intermediaryWallets).every(Boolean)) {
-          break;
-        }
-      } while (innerPageKey);
+      store.set(
+        transactionsScannedAtom,
+        store.get(transactionsScannedAtom) +
+          intermediaryTransactions.transfers.length,
+      );
     }
+
+    store.set(
+      transactionsScannedAtom,
+      store.get(transactionsScannedAtom) +
+        userWalletTransactions.transfers.length,
+    );
 
     pageKey = userWalletTransactions.pageKey;
     if (Object.values(intermediaryWallets).every(Boolean)) {
