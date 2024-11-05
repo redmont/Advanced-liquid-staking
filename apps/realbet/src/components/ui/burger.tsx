@@ -1,5 +1,5 @@
 import { type Dispatch, forwardRef, type SetStateAction } from 'react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const Burger = forwardRef<
   HTMLButtonElement,

@@ -13,8 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { shorten } from './utils';
-import { memeCoins } from '@/config/memeCoins';
+import { shorten } from '@/utils';
+import { memeCoins } from '@/config/walletChecker';
 
 import {
   useDynamicContext,

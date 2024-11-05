@@ -1,83 +1,15 @@
 import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
-import { memeCoins } from '@/config/memeCoins';
 import { useQuery } from '@tanstack/react-query';
 import { isAddress } from 'viem';
-import { env } from '@/env';
-import {
-  AssetTransfersCategory,
-  Alchemy,
-  Network,
-  type AssetTransfersResult,
-} from 'alchemy-sdk';
 import { useMemo } from 'react';
-import { flatten, groupBy, mapValues, uniq } from 'lodash';
+import { flatten, uniq } from 'lodash';
 import { base, bsc, mainnet } from 'viem/chains';
 import limit from '@/limiter';
 import fetchSolanaTokenAccounts from '@/utils/fetchSolanaTokenAccounts';
 import { PublicKey } from '@solana/web3.js';
 import { useWalletAddresses } from '@/hooks/useWalletAddresses';
-
-type ChainId = (typeof memeCoins)[number]['chainId'];
-
-const coins = mapValues(groupBy(memeCoins, 'chainId'), (coins) =>
-  coins.map((coin) => coin.contractAddress),
-);
-
-const chainIdToAlchemyNetworkMap: Record<ChainId, Network | null> = {
-  [mainnet.id]: Network.ETH_MAINNET,
-  [bsc.id]: Network.BNB_MAINNET,
-  [base.id]: Network.BASE_MAINNET,
-  mainnet: null, // Solana mainnet does not exist for alchemy sdk yet
-};
-
-const getAllCoinInteractions = async (chain: ChainId, fromAddress: string) => {
-  const network = chainIdToAlchemyNetworkMap[chain];
-  if (!network) {
-    throw new Error(`Alchemy SDK not defined for chain: ${chain}`);
-  }
-
-  const alchemy = new Alchemy({
-    network,
-    apiKey: env.NEXT_PUBLIC_ALCHEMY_API_KEY,
-  });
-
-  const contractAddresses = coins[chain];
-
-  if (!contractAddresses) {
-    throw new Error(`Meme coins not defined for chain: ${chain}`);
-  }
-
-  let pagekey: string | undefined = 'initial';
-  let transfers: AssetTransfersResult[] = [];
-
-  while (pagekey !== undefined) {
-    const txs = await limit(() =>
-      alchemy.core.getAssetTransfers({
-        contractAddresses,
-        fromAddress,
-        category: [AssetTransfersCategory.ERC20],
-      }),
-    );
-
-    transfers = transfers.concat(txs.transfers);
-    pagekey = txs.pageKey;
-  }
-
-  return transfers
-    .map((tx) => tx.rawContract.address)
-    .filter((addr): addr is string => !!addr);
-};
-
-const getEVMAccountsCoinInteractions = async (
-  chain: ChainId,
-  addresses: `0x${string}`[],
-) => {
-  const interactions = await Promise.all(
-    addresses.map((address) => getAllCoinInteractions(chain, address)),
-  );
-
-  return uniq(flatten(interactions));
-};
+import { getEVMMemeCoinInteractions } from '../utils/fetchEVMAccountsCoinInteractions';
+import { coinsByChainId } from '@/config/walletChecker';
 
 const isSolanaAddress = (address: string) => {
   try {
@@ -107,19 +39,19 @@ export const useMemeCoinTracking = () => {
   const ethInteractions = useQuery({
     enabled: authenticated,
     queryKey: ['eth-interactions', userEvmAddresses],
-    queryFn: () => getEVMAccountsCoinInteractions(mainnet.id, userEvmAddresses),
+    queryFn: () => getEVMMemeCoinInteractions(mainnet.id, userEvmAddresses),
   });
 
   const baseInteractions = useQuery({
     enabled: authenticated,
     queryKey: ['base-interactions', userEvmAddresses],
-    queryFn: () => getEVMAccountsCoinInteractions(base.id, userEvmAddresses),
+    queryFn: () => getEVMMemeCoinInteractions(base.id, userEvmAddresses),
   });
 
   const bscInteractions = useQuery({
     queryKey: ['bsc-interactions', userEvmAddresses],
     enabled: authenticated,
-    queryFn: () => getEVMAccountsCoinInteractions(bsc.id, userEvmAddresses),
+    queryFn: () => getEVMMemeCoinInteractions(bsc.id, userEvmAddresses),
   });
 
   const solanaInteractions = useQuery({
@@ -134,7 +66,7 @@ export const useMemeCoinTracking = () => {
 
       return uniq(flatten(tokens)).filter(
         (token): token is string =>
-          !!token && (coins.mainnet as string[])?.includes(token),
+          !!token && (coinsByChainId.mainnet as string[])?.includes(token),
       );
     },
   });

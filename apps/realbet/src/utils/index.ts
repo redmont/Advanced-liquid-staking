@@ -91,3 +91,6 @@ export const convertToReadableTime = (seconds: number) => {
   const months = Math.ceil(duration.asMonths());
   return `${months} month${months !== 1 ? 's' : ''}`;
 };
+
+export const shorten = (address: string, size = 6) =>
+  address.slice(0, size) + '...' + address.slice(-size);

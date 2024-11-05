@@ -21,7 +21,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import useParallaxEffect from '@/hooks/useParallax';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { useToken } from '@/hooks/useToken';
 import { useVault } from '@/hooks/useVault';
 import { formatUnits, parseUnits } from 'viem';

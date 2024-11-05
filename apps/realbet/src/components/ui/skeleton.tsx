@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { cva } from 'class-variance-authority';
 
 const skeletonVariants = cva('rounded-2xl animate-pulse', {
