@@ -53,7 +53,7 @@ const BonusPage = () => {
   const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
-  const userAddresses = useWalletAddresses();
+  const { addresses: userAddresses } = useWalletAddresses();
   const { setShowLinkNewWalletModal } = useDynamicModals();
 
   if (degenScore.errors.length > 0) {

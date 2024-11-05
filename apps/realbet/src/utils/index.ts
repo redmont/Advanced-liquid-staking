@@ -1,5 +1,6 @@
 import { formatUnits, parseUnits } from 'viem';
 import dayjs from '@/dayjs';
+import { PublicKey as SolanaPublicKey } from '@solana/web3.js';
 
 export const formatBalance = (
   balance: bigint,
@@ -94,3 +95,11 @@ export const convertToReadableTime = (seconds: number) => {
 
 export const shorten = (address: string, size = 6) =>
   address.slice(0, size) + '...' + address.slice(-size);
+
+export const isSolanaAddress = (address: string) => {
+  try {
+    return SolanaPublicKey.isOnCurve(new SolanaPublicKey(address).toBytes());
+  } catch {
+    return false;
+  }
+};

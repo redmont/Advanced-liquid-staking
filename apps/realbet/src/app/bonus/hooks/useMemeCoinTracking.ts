@@ -1,65 +1,41 @@
 import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { useQuery } from '@tanstack/react-query';
-import { isAddress } from 'viem';
-import { useMemo } from 'react';
 import { flatten, uniq } from 'lodash';
 import { base, bsc, mainnet } from 'viem/chains';
 import limit from '@/limiter';
 import fetchSolanaTokenAccounts from '@/utils/fetchSolanaTokenAccounts';
-import { PublicKey } from '@solana/web3.js';
 import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 import { getEVMMemeCoinInteractions } from '../utils/fetchEVMAccountsCoinInteractions';
 import { coinsByChainId } from '@/config/walletChecker';
 
-const isSolanaAddress = (address: string) => {
-  try {
-    return PublicKey.isOnCurve(new PublicKey(address).toBytes());
-  } catch {
-    return false;
-  }
-};
-
 export const useMemeCoinTracking = () => {
   const authenticated = useIsLoggedIn();
-  const userAddresses = useWalletAddresses();
-
-  const userEvmAddresses = useMemo(
-    () =>
-      userAddresses.filter((address): address is `0x${string}` =>
-        isAddress(address),
-      ),
-    [userAddresses],
-  );
-
-  const userSolanaAddresses = useMemo(
-    () => userAddresses.filter((address) => isSolanaAddress(address)),
-    [userAddresses],
-  );
+  const addresses = useWalletAddresses();
 
   const ethInteractions = useQuery({
     enabled: authenticated,
-    queryKey: ['eth-interactions', userEvmAddresses],
-    queryFn: () => getEVMMemeCoinInteractions(mainnet.id, userEvmAddresses),
+    queryKey: ['eth-interactions', addresses.evm],
+    queryFn: () => getEVMMemeCoinInteractions(mainnet.id, addresses.evm),
   });
 
   const baseInteractions = useQuery({
     enabled: authenticated,
-    queryKey: ['base-interactions', userEvmAddresses],
-    queryFn: () => getEVMMemeCoinInteractions(base.id, userEvmAddresses),
+    queryKey: ['base-interactions', addresses.evm],
+    queryFn: () => getEVMMemeCoinInteractions(base.id, addresses.evm),
   });
 
   const bscInteractions = useQuery({
-    queryKey: ['bsc-interactions', userEvmAddresses],
+    queryKey: ['bsc-interactions', addresses.evm],
     enabled: authenticated,
-    queryFn: () => getEVMMemeCoinInteractions(bsc.id, userEvmAddresses),
+    queryFn: () => getEVMMemeCoinInteractions(bsc.id, addresses.evm),
   });
 
   const solanaInteractions = useQuery({
-    queryKey: ['solana-interactions', userSolanaAddresses],
+    queryKey: ['solana-interactions', addresses.solana],
     enabled: authenticated,
     queryFn: async () => {
       const tokens = await Promise.all(
-        userSolanaAddresses.map((address) =>
+        addresses.solana.map((address) =>
           limit(() => fetchSolanaTokenAccounts(address)),
         ),
       );

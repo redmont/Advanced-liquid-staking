@@ -8,7 +8,7 @@ import { isAddress } from 'viem';
 import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 
 export const useCasinoDeposits = () => {
-  const userWalletAddresses = useWalletAddresses();
+  const { addresses: userWalletAddresses } = useWalletAddresses();
 
   const evmAddresses = useMemo(
     () => userWalletAddresses.filter((addr) => isAddress(addr)),
