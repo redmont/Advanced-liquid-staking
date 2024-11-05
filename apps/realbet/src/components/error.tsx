@@ -1,10 +1,14 @@
 import React from 'react';
 import ded from '@/assets/images/vr-ded.webp';
+import { cn } from '@/lib/utils';
 
-const ErrorComponent: React.FC = () => {
+const ErrorComponent: React.FC<{ className?: string }> = ({ className }) => {
   return (
     <div
-      className="relative -mt-20 flex size-full grow flex-col items-center justify-center gap-5 self-stretch bg-cover p-5 lg:mt-0"
+      className={cn(
+        'relative -mt-20 flex size-full grow flex-col items-center justify-center gap-5 self-stretch bg-cover p-5 lg:mt-0',
+        className,
+      )}
       style={{ backgroundImage: `url(${ded.src})` }}
     >
       <div className="absolute inset-0 z-10 bg-vignette" />

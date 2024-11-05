@@ -1,26 +1,30 @@
-// /app/actions/getSplMetadata.ts
 'use server';
 
 import { env } from '@/env';
-
 import { z } from 'zod';
+import { toCamel } from '.';
 
 const TokenSymbolSchema = z.object({
   symbol: z.string(),
   supply: z.number(),
   decimals: z.number(),
-  token_program: z.string(),
-  price_info: z.object({
-    price_per_token: z.number(),
+  tokenProgram: z.string(),
+  priceInfo: z.object({
+    pricePerToken: z.number(),
     currency: z.string(),
   }),
 });
 
-const ApiResponseSchema = z.object({
-  result: z.object({ token_info: TokenSymbolSchema }),
-});
+const ApiResponseSchema = z
+  .unknown()
+  .transform((o) => toCamel(o))
+  .pipe(
+    z.object({
+      result: z.object({ tokenInfo: TokenSymbolSchema }),
+    }),
+  );
 
-export async function getSplMetadata(mintAddress: string) {
+export async function getSolanaAssetMetadata(mintAddress: string) {
   const API_BASE_URL = 'https://mainnet.helius-rpc.com';
 
   if (!mintAddress) {
@@ -45,10 +49,11 @@ export async function getSplMetadata(mintAddress: string) {
     },
   );
 
-  if (!response.ok) {
+  const data = ApiResponseSchema.parse(await response.json());
+
+  if (!response.ok || !data?.result) {
     throw new Error('Failed to fetch data');
   }
 
-  const data = ApiResponseSchema.parse(await response.json());
-  return data?.result?.token_info;
+  return data.result.tokenInfo;
 }

@@ -1,7 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-
-import { chains } from '../utils';
-import { getUserDeposits } from '../utils';
+import { chains, getUserDeposits } from '../utils/getUserDeposits';
 import { flatten } from 'lodash';
 import { useMemo } from 'react';
 import { isAddress } from 'viem';

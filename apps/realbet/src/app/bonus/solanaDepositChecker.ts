@@ -2,6 +2,7 @@ import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { z } from 'zod';
+import { getSolanaAssetMetadata } from './utils/getSolanaTxMetadata';
 
 interface SolanaBaseTransaction {
   from: string;
@@ -37,19 +38,6 @@ interface TransactionWithValue extends SolanaBaseTransaction {
     adjustedAmount: number;
     pricePerToken: number;
   };
-}
-
-interface TokenPriceInfo {
-  price_per_token: number;
-  currency: string;
-}
-
-interface TokenMetadata {
-  symbol: string;
-  supply: number;
-  decimals: number;
-  token_program: string;
-  price_info: TokenPriceInfo;
 }
 
 const CoinDataResponseSchema = z.object({
@@ -331,18 +319,18 @@ const TraceSPLDeposits = (fromAddress: string, treasuryAddress: string) => {
         return null;
       }
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      const tokenMetadata = useTokenMetadata(txn.mint);
+      const tokenMetadata = useSolanaTokenMetadata(txn.mint);
 
       if (!tokenMetadata) {
         return null;
       }
 
-      const { price_per_token } = tokenMetadata.price_info;
-      const usdValue = +txn.amount * price_per_token;
+      const { pricePerToken } = tokenMetadata.priceInfo;
+      const usdValue = +txn.amount * pricePerToken;
 
       return {
         ...txn,
-        price: price_per_token,
+        price: pricePerToken,
         usdValue,
       };
     })
@@ -364,24 +352,10 @@ const TraceSPLDeposits = (fromAddress: string, treasuryAddress: string) => {
   return { deposits, totalUsdValue };
 };
 
-const useTokenMetadata = (mintAddress: string) => {
+export const useSolanaTokenMetadata = (mintAddress: string) => {
   const { data } = useQuery({
     queryKey: ['tokenMetadata', mintAddress],
-    queryFn: async () => {
-      const response = await fetch('/api/splMetadata', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ mintAddress }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch metadata for token ${mintAddress}`);
-      }
-
-      return response.json() as Promise<TokenMetadata>;
-    },
+    queryFn: async () => getSolanaAssetMetadata(mintAddress),
     enabled: Boolean(mintAddress),
     staleTime: 5 * 60 * 1000,
   });
