@@ -89,7 +89,7 @@ export const getSolCasinoTreasuryWallet = (casino: Casinos) => {
   }
 };
 
-const useHistoricalPriceAtTime = (symbol: string, timestamp: string) => {
+const GetHistoricalPriceAtTime = (symbol: string, timestamp: string) => {
   const isoString = new Date(+timestamp * 1000).toISOString();
   const params = new URLSearchParams({
     symbol: symbol,
@@ -126,7 +126,7 @@ const useHistoricalPriceAtTime = (symbol: string, timestamp: string) => {
   }
 };
 
-const useFetchAllTransactions = (fromAddress: string) => {
+const FetchAllTransactions = (fromAddress: string) => {
   const { data }: { data?: Transaction[] } = useQuery({
     queryKey: ['address', fromAddress],
     queryFn: async () => {
@@ -153,8 +153,8 @@ const useFetchAllTransactions = (fromAddress: string) => {
 };
 
 //Native transfers tx
-const useSolanaNativeTransactions = (fromAddress: string) => {
-  const origin = useFetchAllTransactions(fromAddress);
+const SolanaNativeTransactions = (fromAddress: string) => {
+  const origin = FetchAllTransactions(fromAddress);
 
   if (origin) {
     const alpha = origin.flatMap((txn: Transaction) => {
@@ -175,17 +175,16 @@ const useSolanaNativeTransactions = (fromAddress: string) => {
   }
 };
 
-const useFindNativeTreasury = (
+const FindNativeTreasury = (
   fromAddress: string,
   treasuryAddress: string,
 ) => {
-  const alpha = useSolanaNativeTransactions(fromAddress);
+  const alpha = SolanaNativeTransactions(fromAddress);
 
   if (alpha !== undefined) {
     const treasuryTxns = alpha.flatMap((txn) => {
       const wallet2 = txn.to;
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const tx = useFetchAllTransactions(txn.to);
+      const tx = FetchAllTransactions(txn.to);
 
       if (!tx) {
         return [];
@@ -212,7 +211,7 @@ const useFindNativeTreasury = (
 };
 
 const TraceSolanaDeposits = (fromAddress: string, treasuryAddress: string) => {
-  const mapTxs = useFindNativeTreasury(fromAddress, treasuryAddress);
+  const mapTxs = FindNativeTreasury(fromAddress, treasuryAddress);
 
   if (!mapTxs) {
     return { deposits: [], totalUsdValue: 0 };
@@ -220,8 +219,7 @@ const TraceSolanaDeposits = (fromAddress: string, treasuryAddress: string) => {
 
   const deposits = mapTxs
     .map((txn) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const price = useHistoricalPriceAtTime('SOL', txn?.timestamp ?? '');
+      const price = GetHistoricalPriceAtTime('SOL', txn?.timestamp ?? '');
 
       if (!price) {
         return null;
@@ -248,8 +246,8 @@ const TraceSolanaDeposits = (fromAddress: string, treasuryAddress: string) => {
 };
 
 //SPL token transfers
-const useSolanaSrc20Transactions = (fromAddress: string) => {
-  const origin = useFetchAllTransactions(fromAddress);
+const SolanaSrc20Transactions = (fromAddress: string) => {
+  const origin = FetchAllTransactions(fromAddress);
 
   if (origin) {
     const beta = origin.flatMap((txn: Transaction) => {
@@ -272,14 +270,13 @@ const useSolanaSrc20Transactions = (fromAddress: string) => {
   }
 };
 
-const useFindSPLTreasury = (fromAddress: string, treasuryAddress: string) => {
-  const alpha = useSolanaSrc20Transactions(fromAddress);
+const FindSPLTreasury = (fromAddress: string, treasuryAddress: string) => {
+  const alpha = SolanaSrc20Transactions(fromAddress);
 
   if (alpha !== undefined) {
     const treasuryTxns = alpha.flatMap((txn) => {
       const wallet2 = txn.to;
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const tx = useFetchAllTransactions(txn.to);
+      const tx = FetchAllTransactions(txn.to);
 
       if (!tx) {
         return [];
@@ -307,7 +304,7 @@ const useFindSPLTreasury = (fromAddress: string, treasuryAddress: string) => {
 };
 
 const TraceSPLDeposits = (fromAddress: string, treasuryAddress: string) => {
-  const mapTxs = useFindSPLTreasury(fromAddress, treasuryAddress);
+  const mapTxs = FindSPLTreasury(fromAddress, treasuryAddress);
 
   if (!mapTxs) {
     return { deposits: [], totalUsdValue: 0 };
@@ -318,8 +315,7 @@ const TraceSPLDeposits = (fromAddress: string, treasuryAddress: string) => {
       if (!txn) {
         return null;
       }
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const tokenMetadata = useSolanaTokenMetadata(txn.mint);
+      const tokenMetadata = GetSolanaTokenMetadata(txn.mint);
 
       if (!tokenMetadata) {
         return null;
@@ -352,7 +348,7 @@ const TraceSPLDeposits = (fromAddress: string, treasuryAddress: string) => {
   return { deposits, totalUsdValue };
 };
 
-export const useSolanaTokenMetadata = (mintAddress: string) => {
+export const GetSolanaTokenMetadata = (mintAddress: string) => {
   const { data } = useQuery({
     queryKey: ['tokenMetadata', mintAddress],
     queryFn: async () => getSolanaAssetMetadata(mintAddress),
