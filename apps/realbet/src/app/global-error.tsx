@@ -15,10 +15,8 @@ export default function GlobalError({
 
   return (
     <html>
-      <body>
-        <div className="relative min-h-screen">
-          <ErrorComponent className="absolute" />
-        </div>
+      <body className="relative min-h-screen">
+        <ErrorComponent className="absolute size-full" />
       </body>
     </html>
   );

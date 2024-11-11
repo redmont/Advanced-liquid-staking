@@ -1,6 +1,6 @@
 import { useToken } from '@/hooks/useToken';
 import { type Deposit, useVault } from '@/hooks/useVault';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { balanceToFloat, formatBalance, toDurationSeconds } from '@/utils';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import dayjs from '@/dayjs';

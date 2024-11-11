@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useState } from 'react';
 import Banner from '@/components/banner';
 import { Button } from '@/components/ui/button';
@@ -13,8 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { shorten } from './utils';
-import { memeCoins } from '@/config/memeCoins';
+import { shorten } from '@/utils';
+import { memeCoins } from '@/config/walletChecker';
 
 import {
   useDynamicContext,
@@ -52,7 +53,7 @@ const BonusPage = () => {
   const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
-  const userAddresses = useWalletAddresses();
+  const { addresses: userAddresses } = useWalletAddresses();
   const { setShowLinkNewWalletModal } = useDynamicModals();
 
   if (degenScore.errors.length > 0) {
@@ -245,7 +246,7 @@ const BonusPage = () => {
                               USD
                             </TableCell>
                             <TableCell className="px-5 text-right">
-                              + {score.toFixed(0)}
+                              + {parseFloat(score.toFixed(0)).toLocaleString()}
                             </TableCell>
                           </TableRow>
                         ),
@@ -264,7 +265,7 @@ const BonusPage = () => {
                       </TableHead>
                       <TableHead className="px-5 text-right font-normal text-primary">
                         {degenScore.totalDepositScore ? '+' : ''}{' '}
-                        {degenScore.totalDepositScore}
+                        {degenScore.totalDepositScore.toLocaleString()}
                       </TableHead>
                     </TableRow>
                   </TableFooter>
@@ -315,7 +316,8 @@ const BonusPage = () => {
                       <TableHead className="px-5 font-normal">Total</TableHead>
                       <TableHead className="px-5 font-normal"></TableHead>
                       <TableHead className="px-5 text-right font-normal text-primary">
-                        + {degenScore.totalMemeInteractionScore}
+                        +{' '}
+                        {degenScore.totalMemeInteractionScore.toLocaleString()}
                       </TableHead>
                     </TableRow>
                   </TableFooter>

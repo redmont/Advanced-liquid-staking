@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import backgroundImage from '@/assets/images/vr-guy.png';
 import pepeAttack from '@/assets/images/pepe-attack.png';
 import useParallaxEffect from '@/hooks/useParallax';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const Banner: React.FC<PropsWithChildren & { className?: string }> = ({
   children,

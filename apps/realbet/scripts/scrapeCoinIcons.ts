@@ -3,7 +3,7 @@
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
-import { memeCoins } from '../src/config/memeCoins';
+import { memeCoins } from '../src/config/walletChecker';
 import { env } from '../src/env';
 import { z } from 'zod';
 

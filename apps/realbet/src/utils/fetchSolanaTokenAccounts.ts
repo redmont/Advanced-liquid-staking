@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+'use server';
+
 import { z } from 'zod';
 import { env } from '@/env';
 
@@ -26,7 +28,7 @@ const ResultSchema = z.object({
 async function fetchSolanaTokenAccounts(address: string) {
   try {
     const response = await fetch(
-      `https://solana-mainnet.g.alchemy.com/v2/${env.NEXT_PUBLIC_ALCHEMY_API_KEY}/`,
+      `https://solana-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}/`,
       {
         method: 'POST',
         headers: {
@@ -45,13 +47,9 @@ async function fetchSolanaTokenAccounts(address: string) {
       },
     );
 
-    if (!response.ok) {
-      throw new Error(`Network response was not ok: ${response.statusText}`);
-    }
-
     const result = ResultSchema.parse(await response.json());
 
-    if (result.error) {
+    if (result.error || !response.ok) {
       console.error('Failed to fetch Solana token accounts:', result.error);
       throw new Error('Something failed with the request.');
     }

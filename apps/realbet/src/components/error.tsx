@@ -1,6 +1,6 @@
 import React from 'react';
 import ded from '@/assets/images/vr-ded.webp';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 
 const ErrorComponent: React.FC<{ className?: string }> = ({ className }) => {
   return (
