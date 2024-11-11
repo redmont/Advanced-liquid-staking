@@ -246,7 +246,7 @@ const BonusPage = () => {
                               USD
                             </TableCell>
                             <TableCell className="px-5 text-right">
-                              + {score.toFixed(0)}
+                              + {parseFloat(score.toFixed(0)).toLocaleString()}
                             </TableCell>
                           </TableRow>
                         ),
@@ -258,11 +258,14 @@ const BonusPage = () => {
                     <TableRow>
                       <TableHead className="px-5 font-normal">Total</TableHead>
                       <TableHead className="px-5 font-normal">
-                        {degenScore.totalDeposited} USD
+                        {degenScore.totalDeposited.toLocaleString('en-US', {
+                          maximumFractionDigits: 2,
+                        })}{' '}
+                        USD
                       </TableHead>
                       <TableHead className="px-5 text-right font-normal text-primary">
                         {degenScore.totalDepositScore ? '+' : ''}{' '}
-                        {degenScore.totalDepositScore}
+                        {degenScore.totalDepositScore.toLocaleString()}
                       </TableHead>
                     </TableRow>
                   </TableFooter>
@@ -313,7 +316,8 @@ const BonusPage = () => {
                       <TableHead className="px-5 font-normal">Total</TableHead>
                       <TableHead className="px-5 font-normal"></TableHead>
                       <TableHead className="px-5 text-right font-normal text-primary">
-                        + {degenScore.totalMemeInteractionScore}
+                        +{' '}
+                        {degenScore.totalMemeInteractionScore.toLocaleString()}
                       </TableHead>
                     </TableRow>
                   </TableFooter>

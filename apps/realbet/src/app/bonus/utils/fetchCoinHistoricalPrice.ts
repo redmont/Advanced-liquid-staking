@@ -58,7 +58,8 @@ export const fetchCoinHistoricalPrice = async (query: QueryProps) => {
     throw new Error(errorText);
   }
 
-  return CoinDataResponseSchema.parse(await response.json())?.data?.[
-    symbol
-  ]?.[0]?.quotes?.[0]?.quote?.USD?.price;
+  return (
+    CoinDataResponseSchema.parse(await response.json())?.data?.[symbol]?.[0]
+      ?.quotes?.[0]?.quote?.USD?.price ?? 0
+  );
 };

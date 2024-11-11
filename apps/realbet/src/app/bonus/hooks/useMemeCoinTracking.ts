@@ -7,6 +7,9 @@ import fetchSolanaTokenAccounts from '@/utils/fetchSolanaTokenAccounts';
 import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 import { getEVMMemeCoinInteractions } from '../utils/fetchEVMAccountsCoinInteractions';
 import { coinsByChainId } from '@/config/walletChecker';
+import { useMemo } from 'react';
+
+export const POINTS_PER_MEME_COIN_INTERACTION = 100;
 
 export const useMemeCoinTracking = () => {
   const authenticated = useIsLoggedIn();
@@ -47,12 +50,31 @@ export const useMemeCoinTracking = () => {
     },
   });
 
-  const calls = [
-    ethInteractions,
-    bscInteractions,
-    baseInteractions,
-    solanaInteractions,
-  ];
+  const calls = useMemo(
+    () => [
+      ethInteractions,
+      bscInteractions,
+      baseInteractions,
+      solanaInteractions,
+    ],
+    [ethInteractions, bscInteractions, baseInteractions, solanaInteractions],
+  );
+
+  const interactions = useMemo(
+    () =>
+      calls.reduce((acc, call) => acc.concat(call.data ?? []), [] as string[]),
+    [calls],
+  );
+
+  const isSuccess = calls.every((call) => call.isSuccess);
+
+  const totalMemeInteractionScore = useMemo(
+    () =>
+      isSuccess && interactions.length > 0
+        ? interactions.length * POINTS_PER_MEME_COIN_INTERACTION
+        : 0,
+    [interactions.length, isSuccess],
+  );
 
   return {
     isSuccess: calls.every((call) => call.isSuccess),
@@ -62,6 +84,7 @@ export const useMemeCoinTracking = () => {
       (acc, call) => acc.concat(call.data ?? []),
       [] as string[],
     ),
+    totalMemeInteractionScore,
   };
 };
 

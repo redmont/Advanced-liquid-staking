@@ -2,7 +2,7 @@ import limit from '@/limiter';
 import { store } from '@/store';
 import { transactionsScannedAtom } from '@/store/degen';
 import { getAssetTransfers } from './getAssetTransfers';
-import { type Network } from 'alchemy-sdk';
+import { AssetTransfersCategory, type Network } from 'alchemy-sdk';
 import { type Casino, TREASURIES } from '@/config/walletChecker';
 
 export const findIntermediaryWallets = async (
@@ -15,39 +15,43 @@ export const findIntermediaryWallets = async (
   };
 
   const userWalletTransactions = await limit(() =>
-    getAssetTransfers(network, address),
+    getAssetTransfers(network, address, {
+      category: [AssetTransfersCategory.ERC20, AssetTransfersCategory.EXTERNAL],
+    }),
   );
 
-  for (const userTx of userWalletTransactions) {
-    if (!userTx.to || Object.values(intermediaryWallets).every(Boolean)) {
-      break;
-    }
+  await Promise.all(
+    userWalletTransactions.map(async (userTx) => {
+      const intermediaryTransactions = await limit(() =>
+        Object.values(intermediaryWallets).every(Boolean)
+          ? Promise.resolve([])
+          : getAssetTransfers(network, userTx.to as `0x${string}`, {
+              pages: 1,
+              category: [
+                AssetTransfersCategory.ERC20,
+                AssetTransfersCategory.EXTERNAL,
+              ],
+              maxCount: 100,
+            }),
+      );
 
-    // we only need one pass to find the intermediary wallets
-    // based on the assumption that intermediary wallets are always/only
-    // sending to the treasury wallets
-    const intermediaryTransactions = await limit(() =>
-      getAssetTransfers(network, userTx.to as `0x${string}`, {
-        pages: 1,
-      }),
-    );
+      for (const intermediaryTx of intermediaryTransactions) {
+        const casino = Object.entries(TREASURIES).find(
+          ([, treasury]) => treasury === intermediaryTx.to,
+        )?.[0];
 
-    for (const intermediaryTx of intermediaryTransactions) {
-      const casino = Object.entries(TREASURIES).find(
-        ([, treasury]) => treasury === intermediaryTx.to,
-      )?.[0];
-
-      if (casino) {
-        intermediaryWallets[casino as Casino] =
-          intermediaryTx.to as `0x${string}`;
+        if (casino) {
+          intermediaryWallets[casino as Casino] =
+            intermediaryTx.to as `0x${string}`;
+        }
       }
-    }
 
-    store.set(
-      transactionsScannedAtom,
-      store.get(transactionsScannedAtom) + intermediaryTransactions.length,
-    );
-  }
+      store.set(
+        transactionsScannedAtom,
+        store.get(transactionsScannedAtom) + intermediaryTransactions.length,
+      );
+    }),
+  );
 
   store.set(
     transactionsScannedAtom,
