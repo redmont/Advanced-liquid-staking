@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { useToken } from '@/hooks/useToken';
 import { formatWithSeparators } from '@/utils';
 import ErrorComponent from '@/components/error';

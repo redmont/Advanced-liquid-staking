@@ -1,3 +1,6 @@
+import { Network } from 'alchemy-sdk';
+import { groupBy, mapValues } from 'lodash';
+
 export const memeCoins = [
   {
     ticker: 'DOGE',
@@ -245,3 +248,19 @@ export const memeCoins = [
     icon: 'ginnan.png',
   },
 ] as const;
+
+export const chains = [Network.ETH_MAINNET, Network.BNB_MAINNET] as const;
+
+export const coinsByChainId = mapValues(
+  groupBy(memeCoins, 'chainId'),
+  (coins) => coins.map((coin) => coin.contractAddress),
+);
+
+export type ChainId = (typeof memeCoins)[number]['chainId'];
+
+export const TREASURIES = {
+  shuffle: '0xdfaa75323fb721e5f29d43859390f62cc4b600b8',
+  rollbit: '0xef8801eaf234ff82801821ffe2d78d60a0237f97',
+} as const;
+
+export type Casino = keyof typeof TREASURIES;

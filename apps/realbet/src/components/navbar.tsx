@@ -10,7 +10,7 @@ import React, {
 import Link from 'next/link';
 import Logo from '@/assets/images/logo.svg';
 import { Burger } from './ui/burger';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import { Button } from './ui/button';
 import {
   DynamicUserProfile,

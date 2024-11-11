@@ -14,7 +14,7 @@ import React from 'react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import { CalculatorIcon } from 'lucide-react';
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/cn';
 import {
   Popover,
   PopoverContent,

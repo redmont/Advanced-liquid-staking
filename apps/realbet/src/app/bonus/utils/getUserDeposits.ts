@@ -1,24 +1,16 @@
-import { Network } from 'alchemy-sdk';
+import { AssetTransfersCategory, type Network } from 'alchemy-sdk';
 import { flatten } from 'lodash';
 import limit from '@/limiter';
 import { store } from '@/store';
 import { progressMessageAtom, transactionsScannedAtom } from '@/store/degen';
-import { findIntermediaryWallets } from './utils/fetchIntermediaryWallet';
-import { getAssetTransfers } from './utils/getAssetTransfers';
-import { fetchCoinHistoricalPrice } from './utils/fetchCoinHistoricalPrice';
-
-export const chains = [Network.ETH_MAINNET, Network.BNB_MAINNET] as const;
-
-const TREASURIES = {
-  shuffle: '0xdfaa75323fb721e5f29d43859390f62cc4b600b8',
-  rollbit: '0xef8801eaf234ff82801821ffe2d78d60a0237f97',
-} as const;
-
-type Casino = keyof typeof TREASURIES;
+import { findIntermediaryWallets } from './fetchIntermediaryWallet';
+import { getAssetTransfers } from './getAssetTransfers';
+import { fetchCoinHistoricalPrice } from './fetchCoinHistoricalPrice';
+import { TREASURIES, type Casino } from '@/config/walletChecker';
 
 export async function getUserDeposits(
   userWallet: `0x${string}`,
-  chain: Network = Network.ETH_MAINNET,
+  chain: Network,
 ) {
   store.set(transactionsScannedAtom, 0);
   store.set(progressMessageAtom, 'Scanning wallets');
@@ -35,19 +27,33 @@ export async function getUserDeposits(
         .map(async ([casino, treasuryIntermediateWallet]) =>
           Promise.all(
             (
-              await limit(() =>
-                getAssetTransfers(chain, treasuryIntermediateWallet!, {
-                  toAddress: TREASURIES[casino as Casino],
-                }),
-              )
+              await limit(async () => {
+                const transactions = await getAssetTransfers(
+                  chain,
+                  treasuryIntermediateWallet!,
+                  {
+                    toAddress: TREASURIES[casino as Casino],
+                    category: [
+                      AssetTransfersCategory.ERC20,
+                      AssetTransfersCategory.EXTERNAL,
+                    ],
+                  },
+                );
+
+                store.set(
+                  transactionsScannedAtom,
+                  (txs) => txs + transactions.length,
+                );
+                return transactions;
+              })
             ).map(async (tx) => ({
               ...tx,
               casino: casino as Casino,
               price: tx.asset
-                ? ((await fetchCoinHistoricalPrice({
+                ? await fetchCoinHistoricalPrice({
                     symbol: tx.asset,
                     timeStart: tx.metadata.blockTimestamp,
-                  })) ?? 0)
+                  })
                 : 0,
             })),
           ),
