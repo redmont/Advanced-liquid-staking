@@ -2,20 +2,59 @@ import { useQuery } from '@tanstack/react-query';
 
 import { chains } from '@/config/walletChecker';
 import { getUserDeposits } from '../utils/getUserDeposits';
-import { flatten } from 'lodash';
+import { flatten, mapValues } from 'lodash';
 import { useMemo } from 'react';
 import { isAddress } from 'viem';
 import { useWalletAddresses } from '@/hooks/useWalletAddresses';
+import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 
 const POINTS_PER_USD_DEPOSITED = 1;
 const POINT_THRESHOLD = 100;
 
+const truncateScore = (score: number) =>
+  Math.floor(score / POINT_THRESHOLD) * POINT_THRESHOLD;
+
 const calculateDepositScore = (depositUSDValue: number) =>
-  Math.floor(depositUSDValue / POINT_THRESHOLD) *
-  POINT_THRESHOLD *
-  POINTS_PER_USD_DEPOSITED;
+  depositUSDValue * POINTS_PER_USD_DEPOSITED;
+
+const defaultScores = {
+  shuffle: { deposited: 0, score: 0 },
+  rollbit: { deposited: 0, score: 0 },
+};
+
+const calculateScoreFromDeposits = (
+  deposits: Awaited<ReturnType<typeof getUserDeposits>>,
+) => {
+  const scores = deposits.reduce(
+    (acc, deposit) =>
+      deposit.value !== null && deposit.price !== null
+        ? {
+            ...acc,
+            [deposit.casino]: {
+              deposited:
+                (acc[deposit.casino]?.deposited ?? 0) +
+                deposit.value * deposit.price,
+              score:
+                (acc[deposit.casino]?.score ?? 0) +
+                calculateDepositScore(deposit.value * deposit.price),
+            },
+          }
+        : acc,
+    defaultScores,
+  );
+
+  return mapValues(
+    scores,
+    (score) =>
+      score && {
+        deposited: score.deposited,
+        score: truncateScore(score.score),
+      },
+  );
+};
 
 export const useCasinoDeposits = () => {
+  const loggedIn = useIsLoggedIn();
   const { addresses: userWalletAddresses } = useWalletAddresses();
 
   const evmAddresses = useMemo(
@@ -24,6 +63,7 @@ export const useCasinoDeposits = () => {
   );
 
   const deposits = useQuery({
+    enabled: loggedIn,
     queryKey: ['casino-deposits', evmAddresses],
     queryFn: async () => {
       const promises = flatten(
@@ -38,35 +78,11 @@ export const useCasinoDeposits = () => {
     refetchOnWindowFocus: false,
   });
 
-  const amounts = useMemo(
-    () =>
-      deposits.isSuccess && deposits.data.length > 0
-        ? deposits.data.reduce(
-            (acc, deposit) =>
-              deposit.value !== null && deposit.price !== null
-                ? {
-                    ...acc,
-                    [deposit.casino]: {
-                      deposited:
-                        acc[deposit.casino].deposited +
-                        deposit.value * deposit.price,
-                      score:
-                        acc[deposit.casino].score +
-                        calculateDepositScore(deposit.value * deposit.price),
-                    },
-                  }
-                : acc,
-            {
-              rollbit: { deposited: 0, score: 0 },
-              shuffle: { deposited: 0, score: 0 },
-            },
-          )
-        : {
-            rollbit: { deposited: 0, score: 0 },
-            shuffle: { deposited: 0, score: 0 },
-          },
-    [deposits.data, deposits.isSuccess],
-  );
+  const amounts = useMemo(() => {
+    return deposits.isSuccess && deposits.data.length > 0
+      ? calculateScoreFromDeposits(deposits.data)
+      : defaultScores;
+  }, [deposits.data, deposits.isSuccess]);
 
   const totalScore = useMemo(
     () => Object.values(amounts).reduce((acc, cur) => acc + cur.score, 0),

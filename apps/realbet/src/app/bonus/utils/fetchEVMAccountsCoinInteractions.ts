@@ -14,7 +14,7 @@ const chainIdToAlchemyNetworkMap: Record<ChainId, Network | null> = {
 
 const getEligibleMemeCoinInteractions = async (
   chain: ChainId,
-  fromAddress: `0x${string}`,
+  address: `0x${string}`,
 ) => {
   const network = chainIdToAlchemyNetworkMap[chain];
   if (!network) {
@@ -28,7 +28,11 @@ const getEligibleMemeCoinInteractions = async (
   }
 
   const transfers = await limit(() =>
-    getAssetTransfers(network, fromAddress, { contractAddresses }),
+    getAssetTransfers(network, {
+      contractAddresses,
+      fromAddress: address,
+      toAddress: address,
+    }),
   );
 
   return transfers
