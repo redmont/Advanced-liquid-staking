@@ -1,9 +1,9 @@
 import { useToken } from '@/hooks/useToken';
-import { cn } from '@/lib/utils';
 import { formatBalanceTruncated } from '@/utils';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useMemo } from 'react';
 import { useVesting } from '@/hooks/useVesting';
+import { cn } from '@/lib/cn';
 
 const colors = [
   'bg-primary',
@@ -31,17 +31,17 @@ export default function VestingIndicator() {
   const { vestingSchedulesWithAmounts } = useVesting();
 
   const vestingData = useMemo(() => {
-    const total = vestingSchedulesWithAmounts.reduce(
-      (a, b) => a + b.amountTotal,
-      0n,
-    );
-    const releasable = vestingSchedulesWithAmounts.reduce(
-      (a, b) => a + b.releasableAmount,
-      0n,
-    );
-    const released = vestingSchedulesWithAmounts.reduce(
-      (a, b) => a + b.released,
-      0n,
+    const { total, releasable, released } = vestingSchedulesWithAmounts.reduce(
+      (acc, schedule) => ({
+        total: acc.total + schedule.amountTotal,
+        releasable: acc.releasable + schedule.releasableAmount,
+        released: acc.released + schedule.released,
+      }),
+      {
+        total: 0n,
+        releasable: 0n,
+        released: 0n,
+      },
     );
 
     const vesting = total - releasable - released;

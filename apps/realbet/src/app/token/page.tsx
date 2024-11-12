@@ -25,7 +25,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
 import { useToken } from '@/hooks/useToken';
 import { formatUnits, parseUnits } from 'viem';
 import { formatBalance, formatBalanceTruncated } from '@/utils';
@@ -33,6 +32,7 @@ import ErrorComponent from '@/components/error';
 import { useVesting } from '@/hooks/useVesting';
 import VestingIndicator from './components/vesting-indicator';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
+import { cn } from '@/lib/cn';
 
 const rank = 'Diamond League';
 const rakebackTier = 'Diamond';
