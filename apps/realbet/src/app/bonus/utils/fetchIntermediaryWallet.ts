@@ -3,7 +3,7 @@ import { store } from '@/store';
 import { transactionsScannedAtom } from '@/store/degen';
 import { getAssetTransfers } from './getAssetTransfers';
 import { AssetTransfersCategory, type Network } from 'alchemy-sdk';
-import { type Casino, TREASURIES } from '@/config/walletChecker';
+import { type Casino, casinos } from '@/config/walletChecker';
 import { uniqBy } from 'lodash';
 
 type IntermediaryWallet = {
@@ -40,14 +40,14 @@ export const findIntermediaryWallets = async (
       );
 
       for (const intermediaryTx of intermediaryTransactions) {
-        const casino = Object.entries(TREASURIES).find(
-          ([, treasury]) => treasury === intermediaryTx.to,
-        )?.[0];
+        const found = casinos.find(
+          (casino) => casino.treasury === intermediaryTx.to,
+        );
 
-        if (casino) {
+        if (found) {
           intermediaryWallets.push({
             network,
-            casino: casino as Casino,
+            casino: found,
             address: intermediaryTx.from as `0x${string}`,
           });
         }
@@ -65,5 +65,8 @@ export const findIntermediaryWallets = async (
     store.get(transactionsScannedAtom) + userWalletTransactions.length,
   );
 
-  return uniqBy(intermediaryWallets, (w) => w.address + w.casino + w.network);
+  return uniqBy(
+    intermediaryWallets,
+    (w) => w.address + w.casino.name + w.casino.chainId + w.network,
+  );
 };

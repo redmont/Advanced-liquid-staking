@@ -1,5 +1,7 @@
+import { type ArrayElementType } from '@/utils';
 import { Network } from 'alchemy-sdk';
-import { groupBy, mapValues } from 'lodash';
+import { groupBy, mapValues, uniq } from 'lodash';
+import { bsc, mainnet, base } from 'viem/chains';
 
 export const memeCoins = [
   {
@@ -249,18 +251,72 @@ export const memeCoins = [
   },
 ] as const;
 
-export const chains = [Network.ETH_MAINNET, Network.BNB_MAINNET] as const;
-
 export const coinsByChainId = mapValues(
   groupBy(memeCoins, 'chainId'),
   (coins) => coins.map((coin) => coin.contractAddress),
 );
 
-export type ChainId = (typeof memeCoins)[number]['chainId'];
+export const casinos = [
+  {
+    name: 'Shuffle',
+    treasury: '0xdfaa75323fb721e5f29d43859390f62cc4b600b8' as `0x${string}`,
+    chainId: mainnet.id,
+    type: 'evm',
+  },
+  {
+    name: 'RollBit',
+    treasury: '0xef8801eaf234ff82801821ffe2d78d60a0237f97' as `0x${string}`,
+    chainId: mainnet.id,
+    type: 'evm',
+  },
+  {
+    name: 'Stake',
+    treasury: '0x974caa59e49682cda0ad2bbe82983419a2ecc400' as `0x${string}`,
+    chainId: mainnet.id,
+    type: 'evm',
+  },
+  {
+    name: 'BC.game',
+    treasury: '0x9D2A0e32633d9be838BFDE19d510E6aA6eB202dd' as `0x${string}`,
+    chainId: mainnet.id,
+    type: 'evm',
+  },
+  {
+    name: 'Shuffle',
+    treasury: '0xdfaa75323fb721e5f29d43859390f62cc4b600b8' as `0x${string}`,
+    chainId: bsc.id,
+    type: 'evm',
+  },
+  {
+    name: 'Stake',
+    treasury: '0xFa500178de024BF43CFA69B7e636A28AB68F2741' as `0x${string}`,
+    chainId: bsc.id,
+    type: 'evm',
+  },
+];
 
-export const TREASURIES = {
-  shuffle: '0xdfaa75323fb721e5f29d43859390f62cc4b600b8',
-  rollbit: '0xef8801eaf234ff82801821ffe2d78d60a0237f97',
+export const chainIdToAlchemyNetworkMap = {
+  [mainnet.id]: Network.ETH_MAINNET,
+  [bsc.id]: Network.BNB_MAINNET,
+  [base.id]: Network.BASE_MAINNET,
+  mainnet: null, // Solana mainnet does not exist for alchemy sdk yet
 } as const;
 
-export type Casino = keyof typeof TREASURIES;
+export const alchemyIdToChainIdMap = {
+  [Network.ETH_MAINNET]: mainnet.id,
+  [Network.BNB_MAINNET]: bsc.id,
+  [Network.BASE_MAINNET]: base.id,
+} as const;
+
+export const casinoEvmChains = uniq(
+  casinos.filter((c) => c.type === 'evm').map((c) => c.chainId),
+);
+
+export const casinoNames = uniq(casinos.map((c) => c.name));
+
+export type ChainId =
+  | (typeof memeCoins)[number]['chainId']
+  | (typeof casinos)[number]['chainId'];
+
+export const treasuries = groupBy(casinos, 'name');
+export type Casino = ArrayElementType<typeof casinos>;

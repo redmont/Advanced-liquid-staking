@@ -1,9 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Loader2, Wallet2 } from 'lucide-react';
 import Banner from '@/components/banner';
+import {
+  useDynamicContext,
+  useIsLoggedIn,
+  useDynamicModals,
+} from '@dynamic-labs/sdk-react-core';
+
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -15,21 +21,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { shorten } from '@/utils';
-import { memeCoins } from '@/config/walletChecker';
-
-import {
-  useDynamicContext,
-  useIsLoggedIn,
-  useDynamicModals,
-} from '@dynamic-labs/sdk-react-core';
+import { casinoNames, memeCoins } from '@/config/walletChecker';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
-import { Wallet2 } from 'lucide-react';
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@radix-ui/react-popover';
+} from '@/components/ui/popover';
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 import { useToken } from '@/hooks/useToken';
 import ErrorComponent from '@/components/error';
@@ -65,7 +63,7 @@ const BonusPage = () => {
       <ul className="max-w-80 list-disc space-y-3 rounded-xl border border-border bg-light p-2 pl-5 text-left text-sm">
         <li>
           If there is at least 1 txn on any supported casinos (Shuffle, Stake or
-          Rollbit) on any supported chains (BTC ,SOL, ETH, BNB) then{' '}
+          Rollbit) on any supported chains (BTC, SOL, ETH, BNB) then{' '}
           <b>points += 100</b>
         </li>
         <li>
@@ -85,7 +83,7 @@ const BonusPage = () => {
       <Banner>
         <div className="space-y-4">
           <p className="py-4 text-lg tracking-widest md:max-w-[50%]">
-            SHUFFLE | STAKE | ROLLBIT
+            {casinoNames.map((n) => n.toUpperCase()).join(' | ')}
           </p>
           <h3 className="inline rounded-md bg-accent2 px-2 font-monoline text-3xl text-white xl:text-4xl">
             Check your {token.symbol} Bonus
@@ -130,12 +128,16 @@ const BonusPage = () => {
               <span>
                 Connected Wallets: {userAddresses.length}
                 <div className="flex items-center gap-2">
-                  {userAddresses.slice(0, 3).map((address, i) => (
-                    <span key={`${address}-${i}`}>
-                      {address && shorten(address, 4)}
-                      {i !== address.length - 1 && ','}
-                    </span>
-                  ))}
+                  {userAddresses
+                    .slice(0, 3)
+                    .map((address, i) => (
+                      <span key={`${address}-${i}`}>{shorten(address, 4)}</span>
+                    ))
+                    .reduce((prev, curr) => (
+                      <>
+                        {prev}, {curr}
+                      </>
+                    ))}
                   {userAddresses.length > 3 && (
                     <span className="no-wrap whitespace-nowrap">
                       {'+ '}
@@ -195,7 +197,11 @@ const BonusPage = () => {
                     </h3>
                     <h3 className="text-md text-center">
                       <span className="text-xl text-primary">
-                        {animatedTotalScore}
+                        {!degenScore.isSuccess ? (
+                          <Loader2 className="inline animate-spin" />
+                        ) : (
+                          animatedTotalScore
+                        )}
                       </span>
                     </h3>
                   </div>

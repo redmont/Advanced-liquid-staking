@@ -1,12 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { chains } from '@/config/walletChecker';
+import { type Casino, casinoEvmChains, casinos } from '@/config/walletChecker';
 import { getUserDeposits } from '../utils/getUserDeposits';
 import { flatten, mapValues } from 'lodash';
 import { useMemo } from 'react';
 import { isAddress } from 'viem';
 import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
+import { chainIdToAlchemyNetworkMap } from '@/config/walletChecker';
 
 const POINTS_PER_USD_DEPOSITED = 1;
 const POINT_THRESHOLD = 100;
@@ -17,10 +18,13 @@ const truncateScore = (score: number) =>
 const calculateDepositScore = (depositUSDValue: number) =>
   depositUSDValue * POINTS_PER_USD_DEPOSITED;
 
-const defaultScores = {
-  shuffle: { deposited: 0, score: 0 },
-  rollbit: { deposited: 0, score: 0 },
-};
+const defaultScores = casinos.reduce(
+  (acc, casino) => ({
+    ...acc,
+    [casino.name]: { deposited: 0, score: 0 },
+  }),
+  {} as Record<Casino['name'], { deposited: number; score: number }>,
+);
 
 const calculateScoreFromDeposits = (
   deposits: Awaited<ReturnType<typeof getUserDeposits>>,
@@ -30,12 +34,12 @@ const calculateScoreFromDeposits = (
       deposit.value !== null && deposit.price !== null
         ? {
             ...acc,
-            [deposit.casino]: {
+            [deposit.casino.name]: {
               deposited:
-                (acc[deposit.casino]?.deposited ?? 0) +
+                (acc[deposit.casino.name]?.deposited ?? 0) +
                 deposit.value * deposit.price,
               score:
-                (acc[deposit.casino]?.score ?? 0) +
+                (acc[deposit.casino.name]?.score ?? 0) +
                 calculateDepositScore(deposit.value * deposit.price),
             },
           }
@@ -68,7 +72,9 @@ export const useCasinoDeposits = () => {
     queryFn: async () => {
       const promises = flatten(
         evmAddresses.map((address) =>
-          chains.map((chain) => getUserDeposits(address, chain)),
+          casinoEvmChains.map((chain) =>
+            getUserDeposits(address, chainIdToAlchemyNetworkMap[chain]),
+          ),
         ),
       );
 
