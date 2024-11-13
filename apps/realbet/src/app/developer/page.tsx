@@ -57,9 +57,7 @@ const DeveloperPage = () => {
         <div>
           <label className="mb-2 block">Issue vesting $REAL ($vREAL)</label>
           <Button
-            onClick={() => {
-              getVestingToken.mutateAsync();
-            }}
+            onClick={() => getVestingToken.mutateAsync()}
             loading={getVestingToken.isPending}
           >
             Issue
