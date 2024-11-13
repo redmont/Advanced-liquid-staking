@@ -25,7 +25,7 @@ const DeveloperPage = () => {
   const getVestingToken = useMutation({
     mutationFn: () => {
       if (!primaryWallet) {
-        return Promise.reject('Wallet required');
+        throw new Error('Wallet required');
       }
       return issueVestingToken(primaryWallet.address);
     },
