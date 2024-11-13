@@ -3,19 +3,24 @@ import { store } from '@/store';
 import { transactionsScannedAtom } from '@/store/degen';
 import { getAssetTransfers } from './getAssetTransfers';
 import { AssetTransfersCategory, type Network } from 'alchemy-sdk';
-import { type Casino, TREASURIES } from '@/config/walletChecker';
+import { type Casino, casinos } from '@/config/walletChecker';
+import { uniqBy } from 'lodash';
+
+type IntermediaryWallet = {
+  network: Network;
+  casino: Casino;
+  address: `0x${string}`;
+};
 
 export const findIntermediaryWallets = async (
   address: `0x${string}`,
   network: Network,
 ) => {
-  const intermediaryWallets: Record<Casino, `0x${string}` | null> = {
-    shuffle: null,
-    rollbit: null,
-  };
+  const intermediaryWallets: IntermediaryWallet[] = [];
 
   const userWalletTransactions = await limit(() =>
-    getAssetTransfers(network, address, {
+    getAssetTransfers(network, {
+      fromAddress: address,
       category: [AssetTransfersCategory.ERC20, AssetTransfersCategory.EXTERNAL],
     }),
   );
@@ -23,26 +28,28 @@ export const findIntermediaryWallets = async (
   await Promise.all(
     userWalletTransactions.map(async (userTx) => {
       const intermediaryTransactions = await limit(() =>
-        Object.values(intermediaryWallets).every(Boolean)
-          ? Promise.resolve([])
-          : getAssetTransfers(network, userTx.to as `0x${string}`, {
-              pages: 1,
-              category: [
-                AssetTransfersCategory.ERC20,
-                AssetTransfersCategory.EXTERNAL,
-              ],
-              maxCount: 100,
-            }),
+        getAssetTransfers(network, {
+          fromAddress: userTx.to ?? '',
+          pages: 1,
+          category: [
+            AssetTransfersCategory.ERC20,
+            AssetTransfersCategory.EXTERNAL,
+          ],
+          maxCount: 100,
+        }),
       );
 
       for (const intermediaryTx of intermediaryTransactions) {
-        const casino = Object.entries(TREASURIES).find(
-          ([, treasury]) => treasury === intermediaryTx.to,
-        )?.[0];
+        const found = casinos.find(
+          (casino) => casino.treasury === intermediaryTx.to,
+        );
 
-        if (casino) {
-          intermediaryWallets[casino as Casino] =
-            intermediaryTx.to as `0x${string}`;
+        if (found) {
+          intermediaryWallets.push({
+            network,
+            casino: found,
+            address: intermediaryTx.from as `0x${string}`,
+          });
         }
       }
 
@@ -58,5 +65,8 @@ export const findIntermediaryWallets = async (
     store.get(transactionsScannedAtom) + userWalletTransactions.length,
   );
 
-  return intermediaryWallets;
+  return uniqBy(
+    intermediaryWallets,
+    (w) => w.address + w.casino.name + w.casino.chainId + w.network,
+  );
 };

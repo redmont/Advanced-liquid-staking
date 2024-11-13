@@ -12,7 +12,6 @@ import limit from '@/limiter';
 
 export async function getAssetTransfers(
   network: Network,
-  fromAddress: `0x${string}`,
   options: Partial<AssetTransfersWithMetadataParams> & { pages?: number } = {},
 ) {
   const alchemy = new Alchemy({
@@ -30,7 +29,6 @@ export async function getAssetTransfers(
   do {
     const txs = await limit(() =>
       alchemy.core.getAssetTransfers({
-        fromAddress,
         category: [AssetTransfersCategory.ERC20],
         withMetadata: true,
         ...options,
