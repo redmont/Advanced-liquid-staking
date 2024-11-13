@@ -148,15 +148,15 @@ export const useVesting = () => {
 
       const amounts = await multicall(config, {
         contracts,
-        allowFailure: false,
+        allowFailure: true,
       });
 
-      const amountsWithIds = vestingScheduleIds.data.map(
-        (scheduleId, index) => ({
-          amount: amounts?.[index] ?? 0n,
+      const amountsWithIds = vestingScheduleIds.data
+        .filter((item) => item.status === 'success')
+        .map((scheduleId, index) => ({
+          amount: amounts?.[index]?.result ?? 0n,
           id: scheduleId.result,
-        }),
-      );
+        }));
 
       return amountsWithIds;
     },
@@ -195,11 +195,11 @@ export const useVesting = () => {
   );
 
   const nextWithdrawal = useMemo(() => {
-    // The oldest vesting from vestingSchedulesWithAmounts that has a releasable amount
     if (!vestingSchedulesWithAmounts?.length) {
       return undefined;
     }
 
+    // The oldest vesting from vestingSchedulesWithAmounts that has a releasable amount
     const oldestReleasable = vestingSchedulesWithAmounts.find(
       (schedule) => schedule.releasableAmount > 0n,
     );
