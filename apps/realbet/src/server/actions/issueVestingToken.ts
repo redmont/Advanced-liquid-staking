@@ -1,13 +1,13 @@
 'use server';
 
 import { testnetTransports } from '@/config/wagmi';
-import { tokenVestingAbi, tokenVestingAddress } from '@/contracts/generated';
 import { createWalletClient } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { parseEther } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { env } from '@/env';
+import { tokenVestingAbi, tokenVestingAddress } from '@/contracts/generated';
 
 const contractAddress = tokenVestingAddress[sepolia.id];
 
