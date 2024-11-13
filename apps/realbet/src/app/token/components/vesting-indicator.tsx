@@ -62,7 +62,7 @@ export default function VestingIndicator() {
         amount: released,
         percentage: percentage(released),
       },
-    } as VestingData;
+    };
   }, [vestingSchedulesWithAmounts]);
 
   return (

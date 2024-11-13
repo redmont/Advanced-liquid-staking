@@ -33,6 +33,7 @@ import { useVesting } from '@/hooks/useVesting';
 import VestingIndicator from './components/vesting-indicator';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import { cn } from '@/lib/cn';
+import assert from 'assert';
 
 const rank = 'Diamond League';
 const rakebackTier = 'Diamond';
@@ -54,13 +55,8 @@ export default function Token() {
     release,
   } = useVesting();
 
-  const withdrawableAmountNumber = useMemo(
-    () => formatBalanceTruncated(withdrawableAmount, token.decimals, 2),
-    [withdrawableAmount, token.decimals],
-  );
-
   const withdrawableAmountAnimated = useAnimatedNumber(
-    withdrawableAmountNumber,
+    formatBalanceTruncated(withdrawableAmount, token.decimals, 2),
     {
       decimals: 0,
       duration: 300,
@@ -246,16 +242,15 @@ export default function Token() {
                   )}
                 </span>
                 <Button
-                  disabled={withdrawableAmount <= 0n}
+                  disabled={withdrawableAmount <= 0n || !nextWithdrawal}
                   loading={!sdkHasLoaded || release.isPending}
                   size="sm"
                   onClick={async () => {
-                    if (nextWithdrawal?.id) {
-                      await release.mutateAsync({
-                        amount: nextWithdrawal?.releasableAmount ?? 0n,
-                        vestingScheduleId: nextWithdrawal?.id,
-                      });
-                    }
+                    assert(nextWithdrawal?.id, 'nextWithdrawal.id is required');
+                    await release.mutateAsync({
+                      amount: nextWithdrawal.releasableAmount ?? 0n,
+                      vestingScheduleId: nextWithdrawal.id,
+                    });
                   }}
                 >
                   Withdraw{' '}

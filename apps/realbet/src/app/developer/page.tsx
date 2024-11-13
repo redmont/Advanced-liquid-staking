@@ -22,7 +22,7 @@ const DeveloperPage = () => {
     connectedAddressesOverrideAtom,
   );
 
-  const getVestingToken = useMutation({
+  const issueVestingTokenMutation = useMutation({
     mutationFn: () => {
       if (!primaryWallet) {
         throw new Error('Wallet required');
@@ -57,13 +57,13 @@ const DeveloperPage = () => {
         <div>
           <label className="mb-2 block">Issue vesting $REAL ($vREAL)</label>
           <Button
-            onClick={() => getVestingToken.mutateAsync()}
-            loading={getVestingToken.isPending}
+            onClick={() => issueVestingTokenMutation.mutateAsync()}
+            loading={issueVestingTokenMutation.isPending}
           >
             Issue
           </Button>
           <p className="text-destructive empty:hidden">
-            {getVestingToken.error?.message}
+            {issueVestingTokenMutation.error?.message}
           </p>
         </div>
       </div>

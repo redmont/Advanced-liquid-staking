@@ -13,7 +13,7 @@ export const env = createEnv({
     SENTRY_AUTH_TOKEN: z.string().optional(),
     COINMARKETCAP_API_KEY: z.string().optional(),
     ALCHEMY_API_KEY: z.string(),
-    TESTNET_SIGNER_PRIVATE_KEY: z.string(),
+    TESTNET_SIGNER_PRIVATE_KEY: z.string().optional(),
   },
 
   /**
@@ -37,7 +37,7 @@ export const env = createEnv({
     COINMARKETCAP_API_KEY: process.env.COINMARKETCAP_API_KEY,
     ALCHEMY_API_KEY:
       process.env.ALCHEMY_API_KEY ?? 'vlIJU80HdfL61kafixpO45fFrvqVPJx9',
-    TESTNET_SIGNER_PRIVATE_KEY: process.env.TESTNET_SIGNER_PRIVATE_KEY ?? '0x0',
+    TESTNET_SIGNER_PRIVATE_KEY: process.env.TESTNET_SIGNER_PRIVATE_KEY,
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??
       '21452bd4-902f-40be-9b8f-5bc817b00e0e',

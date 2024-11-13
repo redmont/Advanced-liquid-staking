@@ -7,14 +7,29 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { parseEther } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
+import { env } from '@/env';
 
 const contractAddress = tokenVestingAddress[sepolia.id];
 
-const account = privateKeyToAccount(
-  process.env.TESTNET_SIGNER_PRIVATE_KEY! as `0x${string}`,
-);
-
 export const issueVestingToken = async (address: string) => {
+  if (env.NODE_ENV === 'production') {
+    throw new Error('Not available in this environment');
+  }
+
+  if (!env.TESTNET_SIGNER_PRIVATE_KEY) {
+    throw new Error('TESTNET_SIGNER_PRIVATE_KEY is not set');
+  }
+
+  let account;
+  try {
+    account = privateKeyToAccount(
+      env.TESTNET_SIGNER_PRIVATE_KEY as `0x${string}`,
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`Invalid testnet signer private key: ${msg}`);
+  }
+
   const client = createWalletClient({
     account,
     chain: sepolia,
