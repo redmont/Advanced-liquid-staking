@@ -7,14 +7,29 @@ import {
 } from '@/store/developer';
 import { useAtom } from 'jotai';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { useDynamicContext } from '@/lib/dynamic';
+import { useMutation } from '@tanstack/react-query';
+import { issueVestingToken } from '@/server/actions/issueVestingToken';
 
 const DeveloperPage = () => {
+  const { primaryWallet } = useDynamicContext();
+
   const [addressOverride, setAddressOverride] = useAtom(
     primaryWalletAddressOverrideAtom,
   );
   const [connectedAddressesOverride, setConnectedAddressesOverride] = useAtom(
     connectedAddressesOverrideAtom,
   );
+
+  const issueVestingTokenMutation = useMutation({
+    mutationFn: () => {
+      if (!primaryWallet) {
+        throw new Error('Wallet required');
+      }
+      return issueVestingToken(primaryWallet.address);
+    },
+  });
 
   return (
     <div className="flex flex-col gap-5 p-5">
@@ -38,6 +53,18 @@ const DeveloperPage = () => {
             id="wallet-addresses"
             placeholder="Comma separated addresses: i.e. 0x123...,0x456..."
           />
+        </div>
+        <div>
+          <label className="mb-2 block">Issue vesting $REAL ($vREAL)</label>
+          <Button
+            onClick={() => issueVestingTokenMutation.mutateAsync()}
+            loading={issueVestingTokenMutation.isPending}
+          >
+            Issue
+          </Button>
+          <p className="text-destructive empty:hidden">
+            {issueVestingTokenMutation.error?.message}
+          </p>
         </div>
       </div>
     </div>

@@ -10,7 +10,7 @@
     "flatten": "npx hardhat flatten",
     "check:format": "solhint contracts/*.sol --fix",
     "compile": "hardhat compile",
-    "deploy:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TestVestingContract.ts --network sepolia"
+    "deploy:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TokenVesting.ts --network sepolia --parameters ./ignition/parameters/sepolia.json"
   },
   "files": [
     "build/abi",

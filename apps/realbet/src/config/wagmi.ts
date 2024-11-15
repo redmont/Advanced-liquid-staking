@@ -4,7 +4,7 @@ import { mainnet } from 'wagmi/chains';
 import { http } from 'viem';
 import * as chains from '@/config/networks';
 
-const testnetTransports = {
+export const testnetTransports = {
   [chains.sepolia.id]: http('https://rpc.ankr.com/eth_sepolia'),
   [chains.polygonAmoy.id]: http('https://rpc.ankr.com/polygon_amoy'),
 };
