@@ -270,6 +270,12 @@ export const casinos = [
     type: 'evm',
   },
   {
+    name: 'Rollbit',
+    treasury: '0xCBD6832Ebc203e49E2B771897067fce3c58575ac',
+    chainId: mainnet.id,
+    type: 'evm',
+  },
+  {
     name: 'Stake',
     treasury: '0x974caa59e49682cda0ad2bbe82983419a2ecc400' as `0x${string}`,
     chainId: mainnet.id,
@@ -299,7 +305,6 @@ export const chainIdToAlchemyNetworkMap = {
   [mainnet.id]: Network.ETH_MAINNET,
   [bsc.id]: Network.BNB_MAINNET,
   [base.id]: Network.BASE_MAINNET,
-  mainnet: null, // Solana mainnet does not exist for alchemy sdk yet
 } as const;
 
 export const alchemyIdToChainIdMap = {
