@@ -1,31 +1,12 @@
-import { useWalletAddresses } from '@/hooks/useWalletAddresses';
-import { useQuery } from '@tanstack/react-query';
-import { z } from 'zod';
 import { getSolanaAssetMetadata } from './getSolanaTxMetadata';
+import { fetchSolTransactions } from './fetchSolTransactions';
+import { fetchCoinHistoricalPrice } from './fetchCoinHistoricalPrice';
 
 interface SolanaBaseTransaction {
   from: string;
   to: string;
   amount: number;
   timestamp: string;
-}
-
-interface SolanaSRCTxn extends SolanaBaseTransaction {
-  mint: string;
-  toUserAccount: string;
-  tokenStandard: string;
-  fromUserAccount: string;
-  tokenAmount: string;
-}
-
-interface Transaction {
-  timestamp: string;
-  tokenTransfers: SolanaSRCTxn[];
-  nativeTransfers: {
-    toUserAccount: string;
-    fromUserAccount: string;
-    amount: number;
-  }[];
 }
 
 interface TransactionWithValue extends SolanaBaseTransaction {
@@ -39,195 +20,94 @@ interface TransactionWithValue extends SolanaBaseTransaction {
   };
 }
 
-const CoinDataResponseSchema = z.object({
-  data: z.record(
-    z.array(
-      z.object({
-        quotes: z.array(
-          z.object({
-            quote: z.object({
-              USD: z.object({
-                price: z.number(),
-              }),
-            }),
-          }),
-        ),
-      }),
-    ),
-  ),
-});
-
-export const SHUFFLE_SOL_TREASURY_WALLET =
-  '76iXe9yKFDjGv3HicUVVy8AYxHLC71L1wYa12zaZzHHp';
-
-export const ROLLBIT_SOL_TREASURY_WALLET =
-  'RBHdGVfDfMjfU6iUfCb1LczMJcQLx7hGnxbzRsoDNvx';
-
-export const BCGAME_SOL_TREASURY_WALLET =
-  '97UQvPXbadGSsVaGuJCBLRm3Mkm7A5DVJ2HktRzrnDTB';
-
-export const BETFURY_SOL_TREASURY_WALLET =
-  '2oUVDCMTKKCDHiuMmCgZX6Vq9irR92K2vjxTxQsNNrdS';
-
-export type Casinos = 'shuffle' | 'rollbit' | 'bcgame' | 'betfury';
-
-const Cas = ['shuffle', 'rollbit', 'bcgame', 'betfury'] as const;
-
-export const getSolCasinoTreasuryWallet = (casino: Casinos) => {
-  switch (casino) {
-    case 'shuffle':
-      return SHUFFLE_SOL_TREASURY_WALLET;
-    case 'rollbit':
-      return ROLLBIT_SOL_TREASURY_WALLET;
-    case 'bcgame':
-      return BCGAME_SOL_TREASURY_WALLET;
-    case 'betfury':
-      return BETFURY_SOL_TREASURY_WALLET;
-    default:
-      return SHUFFLE_SOL_TREASURY_WALLET;
-  }
-};
-
-const GetHistoricalPriceAtTime = (symbol: string, timestamp: string) => {
-  const isoString = new Date(+timestamp * 1000).toISOString();
-  const params = new URLSearchParams({
-    symbol: symbol,
-    time_start: isoString,
-    count: '1',
-    convert: 'USD',
-  });
-
-  const { data }: { data?: number } = useQuery({
-    queryKey: ['price', timestamp, symbol],
-    queryFn: async () => {
-      const response = await fetch(`/api/coinHistoricalData?${params}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const res = CoinDataResponseSchema.parse(await response.json());
-      const quotes = res.data[symbol]?.[0]?.quotes;
-      if (quotes && quotes.length > 0) {
-        const price = quotes[0]?.quote.USD.price;
-        return price;
-      }
-    },
-    enabled: Boolean(timestamp),
-  });
-
-  if (data) {
-    return data;
-  }
-};
-
-const FetchAllTransactions = (fromAddress: string) => {
-  const data = useQuery({
-    queryKey: ['address', fromAddress],
-    queryFn: async () => {
-      const response = await fetch('/api/solanaTx', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fromAddress: fromAddress,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch data');
-      }
-
-      const res = (await response.json()) as Promise<Transaction[]>;
-      return res;
-    },
-    enabled: fromAddress !== '',
-  });
-
-  if (data.isLoading === false && data.isSuccess) {
-    return data.data;
-  }
-};
+export const SOL_CASINO_TREASURY_WALLETS = {
+  Shuffle: '76iXe9yKFDjGv3HicUVVy8AYxHLC71L1wYa12zaZzHHp',
+  RollBit: 'RBHdGVfDfMjfU6iUfCb1LczMJcQLx7hGnxbzRsoDNvx',
+  'BC.game': '97UQvPXbadGSsVaGuJCBLRm3Mkm7A5DVJ2HktRzrnDTB',
+  Betfury: '2oUVDCMTKKCDHiuMmCgZX6Vq9irR92K2vjxTxQsNNrdS',
+} as const;
 
 //Native transfers tx
-const SolanaNativeTransactions = (fromAddress: string) => {
-  const origin = FetchAllTransactions(fromAddress);
-
-  if (origin) {
-    const alpha = origin.flatMap((txn: Transaction) => {
-      return txn.nativeTransfers
-        .filter(
-          (transfer) =>
-            transfer.toUserAccount !== fromAddress &&
-            transfer.fromUserAccount === fromAddress,
-        )
-        .map((transfer) => ({
-          from: transfer.fromUserAccount,
-          to: transfer.toUserAccount,
-          amount: transfer.amount,
-          timestamp: txn.timestamp,
-        }));
-    });
-    return alpha;
-  }
+const solanaNativeTransactions = async (fromAddress: string) => {
+  const origin = await fetchSolTransactions(fromAddress);
+  return origin.flatMap((txn) => {
+    return txn.nativeTransfers
+      .filter(
+        (transfer) =>
+          transfer.toUserAccount !== fromAddress &&
+          transfer.fromUserAccount === fromAddress,
+      )
+      .map((transfer) => ({
+        from: transfer.fromUserAccount,
+        to: transfer.toUserAccount,
+        amount: transfer.amount,
+        timestamp: txn.timestamp,
+      }));
+  });
 };
 
-const FindNativeTreasury = (fromAddress: string, treasuryAddress: string) => {
-  const alpha = SolanaNativeTransactions(fromAddress);
+const findNativeTreasury = async (
+  fromAddress: string,
+  treasuryAddress: string,
+) => {
+  const alpha = await solanaNativeTransactions(fromAddress);
 
-  if (alpha !== undefined) {
-    const treasuryTxns = alpha.flatMap((txn) => {
+  const treasuryTransactions = await Promise.all(
+    alpha.map(async (txn) => {
       const wallet2 = txn.to;
-      const tx = FetchAllTransactions(txn.to);
+      const tx = await fetchSolTransactions(wallet2);
 
       if (!tx) {
         return [];
       }
-      if (tx) {
-        return tx.flatMap((txn: Transaction) => {
-          return txn.nativeTransfers
-            .filter(
-              (transfer) =>
-                transfer.toUserAccount === treasuryAddress &&
-                transfer.fromUserAccount === wallet2,
-            )
-            .map((transfer) => ({
-              from: transfer.fromUserAccount,
-              to: transfer.toUserAccount,
-              amount: transfer.amount,
-              timestamp: txn.timestamp,
-            }));
-        });
-      }
-    });
-    return treasuryTxns;
-  }
+      return tx.flatMap((txn) => {
+        return txn.nativeTransfers
+          .filter(
+            (transfer) =>
+              transfer.toUserAccount === treasuryAddress &&
+              transfer.fromUserAccount === wallet2,
+          )
+          .map((transfer) => ({
+            from: transfer.fromUserAccount,
+            to: transfer.toUserAccount,
+            amount: transfer.amount,
+            timestamp: txn.timestamp,
+          }));
+      });
+    }),
+  );
+  return treasuryTransactions.flat();
 };
 
-const TraceSolanaDeposits = (fromAddress: string, treasuryAddress: string) => {
-  const mapTxs = FindNativeTreasury(fromAddress, treasuryAddress);
+const traceSolanaDeposits = async (
+  fromAddress: string,
+  treasuryAddress: string,
+) => {
+  const mapTxs = await findNativeTreasury(fromAddress, treasuryAddress);
 
-  if (!mapTxs) {
+  if (!mapTxs || mapTxs.length === 0) {
     return { deposits: [], totalUsdValue: 0 };
   }
 
-  const deposits = mapTxs
-    .map((txn) => {
-      const price = GetHistoricalPriceAtTime('SOL', txn?.timestamp ?? '');
+  const deposits = await Promise.all(
+    mapTxs.map(async (txn) => {
+      if (!txn?.amount) {
+        return null;
+      }
 
+      const isoString = new Date(
+        +txn.timestamp.toString() * 1000,
+      ).toISOString();
+
+      const price = await fetchCoinHistoricalPrice({
+        symbol: 'SOL',
+        time_start: isoString,
+      });
       if (!price) {
         return null;
       }
 
-      if (!txn) {
-        return null;
-      }
-
-      const solAmount = txn?.amount / 10 ** 9;
+      const solAmount = txn.amount / 10 ** 9;
       const usdValue = solAmount * price;
 
       return {
@@ -235,160 +115,160 @@ const TraceSolanaDeposits = (fromAddress: string, treasuryAddress: string) => {
         price,
         solAmount,
         usdValue,
-      } as TransactionWithValue;
-    })
-    .filter(Boolean) as TransactionWithValue[];
-  const totalUsdValue = deposits.reduce((acc, txn) => acc + txn.usdValue, 0);
+        timestamp: String(txn.timestamp),
+      };
+    }),
+  );
 
-  return { deposits, totalUsdValue };
+  const validDeposits = deposits.filter(Boolean) as TransactionWithValue[];
+
+  const totalUsdValue = validDeposits.reduce(
+    (acc, txn) => acc + txn.usdValue,
+    0,
+  );
+  return { deposits: validDeposits, totalUsdValue };
 };
 
 //SPL token transfers
-const SolanaSrc20Transactions = (fromAddress: string) => {
-  const origin = FetchAllTransactions(fromAddress);
+const solanaSplTransactions = async (fromAddress: string) => {
+  const origin = await fetchSolTransactions(fromAddress);
 
-  if (origin) {
-    const beta = origin.flatMap((txn: Transaction) => {
-      return txn.tokenTransfers
-        .filter(
-          (transfer) =>
-            transfer.toUserAccount !== fromAddress &&
-            transfer.tokenStandard === 'Fungible' &&
-            transfer.fromUserAccount === fromAddress,
-        )
-        .map((transfer) => ({
-          from: transfer.fromUserAccount,
-          to: transfer.toUserAccount,
-          amount: transfer.tokenAmount,
-          timestamp: txn.timestamp,
-          mint: transfer.mint,
-        }));
-    });
-    return beta;
-  }
+  return origin.flatMap((txn) => {
+    return txn.tokenTransfers
+      .filter(
+        (transfer) =>
+          transfer.toUserAccount !== fromAddress &&
+          transfer.tokenStandard === 'Fungible' &&
+          transfer.fromUserAccount === fromAddress,
+      )
+      .map((transfer) => ({
+        from: transfer.fromUserAccount,
+        to: transfer.toUserAccount,
+        amount: transfer.tokenAmount,
+        timestamp: txn.timestamp,
+        mint: transfer.mint,
+      }));
+  });
 };
 
-const FindSPLTreasury = (fromAddress: string, treasuryAddress: string) => {
-  const alpha = SolanaSrc20Transactions(fromAddress);
+const findSPLTreasury = async (
+  fromAddress: string,
+  treasuryAddress: string,
+) => {
+  const alpha = await solanaSplTransactions(fromAddress);
 
-  if (alpha !== undefined) {
-    const treasuryTxns = alpha.flatMap((txn) => {
+  if (!alpha || alpha.length === 0) {
+    return [];
+  }
+
+  const mapTxs = await Promise.all(
+    alpha.map(async (txn) => {
       const wallet2 = txn.to;
-      const tx = FetchAllTransactions(txn.to);
+      const tx = await fetchSolTransactions(wallet2);
 
       if (!tx) {
         return [];
       }
-      if (tx) {
-        return tx.flatMap((txn: Transaction) => {
-          return txn.tokenTransfers
-            .filter(
-              (transfer) =>
-                transfer.toUserAccount === treasuryAddress &&
-                transfer.fromUserAccount === wallet2,
-            )
-            .map((transfer) => ({
-              from: transfer.fromUserAccount,
-              to: transfer.toUserAccount,
-              amount: transfer.tokenAmount,
-              timestamp: txn.timestamp,
-              mint: transfer.mint,
-            }));
-        });
-      }
-    });
-    return treasuryTxns;
-  }
+      return tx.flatMap((txn) => {
+        return txn.tokenTransfers
+          .filter(
+            (transfer) =>
+              transfer.toUserAccount === treasuryAddress &&
+              transfer.fromUserAccount === wallet2,
+          )
+          .map((transfer) => ({
+            from: transfer.fromUserAccount,
+            to: transfer.toUserAccount,
+            amount: transfer.tokenAmount,
+            timestamp: txn.timestamp,
+            mint: transfer.mint,
+          }));
+      });
+    }),
+  );
+
+  return mapTxs.flat();
 };
 
-const TraceSPLDeposits = (fromAddress: string, treasuryAddress: string) => {
-  const mapTxs = FindSPLTreasury(fromAddress, treasuryAddress);
+const traceSPLDeposits = async (
+  fromAddress: string,
+  treasuryAddress: string,
+) => {
+  const mapTxs = await findSPLTreasury(fromAddress, treasuryAddress);
 
-  if (!mapTxs) {
+  if (!mapTxs || mapTxs.length === 0) {
     return { deposits: [], totalUsdValue: 0 };
   }
 
-  const deposits = mapTxs
-    .map((txn) => {
-      if (!txn) {
+  const resolvedTxs = await Promise.all(mapTxs);
+
+  const deposits = await Promise.all(
+    resolvedTxs.flat().map(async (txn) => {
+      if (!txn?.mint || !txn.amount) {
         return null;
       }
-      const tokenMetadata = GetSolanaTokenMetadata(txn.mint);
 
-      if (!tokenMetadata) {
+      const tokenMetadata = await getSolanaAssetMetadata(String(txn.mint));
+      if (!tokenMetadata?.priceInfo) {
         return null;
       }
 
       const { pricePerToken } = tokenMetadata.priceInfo;
-      const usdValue = +txn.amount * pricePerToken;
+      const usdValue = (txn.amount ?? 0) * pricePerToken;
 
       return {
         ...txn,
         price: pricePerToken,
         usdValue,
+        amountInTokens: txn.amount,
       };
-    })
-    .filter(Boolean) as Array<{
-    from: string;
-    to: string;
-    amount: number;
-    timestamp: number;
-    mint: string;
-    price: number;
-    amountInTokens: number;
-    usdValue: number;
-  } | null>;
-  const totalUsdValue = deposits.reduce(
-    (acc, txn) => acc + (txn?.usdValue ?? 1),
+    }),
+  );
+
+  const validDeposits = deposits.filter(
+    (deposit): deposit is NonNullable<typeof deposit> => Boolean(deposit),
+  );
+
+  const totalUsdValue = validDeposits.reduce(
+    (acc, txn) => acc + txn.usdValue,
     0,
   );
 
-  return { deposits, totalUsdValue };
+  return { deposits: validDeposits, totalUsdValue };
 };
 
-export const GetSolanaTokenMetadata = (mintAddress: string) => {
-  const { data } = useQuery({
-    queryKey: ['tokenMetadata', mintAddress],
-    queryFn: async () => getSolanaAssetMetadata(mintAddress),
-    enabled: Boolean(mintAddress),
-    staleTime: 5 * 60 * 1000,
-  });
+export const solTraceAllDeposits = async (
+  userWallet: string,
+): Promise<Record<string, { deposited: number }>> => {
+  const casinoDepositPromises = Object.keys(SOL_CASINO_TREASURY_WALLETS).map(
+    async (casino) => {
+      const treasuryWallet =
+        SOL_CASINO_TREASURY_WALLETS[
+          casino as keyof typeof SOL_CASINO_TREASURY_WALLETS
+        ];
 
-  return data;
-};
+      const [solDeposits, splDeposits] = await Promise.all([
+        traceSolanaDeposits(userWallet, treasuryWallet),
+        traceSPLDeposits(userWallet, treasuryWallet),
+      ]);
 
-export const SolTraceAllDeposits = (userWallet: string) => {
-  return Cas.map((casino) => {
-    const treasuryWallet = getSolCasinoTreasuryWallet(casino);
-    const solDeposits = TraceSolanaDeposits(userWallet, treasuryWallet);
-    const splDeposits = TraceSPLDeposits(userWallet, treasuryWallet);
-    const combinedUsdValue =
-      solDeposits.totalUsdValue + splDeposits.totalUsdValue;
+      const combinedUsdValue =
+        solDeposits.totalUsdValue + splDeposits.totalUsdValue;
 
-    return { casino, usdDeposit: combinedUsdValue };
-  });
-};
-
-export const useSolsDeposits = () => {
-  const addresses = useWalletAddresses();
-
-  if (!addresses.solana || addresses.solana?.length === 0) {
-    return {};
-  }
-
-  return addresses.solana.reduce(
-    (acc, address) => {
-      const deposits = SolTraceAllDeposits(address);
-
-      deposits.forEach(({ casino, usdDeposit }) => {
-        if (!acc[casino]) {
-          acc[casino] = { deposited: 0, score: 0 };
-        }
-        acc[casino].deposited += usdDeposit;
-      });
-
-      return acc;
+      return {
+        casino,
+        deposited: combinedUsdValue,
+      };
     },
-    {} as Record<string, { deposited: number; score: number }>,
+  );
+
+  const results = await Promise.all(casinoDepositPromises);
+
+  return results.reduce(
+    (acc, { casino, deposited }) => ({
+      ...acc,
+      [casino]: { deposited },
+    }),
+    {} as Record<string, { deposited: number }>,
   );
 };
