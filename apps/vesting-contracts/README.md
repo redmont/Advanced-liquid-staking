@@ -88,36 +88,19 @@ $ yarn prettier
 
 #### 🐱‍💻 Verify & Publish contract source code
 
+You can choose to add a parameters json file to the `apps/vesting-contracts/ignition/parameters` using all available
+parameters for the module in `ignition/modules` folder or the command will prompt you the required variables to enter.
+
+Command to deploy:
+
 ```console
-$ npx hardhat  verify --network mainnet $CONTRACT_ADDRESS $CONSTRUCTOR_ARGUMENTS
+hardhat ignition deploy ignition/modules/(contract name).ts --network (network) --parameters ./ignition/parameters/(network).json
+```
+```console
+pnpm hardhat ignition verify --network sepolia chain-11155111
 ```
 
 ## 📄 License
 
 **Token Vesting Contracts** is released under the [Apache-2.0](LICENSE).
 
-## Contributors ✨
-
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/abdelhamidbakhta"><img src="https://avatars.githubusercontent.com/u/45264458?v=4?s=100" width="100px;" alt="Abdel @ StarkWare "/><br /><sub><b>Abdel @ StarkWare </b></sub></a><br /><a href="https://github.com/abdelhamidbakhta/token-vesting-contracts/commits?author=abdelhamidbakhta" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/vpavlin"><img src="https://avatars.githubusercontent.com/u/4759808?v=4?s=100" width="100px;" alt="Vaclav Pavlin"/><br /><sub><b>Vaclav Pavlin</b></sub></a><br /><a href="https://github.com/abdelhamidbakhta/token-vesting-contracts/commits?author=vpavlin" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/TheMightyYak1"><img src="https://avatars.githubusercontent.com/u/78634345?v=4?s=100" width="100px;" alt="Brendan Baker"/><br /><sub><b>Brendan Baker</b></sub></a><br /><a href="https://github.com/abdelhamidbakhta/token-vesting-contracts/commits?author=TheMightyYak1" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/owlen"><img src="https://avatars.githubusercontent.com/u/5638865?v=4?s=100" width="100px;" alt="Oren Gampel"/><br /><sub><b>Oren Gampel</b></sub></a><br /><a href="https://github.com/abdelhamidbakhta/token-vesting-contracts/commits?author=owlen" title="Code">💻</a></td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification.
-Contributions of any kind welcome!

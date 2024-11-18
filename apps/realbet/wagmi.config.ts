@@ -23,6 +23,12 @@ export default defineConfig({
             [sepolia.id]: '0xAfa68D066A7e809EFAb066dcA5001f1cD1e75eA0',
           },
         },
+        {
+          name: 'TokenVesting',
+          address: {
+            [sepolia.id]: '0xC6a6EbB044629647eb5CD2eFCC1C748c38349154',
+          },
+        },
       ],
     }),
     react(),
