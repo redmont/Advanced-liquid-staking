@@ -98,7 +98,7 @@ export const useCasinoDeposits = () => {
   });
 
   const solanaDeposits = useQuery({
-    enabled: loggedIn,
+    enabled: loggedIn && solana.length > 0,
     queryKey: ['casino-solana-deposits', solana],
     queryFn: async () => {
       const solanaPromises = solana.map(
@@ -108,15 +108,27 @@ export const useCasinoDeposits = () => {
           >,
       );
 
-      const results = await Promise.all(solanaPromises);
-
-      return results.reduce<Record<string, { deposited: number }>>(
-        (acc, curr) => ({
-          ...acc,
-          ...curr,
-        }),
-        {},
-      );
+      try {
+        const results = await Promise.all(solanaPromises);
+        return results.reduce<Record<string, { deposited: number }>>(
+          (acc, curr) => ({
+            ...acc,
+            ...Object.entries(curr).reduce(
+              (innerAcc, [casino, { deposited }]) => ({
+                ...innerAcc,
+                [casino]: {
+                  deposited: (acc[casino]?.deposited ?? 0) + deposited,
+                },
+              }),
+              {},
+            ),
+          }),
+          {},
+        );
+      } catch  {
+        throw new Error('Something failed with the Solana request.');
+        return {};
+      }
     },
     retry: false,
     refetchOnWindowFocus: false,
