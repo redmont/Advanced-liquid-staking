@@ -40,7 +40,7 @@ export async function getUserDeposits(
             price: tx.asset
               ? await fetchCoinHistoricalPrice({
                   symbol: tx.asset,
-                  timeStart: tx.metadata.blockTimestamp,
+                  time_start: tx.metadata.blockTimestamp,
                 })
               : 0,
           })),

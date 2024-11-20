@@ -8,6 +8,7 @@ import { isAddress } from 'viem';
 import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { chainIdToAlchemyNetworkMap } from '@/config/walletChecker';
+import { solTraceAllDeposits } from '../utils/solanaDepositChecker';
 
 const POINTS_PER_USD_DEPOSITED = 1;
 const POINT_THRESHOLD = 100;
@@ -27,9 +28,10 @@ const defaultScores = casinos.reduce(
 );
 
 const calculateScoreFromDeposits = (
-  deposits: Awaited<ReturnType<typeof getUserDeposits>>,
+  evmDeposits: Awaited<ReturnType<typeof getUserDeposits>>,
+  solanaDeposits: Record<string, { deposited: number }>,
 ) => {
-  const scores = deposits.reduce(
+  const evmScores = evmDeposits.reduce(
     (acc, deposit) =>
       deposit.value !== null && deposit.price !== null
         ? {
@@ -47,8 +49,21 @@ const calculateScoreFromDeposits = (
     defaultScores,
   );
 
+  const solanaScores = Object.entries(solanaDeposits).reduce(
+    (acc, [casino, { deposited }]) => ({
+      ...acc,
+      [casino]: {
+        deposited: (acc[casino as Casino['name']]?.deposited ?? 0) + deposited,
+        score:
+          (acc[casino as Casino['name']]?.score ?? 0) +
+          calculateDepositScore(deposited),
+      },
+    }),
+    {} as Record<Casino['name'], { deposited: number; score: number }>,
+  );
+
   return mapValues(
-    scores,
+    { ...evmScores, ...solanaScores },
     (score) =>
       score && {
         deposited: score.deposited,
@@ -59,16 +74,16 @@ const calculateScoreFromDeposits = (
 
 export const useCasinoDeposits = () => {
   const loggedIn = useIsLoggedIn();
-  const { addresses: userWalletAddresses } = useWalletAddresses();
+  const { addresses: userWalletAddresses, solana } = useWalletAddresses();
 
   const evmAddresses = useMemo(
     () => userWalletAddresses.filter((addr) => isAddress(addr)),
     [userWalletAddresses],
   );
 
-  const deposits = useQuery({
+  const evmDeposits = useQuery({
     enabled: loggedIn,
-    queryKey: ['casino-deposits', evmAddresses],
+    queryKey: ['casino-evm-deposits', evmAddresses],
     queryFn: async () => {
       const promises = flatten(
         evmAddresses.map((address) =>
@@ -84,11 +99,55 @@ export const useCasinoDeposits = () => {
     refetchOnWindowFocus: false,
   });
 
+  const solanaDeposits = useQuery({
+    enabled: loggedIn && solana.length > 0,
+    queryKey: ['casino-solana-deposits', solana],
+    queryFn: async () => {
+      const solanaPromises = solana.map(
+        (address) =>
+          solTraceAllDeposits(address) as Promise<
+            Record<string, { deposited: number }>
+          >,
+      );
+
+      try {
+        const results = await Promise.all(solanaPromises);
+        return results.reduce<Record<string, { deposited: number }>>(
+          (acc, curr) => ({
+            ...acc,
+            ...Object.entries(curr).reduce(
+              (innerAcc, [casino, { deposited }]) => ({
+                ...innerAcc,
+                [casino]: {
+                  deposited: (acc[casino]?.deposited ?? 0) + deposited,
+                },
+              }),
+              {},
+            ),
+          }),
+          {},
+        );
+      } catch {
+        throw new Error('Something failed with the Solana request.');
+        return {};
+      }
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
   const amounts = useMemo(() => {
-    return deposits.isSuccess && deposits.data.length > 0
-      ? calculateScoreFromDeposits(deposits.data)
-      : defaultScores;
-  }, [deposits.data, deposits.isSuccess]);
+    if (evmDeposits.isSuccess && solanaDeposits.isSuccess) {
+      return calculateScoreFromDeposits(evmDeposits.data, solanaDeposits.data);
+    }
+
+    return defaultScores;
+  }, [
+    evmDeposits.data,
+    evmDeposits.isSuccess,
+    solanaDeposits.data,
+    solanaDeposits.isSuccess,
+  ]);
 
   const totalScore = useMemo(
     () => Object.values(amounts).reduce((acc, cur) => acc + cur.score, 0),
@@ -102,7 +161,8 @@ export const useCasinoDeposits = () => {
 
   return {
     amounts,
-    deposits,
+    evmDeposits,
+    solanaDeposits,
     totalScore,
     totalDeposited,
   };

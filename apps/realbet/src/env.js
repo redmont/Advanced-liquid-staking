@@ -12,6 +12,7 @@ export const env = createEnv({
       .default('development'),
     SENTRY_AUTH_TOKEN: z.string().optional(),
     COINMARKETCAP_API_KEY: z.string().optional(),
+    HELIUS_API_KEY: z.string(),
     ALCHEMY_API_KEY: z.string(),
     TESTNET_SIGNER_PRIVATE_KEY: z.string().optional(),
   },
@@ -36,7 +37,7 @@ export const env = createEnv({
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     COINMARKETCAP_API_KEY: process.env.COINMARKETCAP_API_KEY,
     ALCHEMY_API_KEY:
-      process.env.ALCHEMY_API_KEY ?? 'vlIJU80HdfL61kafixpO45fFrvqVPJx9',
+      process.env.ALCHEMY_API_KEY ?? 'vlIJU80HdfL61kafixpO45fFrvqVPJx9', // public Alchemy demo key
     TESTNET_SIGNER_PRIVATE_KEY: process.env.TESTNET_SIGNER_PRIVATE_KEY,
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??
@@ -45,6 +46,7 @@ export const env = createEnv({
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS:
       process.env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS ??
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
+    HELIUS_API_KEY: process.env.HELIUS_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
