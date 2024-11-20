@@ -1,33 +1,9 @@
 import { getSolanaAssetMetadata } from './getSolanaTxMetadata';
 import { fetchSolTransactions } from './fetchSolTransactions';
 import { fetchCoinHistoricalPrice } from './fetchCoinHistoricalPrice';
+import { type ArrayElementType } from '@/utils';
+import { solanaCasinos } from '@/config/walletChecker';
 
-interface SolanaBaseTransaction {
-  from: string;
-  to: string;
-  amount: number;
-  timestamp: string;
-}
-
-interface TransactionWithValue extends SolanaBaseTransaction {
-  solAmount: number;
-  usdValue: number;
-  tokenMetadata?: {
-    symbol: string;
-    decimals: number;
-    adjustedAmount: number;
-    pricePerToken: number;
-  };
-}
-
-export const SOL_CASINO_TREASURY_WALLETS = {
-  Shuffle: '76iXe9yKFDjGv3HicUVVy8AYxHLC71L1wYa12zaZzHHp',
-  RollBit: 'RBHdGVfDfMjfU6iUfCb1LczMJcQLx7hGnxbzRsoDNvx',
-  'BC.game': '97UQvPXbadGSsVaGuJCBLRm3Mkm7A5DVJ2HktRzrnDTB',
-  Betfury: '2oUVDCMTKKCDHiuMmCgZX6Vq9irR92K2vjxTxQsNNrdS',
-} as const;
-
-//Native transfers tx
 const solanaNativeTransactions = async (fromAddress: string) => {
   const origin = await fetchSolTransactions(fromAddress);
   return origin.flatMap((txn) => {
@@ -120,7 +96,8 @@ const traceSolanaDeposits = async (
     }),
   );
 
-  const validDeposits = deposits.filter(Boolean) as TransactionWithValue[];
+  type Deposit = NonNullable<ArrayElementType<typeof deposits>>;
+  const validDeposits = deposits.filter((dep): dep is Deposit => !!dep);
 
   const totalUsdValue = validDeposits.reduce(
     (acc, txn) => acc + txn.usdValue,
@@ -129,7 +106,6 @@ const traceSolanaDeposits = async (
   return { deposits: validDeposits, totalUsdValue };
 };
 
-//SPL token transfers
 const solanaSplTransactions = async (fromAddress: string) => {
   const origin = await fetchSolTransactions(fromAddress);
 
@@ -240,34 +216,27 @@ const traceSPLDeposits = async (
 export const solTraceAllDeposits = async (
   userWallet: string,
 ): Promise<Record<string, { deposited: number }>> => {
-  const casinoDepositPromises = Object.keys(SOL_CASINO_TREASURY_WALLETS).map(
-    async (casino) => {
-      const treasuryWallet =
-        SOL_CASINO_TREASURY_WALLETS[
-          casino as keyof typeof SOL_CASINO_TREASURY_WALLETS
-        ];
+  const casinoDepositPromises = solanaCasinos.map(async (casino) => {
+    const [solDeposits, splDeposits] = await Promise.all([
+      traceSolanaDeposits(userWallet, casino.treasury),
+      traceSPLDeposits(userWallet, casino.treasury),
+    ]);
 
-      const [solDeposits, splDeposits] = await Promise.all([
-        traceSolanaDeposits(userWallet, treasuryWallet),
-        traceSPLDeposits(userWallet, treasuryWallet),
-      ]);
+    const combinedUsdValue =
+      solDeposits.totalUsdValue + splDeposits.totalUsdValue;
 
-      const combinedUsdValue =
-        solDeposits.totalUsdValue + splDeposits.totalUsdValue;
-
-      return {
-        casino,
-        deposited: combinedUsdValue,
-      };
-    },
-  );
+    return {
+      casino,
+      deposited: combinedUsdValue,
+    };
+  });
 
   const results = await Promise.all(casinoDepositPromises);
 
   return results.reduce(
     (acc, { casino, deposited }) => ({
       ...acc,
-      [casino]: { deposited },
+      [casino.name]: { deposited },
     }),
     {} as Record<string, { deposited: number }>,
   );

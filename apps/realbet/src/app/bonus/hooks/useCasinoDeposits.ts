@@ -53,8 +53,10 @@ const calculateScoreFromDeposits = (
     (acc, [casino, { deposited }]) => ({
       ...acc,
       [casino]: {
-        deposited: (acc[casino]?.deposited ?? 0) + deposited,
-        score: (acc[casino]?.score ?? 0) + calculateDepositScore(deposited),
+        deposited: (acc[casino as Casino['name']]?.deposited ?? 0) + deposited,
+        score:
+          (acc[casino as Casino['name']]?.score ?? 0) +
+          calculateDepositScore(deposited),
       },
     }),
     {} as Record<Casino['name'], { deposited: number; score: number }>,
@@ -125,7 +127,7 @@ export const useCasinoDeposits = () => {
           }),
           {},
         );
-      } catch  {
+      } catch {
         throw new Error('Something failed with the Solana request.');
         return {};
       }

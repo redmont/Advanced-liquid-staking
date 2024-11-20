@@ -259,41 +259,65 @@ export const coinsByChainId = mapValues(
 export const casinos = [
   {
     name: 'Shuffle',
-    treasury: '0xdfaa75323fb721e5f29d43859390f62cc4b600b8' as `0x${string}`,
+    treasury: '0xdfaa75323fb721e5f29d43859390f62cc4b600b8',
     chainId: mainnet.id,
     type: 'evm',
   },
   {
     name: 'RollBit',
-    treasury: '0xef8801eaf234ff82801821ffe2d78d60a0237f97' as `0x${string}`,
+    treasury: '0xef8801eaf234ff82801821ffe2d78d60a0237f97',
     chainId: mainnet.id,
     type: 'evm',
   },
   {
     name: 'Stake',
-    treasury: '0x974caa59e49682cda0ad2bbe82983419a2ecc400' as `0x${string}`,
+    treasury: '0x974caa59e49682cda0ad2bbe82983419a2ecc400',
     chainId: mainnet.id,
     type: 'evm',
   },
   {
     name: 'BC.game',
-    treasury: '0x9D2A0e32633d9be838BFDE19d510E6aA6eB202dd' as `0x${string}`,
+    treasury: '0x9D2A0e32633d9be838BFDE19d510E6aA6eB202dd',
     chainId: mainnet.id,
     type: 'evm',
   },
   {
     name: 'Shuffle',
-    treasury: '0xdfaa75323fb721e5f29d43859390f62cc4b600b8' as `0x${string}`,
+    treasury: '0xdfaa75323fb721e5f29d43859390f62cc4b600b8',
     chainId: bsc.id,
     type: 'evm',
   },
   {
     name: 'Stake',
-    treasury: '0xFa500178de024BF43CFA69B7e636A28AB68F2741' as `0x${string}`,
+    treasury: '0xFa500178de024BF43CFA69B7e636A28AB68F2741',
     chainId: bsc.id,
     type: 'evm',
   },
-];
+  {
+    name: 'Shuffle',
+    treasury: '76iXe9yKFDjGv3HicUVVy8AYxHLC71L1wYa12zaZzHHp',
+    chainId: 'mainnet',
+    type: 'solana',
+  },
+  {
+    name: 'RollBit',
+    treasury: 'RBHdGVfDfMjfU6iUfCb1LczMJcQLx7hGnxbzRsoDNvx',
+    chainId: 'mainnet',
+    type: 'solana',
+  },
+  {
+    name: 'BC.game',
+    treasury: '97UQvPXbadGSsVaGuJCBLRm3Mkm7A5DVJ2HktRzrnDTB',
+    chainId: 'mainnet',
+    type: 'solana',
+  },
+  {
+    name: 'Betfury',
+    treasury: '2oUVDCMTKKCDHiuMmCgZX6Vq9irR92K2vjxTxQsNNrdS',
+    chainId: 'mainnet',
+    type: 'solana',
+  },
+] as const;
 
 export const chainIdToAlchemyNetworkMap = {
   [mainnet.id]: Network.ETH_MAINNET,
@@ -311,6 +335,8 @@ export const alchemyIdToChainIdMap = {
 export const casinoEvmChains = uniq(
   casinos.filter((c) => c.type === 'evm').map((c) => c.chainId),
 );
+
+export const solanaCasinos = casinos.filter((c) => c.type === 'solana');
 
 export const casinoNames = uniq(casinos.map((c) => c.name));
 
