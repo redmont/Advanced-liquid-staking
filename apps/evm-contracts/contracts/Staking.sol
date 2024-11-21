@@ -1,263 +1,237 @@
+// ** Todo: **
+// Remove _updateCurrentEpoch, not need to update state variable
+// In unstaking combine reward + staked amount and transfer in one go
+// Add a function to set rewards for next n epochs in 1 txn. (e.g; if we want to set rewards for next 4 weeks)
+// When setting rewards for epochs, the contract must have enough equivalent REAL tokens to distribute ? @kristian
+// Add view function to get unlock timestamp for a user stake
+
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.20;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract RWGStaking is ReentrancyGuard, Ownable {
-    using SafeERC20 for IERC20;
+//import "hardhat/console.sol";
 
-    IERC20 public immutable REAL_TOKEN;
+contract RWGStakingRewards is ReentrancyGuard, Ownable {
+    IERC20 public immutable STAKING_TOKEN;
+    IERC20 public immutable REWARD_TOKEN;
 
-    uint256 public constant PRECISION = 100; // 10^2 for 2 decimal places
-    uint256 public epochDuration = 7 seconds; // 1 week scaled down to 7 seconds
+    uint256 private constant MULTIPLIER = 100;
+    uint256 public epochDuration = 7; // 7 seconds per epoch (scaled down from 1 week)
+    uint256 private currentEpoch;
+    uint256 public votingDelay = 1; // 1 second delay (scaled down from 1 day)
 
-    struct LockupPeriod {
-        uint256 duration;
+    struct Tier {
+        uint256 lockPeriod;
         uint256 multiplier;
     }
-    LockupPeriod[] public lockupPeriods;
 
-    // Reward tracking
-    uint256 public lastUpdateTime;
-    uint256 public rewardPerTokenStored;
-    uint256 public rewardRate;
-    uint256 public totalEffectiveStaked;
+    Tier[] public tiers;
 
     struct Stake {
         uint256 amount;
         uint256 effectiveAmount;
-        uint256 lockEndTime;
-        uint256 lockupMultiplier;
+        uint256 tierIndex;
+        uint256 startTime;
+        uint256 lastClaimEpoch;
     }
 
-    struct UserInfo {
-        Stake[] stakes;
-        uint256 rewardDebt;
-        uint256 lastUpdateEpoch;
-        uint256 unclaimedRewards;
-    }
-    mapping(address user => UserInfo info) public userInfo;
+    mapping(address user => Stake[] stakes) public userStakes;
 
-    // Global reward data
-    uint256 public globalRewardPerEpoch;
+    uint256 public defaultEpochRewards = 100;
+    mapping(uint256 epoch => uint256 reward) public rewardsPerEpoch;
 
-    // Checkpoint system
-    struct Checkpoint {
-        uint256 timestamp;
-        uint256 totalEffectiveStaked;
-    }
-    Checkpoint[] public checkpoints;
+    uint256 public totalEffectiveSupply;
 
-    event Staked(address indexed user, uint256 amount, uint256 lockupPeriod);
-    event Withdrawn(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, uint256 reward);
-    event FutureEpochRewardsSet(uint256 reward);
-    event LockPeriodEnded(address indexed user, uint256 amount);
+    uint256 public lastTotalEffectiveSupplyChangedAtEpoch;
+    mapping(uint256 epoch => uint256 totalEffectiveSupply) public totalEffectiveSupplyAtEpoch;
 
-    error CannotStakeZero();
-    error InvalidLockupPeriod();
+    event Staked(address indexed user, uint256 amount, uint256 tierIndex);
+    event Unstaked(address indexed user, uint256 amount);
+    event RewardClaimed(address indexed user, uint256 amount);
+    event RewardSet(uint256 indexed epoch, uint256 amount);
+    event TierAdded(uint256 lockPeriod, uint256 multiplier);
+    event TierUpdated(uint256 index, uint256 lockPeriod, uint256 multiplier);
+    event VotingDelayUpdated(uint256 newDelay);
+
+    error MultiplierMustBeGreaterThanZero();
+    error CannotSetRewardForPastEpochs();
+    error EpochDurationMustBeGreaterThanZero();
+    error CannotStakeZeroAmount();
+    error InvalidTierIndex();
     error InvalidStakeIndex();
     error LockPeriodNotEnded();
-    error NoRewardsToClaim();
-    error MismatchedArrayLengths();
+    error StakeTransferFailed();
+    error UnstakeTransferFailed();
+    error RewardTransferFailed();
 
-    constructor(address _realToken) Ownable(msg.sender) {
-        REAL_TOKEN = IERC20(_realToken);
+    constructor(address _stakingToken, address _rewardToken) Ownable(msg.sender) {
+        STAKING_TOKEN = IERC20(_stakingToken);
+        REWARD_TOKEN = IERC20(_rewardToken);
 
-        // Init lockup periods
-        lockupPeriods.push(LockupPeriod(30 seconds, 10)); // 0.1x
-        lockupPeriods.push(LockupPeriod(60 seconds, 50)); // 0.5x
-        lockupPeriods.push(LockupPeriod(90 seconds, 110)); // 1.1x
-        lockupPeriods.push(LockupPeriod(120 seconds, 150)); // 1.5x
-        lockupPeriods.push(LockupPeriod(150 seconds, 210)); // 2.1x
+        // Initialize tiers
+        tiers.push(Tier(90, 10)); // 90 seconds, 0.1x
+        tiers.push(Tier(180, 50)); // 180 seconds, 0.5x
+        tiers.push(Tier(360, 110)); // 360 seconds, 1.1x
+        tiers.push(Tier(720, 150)); // 720 seconds, 1.5x
+        tiers.push(Tier(1440, 210)); // 1440 seconds, 2.1x
 
-        // init first checkpoint
-        checkpoints.push(Checkpoint(block.timestamp, 0));
+        currentEpoch = block.timestamp / epochDuration;
+        lastTotalEffectiveSupplyChangedAtEpoch = currentEpoch;
     }
 
-    function stake(uint256 amount, uint256 lockupPeriodIndex) external nonReentrant {
-        if (amount == 0) revert CannotStakeZero();
-        if (lockupPeriodIndex >= lockupPeriods.length) revert InvalidLockupPeriod();
+    function setTier(uint256 index, uint256 lockPeriod, uint256 multiplier) external onlyOwner {
+        if (multiplier == 0) revert MultiplierMustBeGreaterThanZero();
+        if (index < tiers.length) {
+            tiers[index] = Tier(lockPeriod, multiplier);
+            emit TierUpdated(index, lockPeriod, multiplier);
+        } else {
+            tiers.push(Tier(lockPeriod, multiplier));
+            emit TierAdded(lockPeriod, multiplier);
+        }
+    }
 
-        updateGlobalReward();
-        updateUserReward(msg.sender);
+    function setVotingDelay(uint256 newDelay) external onlyOwner {
+        votingDelay = newDelay;
+        emit VotingDelayUpdated(newDelay);
+    }
 
-        LockupPeriod memory lockup = lockupPeriods[lockupPeriodIndex];
+    function setRewardForEpoch(uint256 epoch, uint256 reward) external onlyOwner {
+        if (epoch < getCurrentEpoch()) revert CannotSetRewardForPastEpochs();
+        rewardsPerEpoch[epoch] = reward;
+        emit RewardSet(epoch, reward);
+    }
 
-        uint256 lockEndTime = block.timestamp + lockup.duration;
-        uint256 effectiveAmount = (amount * lockup.multiplier) / PRECISION;
-        userInfo[msg.sender].stakes.push(
+    function stake(uint256 amount, uint256 tierIndex) external nonReentrant {
+        if (amount == 0) revert CannotStakeZeroAmount();
+        if (tierIndex >= tiers.length) revert InvalidTierIndex();
+
+        _updateCurrentEpoch();
+
+        uint256 effectiveAmount = (amount * tiers[tierIndex].multiplier) / MULTIPLIER;
+        totalEffectiveSupply += effectiveAmount;
+
+        updateTotalEffectiveSupply(totalEffectiveSupply);
+
+        userStakes[msg.sender].push(
             Stake({
                 amount: amount,
                 effectiveAmount: effectiveAmount,
-                lockEndTime: lockEndTime,
-                lockupMultiplier: lockup.multiplier
+                tierIndex: tierIndex,
+                startTime: block.timestamp,
+                lastClaimEpoch: currentEpoch
             })
         );
 
-        totalEffectiveStaked += effectiveAmount;
-        // Add new checkpoint
-        Checkpoint memory newCheckpoint = Checkpoint({
-            timestamp: lockEndTime,
-            totalEffectiveStaked: totalEffectiveStaked
-        });
-        checkpoints.push(newCheckpoint);
-
-        REAL_TOKEN.safeTransferFrom(msg.sender, address(this), amount);
-
-        emit Staked(msg.sender, amount, lockup.duration);
+        // if (!STAKING_TOKEN.transferFrom(msg.sender, address(this), amount)) revert StakeTransferFailed();
+        emit Staked(msg.sender, amount, tierIndex);
     }
 
-    function withdraw(uint256 stakeIndex) external nonReentrant {
-        UserInfo storage user = userInfo[msg.sender];
-        if (stakeIndex >= user.stakes.length) revert InvalidStakeIndex();
-        Stake storage userStake = user.stakes[stakeIndex];
-        if (block.timestamp < userStake.lockEndTime) revert LockPeriodNotEnded();
+    function unstake(uint256 stakeIndex) external nonReentrant {
+        if (stakeIndex >= userStakes[msg.sender].length) revert InvalidStakeIndex();
+        Stake storage userStake = userStakes[msg.sender][stakeIndex];
+        if (block.timestamp < userStake.startTime + tiers[userStake.tierIndex].lockPeriod) revert LockPeriodNotEnded();
 
-        updateGlobalReward();
-        updateUserReward(msg.sender);
+        _updateCurrentEpoch();
+
+        _claimRewards(stakeIndex);
 
         uint256 amount = userStake.amount;
-        uint256 effectiveAmount = userStake.effectiveAmount;
+        totalEffectiveSupply -= userStake.effectiveAmount;
 
-        totalEffectiveStaked -= effectiveAmount;
+        updateTotalEffectiveSupply(totalEffectiveSupply);
 
-        // Remove the stake
-        user.stakes[stakeIndex] = user.stakes[user.stakes.length - 1];
-        user.stakes.pop();
+        // Remove the stake by swapping with the last element and popping
+        userStakes[msg.sender][stakeIndex] = userStakes[msg.sender][userStakes[msg.sender].length - 1];
+        userStakes[msg.sender].pop();
 
-        REAL_TOKEN.safeTransfer(msg.sender, amount);
-        emit Withdrawn(msg.sender, amount);
+        // if (!STAKING_TOKEN.transfer(msg.sender, amount)) revert UnstakeTransferFailed();
+        emit Unstaked(msg.sender, amount);
     }
 
-    function claimRewards() external nonReentrant {
-        updateGlobalReward();
-        updateUserReward(msg.sender);
+    function _claimRewards(uint256 stakeIndex) internal {
+        if (stakeIndex >= userStakes[msg.sender].length) revert InvalidStakeIndex();
 
-        UserInfo storage user = userInfo[msg.sender];
-        uint256 reward = user.unclaimedRewards;
-        if (reward == 0) revert NoRewardsToClaim();
+        Stake storage userStake = userStakes[msg.sender][stakeIndex];
+        uint256 reward = calculateRewards(stakeIndex);
 
-        user.unclaimedRewards = 0;
-        REAL_TOKEN.safeTransfer(msg.sender, reward);
-        emit RewardPaid(msg.sender, reward);
-    }
-
-    function updateGlobalReward() public {
-        uint256 currentTimestamp = block.timestamp;
-        updateCheckpoints(currentTimestamp);
-
-        if (totalEffectiveStaked > 0) {
-            rewardPerTokenStored = rewardPerToken();
-        }
-        lastUpdateTime = currentTimestamp;
-    }
-
-    function updateCheckpoints(uint256 currentTimestamp) internal {
-        uint256 checkpointCount = checkpoints.length;
-        uint256 lastValidCheckpoint = 0;
-
-        for (uint256 i = 0; i < checkpointCount; i++) {
-            if (checkpoints[i].timestamp <= currentTimestamp) {
-                lastValidCheckpoint = i;
-                totalEffectiveStaked = checkpoints[i].totalEffectiveStaked;
-            } else {
-                break;
-            }
-        }
-
-        // Remove processed checkpoints
-        if (lastValidCheckpoint < checkpointCount - 1) {
-            uint256 newLength = checkpointCount - lastValidCheckpoint - 1;
-            for (uint256 i = 0; i < newLength; i++) {
-                checkpoints[i] = checkpoints[lastValidCheckpoint + 1 + i];
-            }
-            for (uint256 i = 0; i < lastValidCheckpoint + 1; i++) {
-                checkpoints.pop();
-            }
+        if (reward > 0) {
+            userStake.lastClaimEpoch = currentEpoch;
+            // if (!REWARD_TOKEN.transfer(msg.sender, reward)) revert RewardTransferFailed();
+            emit RewardClaimed(msg.sender, reward);
         }
     }
 
-    function updateUserReward(address account) public {
-        updateGlobalReward();
-        UserInfo storage user = userInfo[account];
-        uint256 currentEpoch = getCurrentEpoch();
+    function claimRewards(uint256 stakeIndex) external nonReentrant {
+        _updateCurrentEpoch();
+        _claimRewards(stakeIndex);
+    }
+
+    function calculateRewards(uint256 stakeIndex) public view returns (uint256) {
+        if (stakeIndex >= userStakes[msg.sender].length) revert InvalidStakeIndex();
+        Stake memory userStake = userStakes[msg.sender][stakeIndex];
+
         uint256 reward = 0;
+        uint256 lastEpoch = (block.timestamp - votingDelay) / epochDuration;
+        //uint256 stakeLockEndEpoch = (userStake.startTime + tiers[userStake.tierIndex].lockPeriod) / epochDuration;
+        //lastEpoch = lastEpoch < stakeLockEndEpoch ? lastEpoch : stakeLockEndEpoch;
 
-        for (uint256 i = 0; i < user.stakes.length; i++) {
-            Stake storage userStake = user.stakes[i];
-            for (uint256 epoch = user.lastUpdateEpoch; epoch < currentEpoch; epoch++) {
-                if (hasVoted(account, epoch) && epoch * epochDuration < userStake.lockEndTime) {
-                    reward += (userStake.effectiveAmount * (rewardPerTokenStored - user.rewardDebt)) / PRECISION;
-                }
-            }
+        for (uint256 epoch = userStake.lastClaimEpoch; epoch < lastEpoch; epoch++) {
+            uint256 epochReward = getRewardsForEpoch(epoch);
+            uint256 epochTotalEffectiveSupply = getTotalEffectiveSupplyAtEpoch(epoch);
 
-            if (block.timestamp > userStake.lockEndTime && userStake.effectiveAmount > 0) {
-                totalEffectiveStaked -= userStake.effectiveAmount;
-                userStake.effectiveAmount = 0;
-                emit LockPeriodEnded(account, userStake.amount);
-            }
-        }
-
-        user.unclaimedRewards += reward;
-        user.rewardDebt = rewardPerTokenStored;
-        user.lastUpdateEpoch = currentEpoch;
-    }
-
-    function rewardPerToken() public view returns (uint256) {
-        if (totalEffectiveStaked == 0) {
-            return rewardPerTokenStored;
-        }
-        return
-            rewardPerTokenStored +
-            (((block.timestamp - lastUpdateTime) * rewardRate * PRECISION) / totalEffectiveStaked);
-    }
-
-    function pendingReward(address account) public view returns (uint256) {
-        UserInfo storage user = userInfo[account];
-        uint256 currentEpoch = getCurrentEpoch();
-        uint256 reward = user.unclaimedRewards;
-        uint256 _rewardPerToken = rewardPerToken();
-
-        for (uint256 i = 0; i < user.stakes.length; i++) {
-            Stake storage userStake = user.stakes[i];
-            for (uint256 epoch = user.lastUpdateEpoch; epoch < currentEpoch; epoch++) {
-                if (hasVoted(account, epoch) && epoch * epochDuration < userStake.lockEndTime) {
-                    reward += (userStake.effectiveAmount * (_rewardPerToken - user.rewardDebt)) / PRECISION;
-                }
-            }
+            reward += (epochReward * userStake.effectiveAmount) / epochTotalEffectiveSupply;
         }
 
         return reward;
     }
 
-    function setFutureEpochRewards(uint256 reward) external onlyOwner {
-        updateGlobalReward();
-        globalRewardPerEpoch = reward;
-        rewardRate = reward / epochDuration;
-        emit FutureEpochRewardsSet(reward);
+    function _updateCurrentEpoch() private {
+        currentEpoch = getCurrentEpoch();
     }
 
     function getCurrentEpoch() public view returns (uint256) {
         return block.timestamp / epochDuration;
     }
 
-    function hasVoted(address, uint256) public pure returns (bool) {
-        return true;
+    function getUserStakes(address user) external view returns (Stake[] memory) {
+        return userStakes[user];
     }
 
-    function setLockupPeriods(uint256[] calldata durations, uint256[] calldata multipliers) external onlyOwner {
-        if (durations.length != multipliers.length) revert MismatchedArrayLengths();
-        delete lockupPeriods;
-        for (uint256 i = 0; i < durations.length; i++) {
-            lockupPeriods.push(LockupPeriod(durations[i], multipliers[i]));
+    function getRewardsForEpoch(uint256 epoch) public view returns (uint256) {
+        uint256 reward = rewardsPerEpoch[epoch];
+        if (reward == 0 && epoch > 0) {
+            reward = rewardsPerEpoch[epoch - 1];
         }
+        if (reward == 0) {
+            reward = defaultEpochRewards;
+        }
+        return reward;
     }
 
-    function getUserStakes(address account) external view returns (Stake[] memory) {
-        return userInfo[account].stakes;
+    function updateTotalEffectiveSupply(uint256 newSupply) private {
+        // Fill in any gaps in recorded supply
+        for (uint256 i = currentEpoch - 1; i > lastTotalEffectiveSupplyChangedAtEpoch; i--) {
+            totalEffectiveSupplyAtEpoch[i] = totalEffectiveSupplyAtEpoch[lastTotalEffectiveSupplyChangedAtEpoch];
+        }
+        totalEffectiveSupplyAtEpoch[currentEpoch] = newSupply;
+        lastTotalEffectiveSupplyChangedAtEpoch = currentEpoch;
+    }
+
+    function getTotalEffectiveSupplyAtEpoch(uint256 epoch) public view returns (uint256) {
+        // for filled epochs
+        if (totalEffectiveSupplyAtEpoch[epoch] > 0) {
+            return totalEffectiveSupplyAtEpoch[epoch];
+        }
+
+        // for gaps
+        if (epoch > lastTotalEffectiveSupplyChangedAtEpoch && epoch <= getCurrentEpoch()) {
+            return totalEffectiveSupply;
+        }
+
+        // future epochs
+        return 0;
     }
 }
