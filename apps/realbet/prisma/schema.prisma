@@ -1,0 +1,25 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("SUPABASE_DB_SUPABASE_URL")
+  // Uses direct connection, ⚠️ make sure to keep this to `POSTGRES_URL_NON_POOLING`
+  // or you'll have dangling databases from migrations
+  directUrl = env("SUPABASE_DB_POSTGRES_URL_NON_POOLING")
+}
+
+model CasinoLink {
+  id              Int      @id @default(autoincrement())
+  userId          String   @unique 
+  realbetUserId   String
+  realbetUsername String
+  createdAt       DateTime @default(now())
+}
