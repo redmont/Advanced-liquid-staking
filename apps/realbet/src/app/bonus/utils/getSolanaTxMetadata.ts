@@ -3,6 +3,7 @@
 import { env } from '@/env';
 import { z } from 'zod';
 import { toCamel } from '.';
+import assert from 'assert';
 
 const TokenSymbolSchema = z.object({
   symbol: z.string(),
@@ -25,6 +26,7 @@ const ApiResponseSchema = z
   );
 
 export async function getSolanaAssetMetadata(mintAddress: string) {
+  assert(env.HELIUS_API_KEY, 'HELIUS_API_KEY is required');
   const API_BASE_URL = 'https://mainnet.helius-rpc.com';
 
   if (!mintAddress) {

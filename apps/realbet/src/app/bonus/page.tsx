@@ -85,7 +85,7 @@ const BonusPage = () => {
           <p className="py-4 text-lg tracking-widest md:max-w-[50%]">
             {casinoNames.map((n) => n.toUpperCase()).join(' | ')}
           </p>
-          <h3 className="inline rounded-md bg-accent2 px-2 font-monoline text-3xl text-white xl:text-4xl">
+          <h3 className="inline rounded-md bg-accent-2 px-2 font-monoline text-3xl text-white xl:text-4xl">
             Check your {token.symbol} Bonus
           </h3>
 

@@ -21,7 +21,7 @@ const progressVariants = cva(
         lightest: 'bg-lightest/20',
         foreground: 'bg-foreground/20',
         accent: 'bg-accent/20',
-        accent2: 'bg-accent2/2',
+        'accent-2': 'bg-accent-2/2',
       },
     },
     defaultVariants: {
@@ -40,7 +40,7 @@ const indicatorVariants = cva('size-full flex-1 transition-all', {
       lightest: 'bg-lightest',
       foreground: 'bg-foreground',
       accent: 'bg-accent',
-      accent2: 'bg-accent2',
+      'accent-2': 'bg-accent-2',
     },
   },
   defaultVariants: {

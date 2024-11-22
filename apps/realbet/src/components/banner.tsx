@@ -7,10 +7,9 @@ import pepeAttack from '@/assets/images/pepe-attack.png';
 import useParallaxEffect from '@/hooks/useParallax';
 import { cn } from '@/lib/cn';
 
-const Banner: React.FC<PropsWithChildren & { className?: string }> = ({
-  children,
-  className,
-}) => {
+const Banner: React.FC<
+  PropsWithChildren & { className?: string; frog?: boolean }
+> = ({ children, className, frog = true }) => {
   const bannerRef = useRef<HTMLDivElement>(null);
   const position = useParallaxEffect(bannerRef);
 
@@ -29,14 +28,16 @@ const Banner: React.FC<PropsWithChildren & { className?: string }> = ({
     >
       <div className="absolute inset-0 rounded-lg bg-black opacity-50"></div>
       <div className="relative z-20">{children}</div>
-      <motion.img
-        className="absolute -bottom-32 -right-32 z-10 w-80 md:w-96 xl:right-0"
-        src={pepeAttack.src}
-        alt="Pepe Attack"
-        initial={{ opacity: 0, x: 100 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1 }}
-      />
+      {frog && (
+        <motion.img
+          className="absolute -bottom-32 -right-32 z-10 w-80 md:w-96 xl:right-0"
+          src={pepeAttack.src}
+          alt="Pepe Attack"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1 }}
+        />
+      )}
     </div>
   );
 };

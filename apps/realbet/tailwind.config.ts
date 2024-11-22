@@ -53,16 +53,16 @@ export default {
           3: 'hsl(var(--primary-intermediate-3))',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
+          DEFAULT: 'var(--muted)',
           foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
-        accent2: {
+        'accent-2': {
           DEFAULT: 'hsla(0, 94%, 33%, 1)',
-          foreground: 'hsla(0, 94%, 33%, 1)',
+          foreground: 'hsl(var(--accent-foreground))',
         },
         destructive: {
           DEFAULT: 'hsl(var(--destructive))',

@@ -8,13 +8,15 @@
     "dev": "next dev",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "vercel-build": "prisma generate && prisma migrate deploy && pnpm run db:seed && next build",
     "start": "next start",
     "prepare": "husky && husky install",
     "scrape-icons": "npx tsx ./scripts/scrapeCoinIcons.ts",
     "db:pull": "npx prisma db pull",
     "db:generate": "npx prisma generate",
-    "db:push": "npx prisma db push"
+    "db:push": "npx prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset": "npx prisma migrate reset --force"
   },
   "dependencies": {
     "@bltzr-gg/realbet-evm-contracts": "workspace:*",

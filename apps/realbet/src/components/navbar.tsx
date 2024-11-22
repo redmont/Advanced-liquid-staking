@@ -11,7 +11,6 @@ import Link from 'next/link';
 import Logo from '@/assets/images/logo.svg';
 import { Burger } from './ui/burger';
 import { cn } from '@/lib/cn';
-import { Button } from './ui/button';
 import {
   DynamicUserProfile,
   useDynamicContext,
@@ -21,24 +20,23 @@ import {
   House,
   PackagePlus,
   Paintbrush,
-  Wallet2,
   Coins,
   UserCog,
   Box,
   Code,
+  Rocket,
   // Trophy,
 } from 'lucide-react';
-import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { usePathname } from 'next/navigation';
 import { env, isDev } from '@/env';
 import useClickOutside from '@/hooks/useClickOutside';
 import { useVault } from '@/hooks/useVault';
-import usePrimaryAddress from '@/hooks/usePrimaryAddress';
 import {
   connectedAddressesOverrideAtom,
   primaryWalletAddressOverrideAtom,
 } from '@/store/developer';
 import { useAtom } from 'jotai';
+import ConnectWallet from './connect-wallet';
 
 const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
   className,
@@ -72,8 +70,6 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const [hasOverride, setHasOverride] = useState(false);
   const pathname = usePathname();
   const isAuthenticated = useIsLoggedIn();
-  const authHandler = useDynamicAuthClickHandler();
-  const primaryAddress = usePrimaryAddress();
   const { user } = useDynamicContext();
   const [isNavOpen, setNavOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
@@ -119,23 +115,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
         <ul className="flex flex-col gap-3">
           <hr className="hidden h-px border-none bg-lighter lg:block" />
           <li>
-            <Button
-              onClick={authHandler}
-              variant="default"
-              className="w-full max-w-64"
-            >
-              {isAuthenticated ? (
-                <>
-                  <Wallet2 className="size-4 shrink-0" />
-                  <span className="truncate">
-                    {primaryAddress?.slice(0, primaryAddress?.length - 4)}
-                  </span>
-                  <span className="-ml-1">{primaryAddress?.slice(-4)}</span>
-                </>
-              ) : (
-                <>Connect Wallet</>
-              )}
-            </Button>
+            <ConnectWallet />
             {hasOverride && (
               <button
                 className="text-accent"
@@ -202,6 +182,15 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
             >
               <PackagePlus />
               <span>Staking</span>
+            </NextLink>
+          </li>
+          <li>
+            <NextLink
+              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+              path="/link-to-win"
+            >
+              <Rocket />
+              <span>Link to Win</span>
             </NextLink>
           </li>
           {/* <li>

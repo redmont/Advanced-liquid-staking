@@ -12,7 +12,7 @@ export const env = createEnv({
       .default('development'),
     SENTRY_AUTH_TOKEN: z.string().optional(),
     COINMARKETCAP_API_KEY: z.string().optional(),
-    HELIUS_API_KEY: z.string(),
+    HELIUS_API_KEY: z.string().optional(),
     ALCHEMY_API_KEY: z.string(),
     TESTNET_SIGNER_PRIVATE_KEY: z.string().optional(),
     CASINO_API_SECRET_KEY: z.string(),
@@ -27,6 +27,7 @@ export const env = createEnv({
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID: z.string(),
     NEXT_PUBLIC_VERCEL_ENV: z.enum(['production', 'preview', 'development']),
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS: z.string(),
+    NEXT_PUBLIC_CASINO_URL: z.string(),
   },
 
   /**
@@ -49,6 +50,11 @@ export const env = createEnv({
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
     HELIUS_API_KEY: process.env.HELIUS_API_KEY,
     CASINO_API_SECRET_KEY: process.env.CASINO_API_SECRET_KEY ?? 'dummy',
+    NEXT_PUBLIC_CASINO_URL: '/casino-test-linker',
+    // process.env.NEXT_PUBLIC_VERCEL_ENV === 'development' ||
+    // !process.env.NEXT_PUBLIC_VERCEL_ENV
+    //   ? '/casino-test-linker'
+    //   : 'https://realbet.io',
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

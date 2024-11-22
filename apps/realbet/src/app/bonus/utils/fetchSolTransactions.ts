@@ -1,6 +1,7 @@
 'use server';
 
 import { env } from '@/env';
+import assert from 'assert';
 import { z } from 'zod';
 
 const TransactionSchema = z.object({
@@ -31,27 +32,30 @@ const TransactionsResponseSchema = z.array(TransactionSchema);
 
 type TransactionsResponse = z.infer<typeof TransactionsResponseSchema>;
 
-export const fetchSolTransactions = async (fromAddress: string): Promise<TransactionsResponse> => {
+export const fetchSolTransactions = async (
+  fromAddress: string,
+): Promise<TransactionsResponse> => {
+  assert(env.HELIUS_API_KEY, 'HELIUS_API_KEY is required');
   const API_BASE_URL = 'https://api.helius.xyz/v0/addresses';
 
   if (!fromAddress) {
     throw new Error('From Address is required');
   }
 
-    const response = await fetch(
-      `${API_BASE_URL}/${fromAddress}/transactions?api-key=${env.HELIUS_API_KEY}&type=TRANSFER`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+  const response = await fetch(
+    `${API_BASE_URL}/${fromAddress}/transactions?api-key=${env.HELIUS_API_KEY}&type=TRANSFER`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+    },
+  );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText);
-    }
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText);
+  }
 
-    return TransactionsResponseSchema.parse(await response.json());
-}
+  return TransactionsResponseSchema.parse(await response.json());
+};

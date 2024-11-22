@@ -1,6 +1,7 @@
 import { formatUnits, parseUnits } from 'viem';
 import dayjs from '@/dayjs';
 import { PublicKey as SolanaPublicKey } from '@solana/web3.js';
+import assert from 'assert';
 
 export const formatBalance = (
   balance: bigint,
@@ -113,3 +114,19 @@ export const isSolanaAddress = (address: string) => {
 
 export type ArrayElementType<T extends readonly unknown[]> =
   T extends readonly (infer U)[] ? U : never;
+
+export const getRandomWeightedItem = <T>(items: T[], weights: number[]): T => {
+  assert(items.length === weights.length, 'Unequal array lengths');
+  assert(items.length > 0, 'Empty array');
+
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+  let random = Math.random() * totalWeight;
+  for (let i = 0; i < items.length; i++) {
+    if (random < weights[i]!) {
+      return items[i]!;
+    }
+    random -= weights[i]!;
+  }
+
+  return items[items.length - 1]!;
+};

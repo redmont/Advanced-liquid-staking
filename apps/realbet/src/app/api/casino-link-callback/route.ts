@@ -1,7 +1,50 @@
 import { z } from 'zod';
 import { validateSignature } from './validateSignature';
 import { env } from '@/env';
-import { create } from '@/server/actions/storeCasinoLink';
+import prisma from '@/server/prisma/client';
+
+const createCasinoLink = async ({
+  userId,
+  realbetUserId,
+  realbetUsername,
+}: {
+  userId: string;
+  realbetUserId: string;
+  realbetUsername: string;
+}) => {
+  try {
+    const casinoLink = prisma.casinoLink.create({
+      data: {
+        userId,
+        realbetUserId,
+        realbetUsername,
+      },
+    });
+
+    const rewardsAccount = await prisma.rewardsAccount.create({
+      data: {
+        userId,
+        reedeemableTickets: 50,
+      },
+    });
+
+    return { casinoLink, rewardsAccount };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteCasinoLink = async (userId: string) => {
+  try {
+    await prisma.casinoLink.delete({
+      where: {
+        userId,
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
 
 const CasinoLinkCallbackSchema = z.object({
   ts: z.number(),
@@ -45,14 +88,13 @@ export async function POST(request: Request) {
     );
   }
 
-  let body;
-  try {
-    body = await CasinoLinkCallbackSchema.parseAsync(JSON.parse(rawBody));
-  } catch {
+  const body = CasinoLinkCallbackSchema.safeParse(JSON.parse(rawBody));
+
+  if (!body.success) {
     return Response.json(
       {
         success: false,
-        error: 'INVALID_JSON',
+        error: body.error,
       },
       {
         status: 400,
@@ -60,7 +102,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (body.ts < Date.now()) {
+  if (body.data.ts < Date.now()) {
     return Response.json(
       {
         success: false,
@@ -72,16 +114,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const { extUserId, userId, username } = body;
+  const { extUserId, userId, username } = body.data;
 
-  await create({
-    userId: extUserId,
-    realbetUserId: userId,
+  const { casinoLink, rewardsAccount } = await createCasinoLink({
+    userId,
+    realbetUserId: extUserId,
     realbetUsername: username,
   });
 
   return Response.json({
     success: true,
     error: null,
+    casinoLink,
+    rewardsAccount,
   });
 }
