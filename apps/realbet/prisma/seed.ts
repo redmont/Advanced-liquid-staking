@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 import { RewardType } from '@prisma/client';
 import assert from 'assert';
 import pLimit from 'p-limit';
-const limiter = pLimit(10);
+const limiter = pLimit(1);
 
 export const getRandomWeightedItem = <T>(
   items: T[],
@@ -186,17 +186,19 @@ async function main() {
     },
   });
 
+  const randomizedTickets = 500;
+
   await prisma.rewardsAccount.upsert({
     where: { userId: '0xdeadbeef' },
     update: {},
     create: {
       userId: '0xdeadbeef',
-      reedeemableTickets: 25000,
+      reedeemableTickets: randomizedTickets,
     },
   });
 
   await Promise.all(
-    Array.from({ length: 25001 }).map(async (_) =>
+    Array.from({ length: randomizedTickets }).map(async (_) =>
       limiter(() => awardRandomReward('0xdeadbeef')),
     ),
   );
