@@ -9,6 +9,7 @@ export const awardRandomReward = async (authToken: string) => {
   if (!userId) {
     throw new Error('Invalid token');
   }
+
   let reward = null;
   await prisma.$transaction(
     async (tx) => {

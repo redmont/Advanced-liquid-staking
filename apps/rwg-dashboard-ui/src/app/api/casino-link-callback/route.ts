@@ -12,28 +12,24 @@ const createCasinoLink = async ({
   realbetUserId: string;
   realbetUsername: string;
 }) => {
-  try {
-    const casinoLink = prisma.casinoLink.create({
+  const [casinoLink, rewardsAccount] = await prisma.$transaction([
+    prisma.casinoLink.create({
       data: {
         userId,
         realbetUserId,
         realbetUsername,
       },
-    });
-
-    const rewardsAccount = await prisma.rewardsAccount.create({
+    }),
+    prisma.rewardsAccount.create({
       data: {
         userId,
         reedeemableTickets: 50,
       },
-    });
+    }),
+  ]);
 
-    return { casinoLink, rewardsAccount };
-  } catch (error) {
-    throw error;
-  }
+  return { casinoLink, rewardsAccount };
 };
-
 const CasinoLinkCallbackSchema = z.object({
   ts: z.number(),
   extUserId: z.string(),

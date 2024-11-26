@@ -4,12 +4,13 @@
 import { Button } from '@/components/ui/button';
 import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { generateHash } from '../api/casino-link-callback/validateSignature';
 import { getCasinoLink } from '@/server/actions/casino-token/getCasinoLink';
 import Link from 'next/link';
 
 export default function CasinoTestLinkerPage() {
+  const router = useRouter();
   const params = useSearchParams();
   const loggedIn = useIsLoggedIn();
 
@@ -26,15 +27,15 @@ export default function CasinoTestLinkerPage() {
   });
 
   const linkMutation = useMutation({
-    mutationFn: async ({
-      userId,
-      ts,
-      token,
-    }: {
-      userId: string;
-      ts: string;
-      token: string;
-    }) => {
+    mutationFn: async () => {
+      const userId = params.get('extUserId');
+      const ts = params.get('ts');
+      const token = params.get('token');
+
+      if (!userId || !ts || !token) {
+        throw new Error('Missing parameters');
+      }
+
       const realbetId = Math.floor(
         Math.random() * Number.MAX_SAFE_INTEGER,
       ).toString();
@@ -55,28 +56,15 @@ export default function CasinoTestLinkerPage() {
         body,
       });
 
+      console.log('Response', response);
+
       if (!response.ok) {
         throw new Error('Failed to link account');
       }
 
-      console.log('Account linked successfully');
+      router.push('/link-to-win');
     },
   });
-
-  const linkAccount = async () => {
-    const userId = params.get('extUserId');
-    const ts = params.get('ts');
-    const token = params.get('token');
-
-    if (!userId || !ts || !token) {
-      throw new Error('Missing parameters');
-    }
-
-    console.log('Linking user', userId);
-    console.log('Token', token);
-
-    linkMutation.mutate({ userId, ts, token });
-  };
 
   return (
     <div className="space-y-5 p-3 sm:p-5">
@@ -100,7 +88,9 @@ export default function CasinoTestLinkerPage() {
           </p>
         </>
       ) : (
-        <Button onClick={linkAccount}>Link casino account</Button>
+        <Button onClick={() => linkMutation.mutate()}>
+          Link casino account
+        </Button>
       )}
     </div>
   );
