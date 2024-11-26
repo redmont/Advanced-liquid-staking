@@ -8,6 +8,10 @@ const getEligibleMemeCoinInteractions = async (
   chain: keyof typeof chainIdToAlchemyNetworkMap,
   address: `0x${string}`,
 ) => {
+  if (typeof chain !== 'number') {
+    throw new Error('Chain is not EVM');
+  }
+
   const network = chainIdToAlchemyNetworkMap[chain];
   if (!network) {
     throw new Error(`Alchemy SDK not defined for chain: ${chain}`);

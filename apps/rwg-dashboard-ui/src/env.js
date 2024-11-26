@@ -48,13 +48,13 @@ export const env = createEnv({
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS:
       process.env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS ??
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
-    HELIUS_API_KEY: process.env.HELIUS_API_KEY,
     CASINO_API_SECRET_KEY: process.env.CASINO_API_SECRET_KEY ?? 'dummy',
     NEXT_PUBLIC_CASINO_URL: '/casino-test-linker',
     // process.env.NEXT_PUBLIC_VERCEL_ENV === 'development' ||
     // !process.env.NEXT_PUBLIC_VERCEL_ENV
     //   ? '/casino-test-linker'
     //   : 'https://realbet.io',
+    HELIUS_API_KEY: process.env.HELIUS_API_KEY ?? 'dummy',
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
