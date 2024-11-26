@@ -4,7 +4,8 @@ export { POINTS_PER_MEME_COIN_INTERACTION } from './useMemeCoinTracking';
 
 const useDegenScore = () => {
   const memeInteractions = useMemeCoinTracking();
-  const { solanaDeposits, amounts, totalScore, totalDeposited, evmDeposits } = useCasinoDeposits();
+  const { solanaDeposits, amounts, totalScore, totalDeposited, evmDeposits } =
+    useCasinoDeposits();
 
   const calls = [memeInteractions, evmDeposits, solanaDeposits];
 

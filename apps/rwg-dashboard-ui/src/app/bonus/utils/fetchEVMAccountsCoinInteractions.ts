@@ -1,11 +1,11 @@
-import { type ChainId, coinsByChainId } from '@/config/walletChecker';
+import { coinsByChainId } from '@/config/walletChecker';
 import { uniq, flatten } from 'lodash';
 import limit from '@/limiter';
 import { getAssetTransfers } from './getAssetTransfers';
 import { chainIdToAlchemyNetworkMap } from '@/config/walletChecker';
 
 const getEligibleMemeCoinInteractions = async (
-  chain: ChainId,
+  chain: keyof typeof chainIdToAlchemyNetworkMap,
   address: `0x${string}`,
 ) => {
   const network = chainIdToAlchemyNetworkMap[chain];
@@ -33,7 +33,7 @@ const getEligibleMemeCoinInteractions = async (
 };
 
 export const getEVMMemeCoinInteractions = async (
-  chain: ChainId,
+  chain: keyof typeof chainIdToAlchemyNetworkMap,
   addresses: `0x${string}`[],
 ) => {
   const interactions = await Promise.all(

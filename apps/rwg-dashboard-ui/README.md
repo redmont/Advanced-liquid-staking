@@ -11,7 +11,10 @@ This is a Next.js app for the RealBet project.
 ## Wagmi CLI
 
 To generate wagmi types for a new contract:
- * Add the contract to `wagmi.config.ts`
- * Regenerate the types
- ```bash
-  ETHERSCAN_API_KEY=XXX pnpm wagmi generate```
+
+- Add the contract to `wagmi.config.ts`
+- Regenerate the types
+
+````bash
+ ETHERSCAN_API_KEY=XXX pnpm wagmi generate```
+````

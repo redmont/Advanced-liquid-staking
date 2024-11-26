@@ -34,18 +34,6 @@ const createCasinoLink = async ({
   }
 };
 
-export const deleteCasinoLink = async (userId: string) => {
-  try {
-    await prisma.casinoLink.delete({
-      where: {
-        userId,
-      },
-    });
-  } catch (error) {
-    throw error;
-  }
-};
-
 const CasinoLinkCallbackSchema = z.object({
   ts: z.number(),
   extUserId: z.string(),

@@ -3,7 +3,7 @@ import {
   createUseWriteContract,
   createUseSimulateContract,
   createUseWatchContractEvent,
-} from 'wagmi/codegen'
+} from 'wagmi/codegen';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TestStakingVault
@@ -284,14 +284,14 @@ export const testStakingVaultAbi = [
     outputs: [],
     stateMutability: 'nonpayable',
   },
-] as const
+] as const;
 
 /**
  * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xAfa68D066A7e809EFAb066dcA5001f1cD1e75eA0)
  */
 export const testStakingVaultAddress = {
   11155111: '0xAfa68D066A7e809EFAb066dcA5001f1cD1e75eA0',
-} as const
+} as const;
 
 /**
  * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xAfa68D066A7e809EFAb066dcA5001f1cD1e75eA0)
@@ -299,7 +299,7 @@ export const testStakingVaultAddress = {
 export const testStakingVaultConfig = {
   address: testStakingVaultAddress,
   abi: testStakingVaultAbi,
-} as const
+} as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TestToken
@@ -521,14 +521,14 @@ export const testTokenAbi = [
     outputs: [],
     stateMutability: 'nonpayable',
   },
-] as const
+] as const;
 
 /**
  * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x80503a00e1B60C9Be8E6f005C3d4fDbbDAbd5be2)
  */
 export const testTokenAddress = {
   11155111: '0x80503a00e1B60C9Be8E6f005C3d4fDbbDAbd5be2',
-} as const
+} as const;
 
 /**
  * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x80503a00e1B60C9Be8E6f005C3d4fDbbDAbd5be2)
@@ -536,7 +536,7 @@ export const testTokenAddress = {
 export const testTokenConfig = {
   address: testTokenAddress,
   abi: testTokenAbi,
-} as const
+} as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TokenVesting
@@ -781,14 +781,14 @@ export const tokenVestingAbi = [
     stateMutability: 'nonpayable',
   },
   { type: 'receive', stateMutability: 'payable' },
-] as const
+] as const;
 
 /**
  * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xC6a6EbB044629647eb5CD2eFCC1C748c38349154)
  */
 export const tokenVestingAddress = {
   11155111: '0xC6a6EbB044629647eb5CD2eFCC1C748c38349154',
-} as const
+} as const;
 
 /**
  * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xC6a6EbB044629647eb5CD2eFCC1C748c38349154)
@@ -796,7 +796,7 @@ export const tokenVestingAddress = {
 export const tokenVestingConfig = {
   address: tokenVestingAddress,
   abi: tokenVestingAbi,
-} as const
+} as const;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // React
@@ -810,7 +810,7 @@ export const tokenVestingConfig = {
 export const useReadTestStakingVault = /*#__PURE__*/ createUseReadContract({
   abi: testStakingVaultAbi,
   address: testStakingVaultAddress,
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"claimableEarnings"`
@@ -822,7 +822,7 @@ export const useReadTestStakingVaultClaimableEarnings =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'claimableEarnings',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"deposits"`
@@ -834,7 +834,7 @@ export const useReadTestStakingVaultDeposits =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'deposits',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"getDeposits"`
@@ -846,7 +846,7 @@ export const useReadTestStakingVaultGetDeposits =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'getDeposits',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"getTiers"`
@@ -858,7 +858,7 @@ export const useReadTestStakingVaultGetTiers =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'getTiers',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"getTotalShares"`
@@ -870,7 +870,7 @@ export const useReadTestStakingVaultGetTotalShares =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'getTotalShares',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"owner"`
@@ -883,7 +883,7 @@ export const useReadTestStakingVaultOwner = /*#__PURE__*/ createUseReadContract(
     address: testStakingVaultAddress,
     functionName: 'owner',
   },
-)
+);
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"pendingOwner"`
@@ -895,7 +895,7 @@ export const useReadTestStakingVaultPendingOwner =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'pendingOwner',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"shares"`
@@ -907,7 +907,7 @@ export const useReadTestStakingVaultShares =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'shares',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"sharesPerUser"`
@@ -919,7 +919,7 @@ export const useReadTestStakingVaultSharesPerUser =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'sharesPerUser',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"tiers"`
@@ -932,7 +932,7 @@ export const useReadTestStakingVaultTiers = /*#__PURE__*/ createUseReadContract(
     address: testStakingVaultAddress,
     functionName: 'tiers',
   },
-)
+);
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"token"`
@@ -945,7 +945,7 @@ export const useReadTestStakingVaultToken = /*#__PURE__*/ createUseReadContract(
     address: testStakingVaultAddress,
     functionName: 'token',
   },
-)
+);
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"totalUsers"`
@@ -957,7 +957,7 @@ export const useReadTestStakingVaultTotalUsers =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'totalUsers',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testStakingVaultAbi}__
@@ -967,7 +967,7 @@ export const useReadTestStakingVaultTotalUsers =
 export const useWriteTestStakingVault = /*#__PURE__*/ createUseWriteContract({
   abi: testStakingVaultAbi,
   address: testStakingVaultAddress,
-})
+});
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"acceptOwnership"`
@@ -979,7 +979,7 @@ export const useWriteTestStakingVaultAcceptOwnership =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'acceptOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"deposit"`
@@ -991,7 +991,7 @@ export const useWriteTestStakingVaultDeposit =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'deposit',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"renounceOwnership"`
@@ -1003,7 +1003,7 @@ export const useWriteTestStakingVaultRenounceOwnership =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'renounceOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"setTier"`
@@ -1015,7 +1015,7 @@ export const useWriteTestStakingVaultSetTier =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'setTier',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"transferOwnership"`
@@ -1027,7 +1027,7 @@ export const useWriteTestStakingVaultTransferOwnership =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'transferOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"withdraw"`
@@ -1039,7 +1039,7 @@ export const useWriteTestStakingVaultWithdraw =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'withdraw',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testStakingVaultAbi}__
@@ -1050,7 +1050,7 @@ export const useSimulateTestStakingVault =
   /*#__PURE__*/ createUseSimulateContract({
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"acceptOwnership"`
@@ -1062,7 +1062,7 @@ export const useSimulateTestStakingVaultAcceptOwnership =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'acceptOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"deposit"`
@@ -1074,7 +1074,7 @@ export const useSimulateTestStakingVaultDeposit =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'deposit',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"renounceOwnership"`
@@ -1086,7 +1086,7 @@ export const useSimulateTestStakingVaultRenounceOwnership =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'renounceOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"setTier"`
@@ -1098,7 +1098,7 @@ export const useSimulateTestStakingVaultSetTier =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'setTier',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"transferOwnership"`
@@ -1110,7 +1110,7 @@ export const useSimulateTestStakingVaultTransferOwnership =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'transferOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testStakingVaultAbi}__ and `functionName` set to `"withdraw"`
@@ -1122,7 +1122,7 @@ export const useSimulateTestStakingVaultWithdraw =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     functionName: 'withdraw',
-  })
+  });
 
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link testStakingVaultAbi}__
@@ -1133,7 +1133,7 @@ export const useWatchTestStakingVaultEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
-  })
+  });
 
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link testStakingVaultAbi}__ and `eventName` set to `"OwnershipTransferStarted"`
@@ -1145,7 +1145,7 @@ export const useWatchTestStakingVaultOwnershipTransferStartedEvent =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     eventName: 'OwnershipTransferStarted',
-  })
+  });
 
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link testStakingVaultAbi}__ and `eventName` set to `"OwnershipTransferred"`
@@ -1157,7 +1157,7 @@ export const useWatchTestStakingVaultOwnershipTransferredEvent =
     abi: testStakingVaultAbi,
     address: testStakingVaultAddress,
     eventName: 'OwnershipTransferred',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testTokenAbi}__
@@ -1167,7 +1167,7 @@ export const useWatchTestStakingVaultOwnershipTransferredEvent =
 export const useReadTestToken = /*#__PURE__*/ createUseReadContract({
   abi: testTokenAbi,
   address: testTokenAddress,
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"allowance"`
@@ -1178,7 +1178,7 @@ export const useReadTestTokenAllowance = /*#__PURE__*/ createUseReadContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'allowance',
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"balanceOf"`
@@ -1189,7 +1189,7 @@ export const useReadTestTokenBalanceOf = /*#__PURE__*/ createUseReadContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'balanceOf',
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"decimals"`
@@ -1200,7 +1200,7 @@ export const useReadTestTokenDecimals = /*#__PURE__*/ createUseReadContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'decimals',
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"name"`
@@ -1211,7 +1211,7 @@ export const useReadTestTokenName = /*#__PURE__*/ createUseReadContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'name',
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"owner"`
@@ -1222,7 +1222,7 @@ export const useReadTestTokenOwner = /*#__PURE__*/ createUseReadContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'owner',
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"symbol"`
@@ -1233,7 +1233,7 @@ export const useReadTestTokenSymbol = /*#__PURE__*/ createUseReadContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'symbol',
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"totalSupply"`
@@ -1244,7 +1244,7 @@ export const useReadTestTokenTotalSupply = /*#__PURE__*/ createUseReadContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'totalSupply',
-})
+});
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testTokenAbi}__
@@ -1254,7 +1254,7 @@ export const useReadTestTokenTotalSupply = /*#__PURE__*/ createUseReadContract({
 export const useWriteTestToken = /*#__PURE__*/ createUseWriteContract({
   abi: testTokenAbi,
   address: testTokenAddress,
-})
+});
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"approve"`
@@ -1265,7 +1265,7 @@ export const useWriteTestTokenApprove = /*#__PURE__*/ createUseWriteContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'approve',
-})
+});
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"mint"`
@@ -1276,7 +1276,7 @@ export const useWriteTestTokenMint = /*#__PURE__*/ createUseWriteContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'mint',
-})
+});
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"renounceOwnership"`
@@ -1288,7 +1288,7 @@ export const useWriteTestTokenRenounceOwnership =
     abi: testTokenAbi,
     address: testTokenAddress,
     functionName: 'renounceOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"transfer"`
@@ -1299,7 +1299,7 @@ export const useWriteTestTokenTransfer = /*#__PURE__*/ createUseWriteContract({
   abi: testTokenAbi,
   address: testTokenAddress,
   functionName: 'transfer',
-})
+});
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"transferFrom"`
@@ -1311,7 +1311,7 @@ export const useWriteTestTokenTransferFrom =
     abi: testTokenAbi,
     address: testTokenAddress,
     functionName: 'transferFrom',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"transferOwnership"`
@@ -1323,7 +1323,7 @@ export const useWriteTestTokenTransferOwnership =
     abi: testTokenAbi,
     address: testTokenAddress,
     functionName: 'transferOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testTokenAbi}__
@@ -1333,7 +1333,7 @@ export const useWriteTestTokenTransferOwnership =
 export const useSimulateTestToken = /*#__PURE__*/ createUseSimulateContract({
   abi: testTokenAbi,
   address: testTokenAddress,
-})
+});
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"approve"`
@@ -1345,7 +1345,7 @@ export const useSimulateTestTokenApprove =
     abi: testTokenAbi,
     address: testTokenAddress,
     functionName: 'approve',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"mint"`
@@ -1354,7 +1354,7 @@ export const useSimulateTestTokenApprove =
  */
 export const useSimulateTestTokenMint = /*#__PURE__*/ createUseSimulateContract(
   { abi: testTokenAbi, address: testTokenAddress, functionName: 'mint' },
-)
+);
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"renounceOwnership"`
@@ -1366,7 +1366,7 @@ export const useSimulateTestTokenRenounceOwnership =
     abi: testTokenAbi,
     address: testTokenAddress,
     functionName: 'renounceOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"transfer"`
@@ -1378,7 +1378,7 @@ export const useSimulateTestTokenTransfer =
     abi: testTokenAbi,
     address: testTokenAddress,
     functionName: 'transfer',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"transferFrom"`
@@ -1390,7 +1390,7 @@ export const useSimulateTestTokenTransferFrom =
     abi: testTokenAbi,
     address: testTokenAddress,
     functionName: 'transferFrom',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link testTokenAbi}__ and `functionName` set to `"transferOwnership"`
@@ -1402,7 +1402,7 @@ export const useSimulateTestTokenTransferOwnership =
     abi: testTokenAbi,
     address: testTokenAddress,
     functionName: 'transferOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link testTokenAbi}__
@@ -1411,7 +1411,7 @@ export const useSimulateTestTokenTransferOwnership =
  */
 export const useWatchTestTokenEvent = /*#__PURE__*/ createUseWatchContractEvent(
   { abi: testTokenAbi, address: testTokenAddress },
-)
+);
 
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link testTokenAbi}__ and `eventName` set to `"Approval"`
@@ -1423,7 +1423,7 @@ export const useWatchTestTokenApprovalEvent =
     abi: testTokenAbi,
     address: testTokenAddress,
     eventName: 'Approval',
-  })
+  });
 
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link testTokenAbi}__ and `eventName` set to `"OwnershipTransferred"`
@@ -1435,7 +1435,7 @@ export const useWatchTestTokenOwnershipTransferredEvent =
     abi: testTokenAbi,
     address: testTokenAddress,
     eventName: 'OwnershipTransferred',
-  })
+  });
 
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link testTokenAbi}__ and `eventName` set to `"Transfer"`
@@ -1447,7 +1447,7 @@ export const useWatchTestTokenTransferEvent =
     abi: testTokenAbi,
     address: testTokenAddress,
     eventName: 'Transfer',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__
@@ -1457,7 +1457,7 @@ export const useWatchTestTokenTransferEvent =
 export const useReadTokenVesting = /*#__PURE__*/ createUseReadContract({
   abi: tokenVestingAbi,
   address: tokenVestingAddress,
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"computeNextVestingScheduleIdForHolder"`
@@ -1469,7 +1469,7 @@ export const useReadTokenVestingComputeNextVestingScheduleIdForHolder =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'computeNextVestingScheduleIdForHolder',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"computeReleasableAmount"`
@@ -1481,7 +1481,7 @@ export const useReadTokenVestingComputeReleasableAmount =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'computeReleasableAmount',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"computeVestingScheduleIdForAddressAndIndex"`
@@ -1493,7 +1493,7 @@ export const useReadTokenVestingComputeVestingScheduleIdForAddressAndIndex =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'computeVestingScheduleIdForAddressAndIndex',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"getLastVestingScheduleForHolder"`
@@ -1505,7 +1505,7 @@ export const useReadTokenVestingGetLastVestingScheduleForHolder =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'getLastVestingScheduleForHolder',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"getToken"`
@@ -1516,7 +1516,7 @@ export const useReadTokenVestingGetToken = /*#__PURE__*/ createUseReadContract({
   abi: tokenVestingAbi,
   address: tokenVestingAddress,
   functionName: 'getToken',
-})
+});
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"getVestingIdAtIndex"`
@@ -1528,7 +1528,7 @@ export const useReadTokenVestingGetVestingIdAtIndex =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'getVestingIdAtIndex',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"getVestingSchedule"`
@@ -1540,7 +1540,7 @@ export const useReadTokenVestingGetVestingSchedule =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'getVestingSchedule',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"getVestingScheduleByAddressAndIndex"`
@@ -1552,7 +1552,7 @@ export const useReadTokenVestingGetVestingScheduleByAddressAndIndex =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'getVestingScheduleByAddressAndIndex',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"getVestingSchedulesCount"`
@@ -1564,7 +1564,7 @@ export const useReadTokenVestingGetVestingSchedulesCount =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'getVestingSchedulesCount',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"getVestingSchedulesCountByBeneficiary"`
@@ -1576,7 +1576,7 @@ export const useReadTokenVestingGetVestingSchedulesCountByBeneficiary =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'getVestingSchedulesCountByBeneficiary',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"getVestingSchedulesTotalAmount"`
@@ -1588,7 +1588,7 @@ export const useReadTokenVestingGetVestingSchedulesTotalAmount =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'getVestingSchedulesTotalAmount',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"getWithdrawableAmount"`
@@ -1600,7 +1600,7 @@ export const useReadTokenVestingGetWithdrawableAmount =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'getWithdrawableAmount',
-  })
+  });
 
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"owner"`
@@ -1611,7 +1611,7 @@ export const useReadTokenVestingOwner = /*#__PURE__*/ createUseReadContract({
   abi: tokenVestingAbi,
   address: tokenVestingAddress,
   functionName: 'owner',
-})
+});
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenVestingAbi}__
@@ -1621,7 +1621,7 @@ export const useReadTokenVestingOwner = /*#__PURE__*/ createUseReadContract({
 export const useWriteTokenVesting = /*#__PURE__*/ createUseWriteContract({
   abi: tokenVestingAbi,
   address: tokenVestingAddress,
-})
+});
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"createVestingSchedule"`
@@ -1633,7 +1633,7 @@ export const useWriteTokenVestingCreateVestingSchedule =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'createVestingSchedule',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"release"`
@@ -1646,7 +1646,7 @@ export const useWriteTokenVestingRelease = /*#__PURE__*/ createUseWriteContract(
     address: tokenVestingAddress,
     functionName: 'release',
   },
-)
+);
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"revoke"`
@@ -1657,7 +1657,7 @@ export const useWriteTokenVestingRevoke = /*#__PURE__*/ createUseWriteContract({
   abi: tokenVestingAbi,
   address: tokenVestingAddress,
   functionName: 'revoke',
-})
+});
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"transferOwnership"`
@@ -1669,7 +1669,7 @@ export const useWriteTokenVestingTransferOwnership =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'transferOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"withdraw"`
@@ -1681,7 +1681,7 @@ export const useWriteTokenVestingWithdraw =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'withdraw',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenVestingAbi}__
@@ -1691,7 +1691,7 @@ export const useWriteTokenVestingWithdraw =
 export const useSimulateTokenVesting = /*#__PURE__*/ createUseSimulateContract({
   abi: tokenVestingAbi,
   address: tokenVestingAddress,
-})
+});
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"createVestingSchedule"`
@@ -1703,7 +1703,7 @@ export const useSimulateTokenVestingCreateVestingSchedule =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'createVestingSchedule',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"release"`
@@ -1715,7 +1715,7 @@ export const useSimulateTokenVestingRelease =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'release',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"revoke"`
@@ -1727,7 +1727,7 @@ export const useSimulateTokenVestingRevoke =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'revoke',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"transferOwnership"`
@@ -1739,7 +1739,7 @@ export const useSimulateTokenVestingTransferOwnership =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'transferOwnership',
-  })
+  });
 
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenVestingAbi}__ and `functionName` set to `"withdraw"`
@@ -1751,7 +1751,7 @@ export const useSimulateTokenVestingWithdraw =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     functionName: 'withdraw',
-  })
+  });
 
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link tokenVestingAbi}__
@@ -1762,7 +1762,7 @@ export const useWatchTokenVestingEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
-  })
+  });
 
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link tokenVestingAbi}__ and `eventName` set to `"OwnershipTransferred"`
@@ -1774,4 +1774,4 @@ export const useWatchTokenVestingOwnershipTransferredEvent =
     abi: tokenVestingAbi,
     address: tokenVestingAddress,
     eventName: 'OwnershipTransferred',
-  })
+  });
