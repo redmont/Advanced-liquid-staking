@@ -1,18 +1,9 @@
-// ** Todo: **
-// Remove _updateCurrentEpoch, not need to update state variable
-// In unstaking combine reward + staked amount and transfer in one go
-// Add a function to set rewards for next n epochs in 1 txn. (e.g; if we want to set rewards for next 4 weeks)
-// When setting rewards for epochs, the contract must have enough equivalent REAL tokens to distribute ? @kristian
-// Add view function to get unlock timestamp for a user stake
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-
-//import "hardhat/console.sol";
 
 contract RWGStakingRewards is ReentrancyGuard, Ownable {
     IERC20 public immutable STAKING_TOKEN;
