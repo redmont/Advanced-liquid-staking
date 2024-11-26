@@ -3,16 +3,29 @@
 import Banner from '@/components/banner';
 import { CasinoLink } from '@/components/casino-link';
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FREE_TICKETS } from '@/config/linkToWin';
 import { useCurrentTicketWave } from '@/hooks/useCurrentTicketWave';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
+import { useRewardsAccount } from '@/hooks/useRewardsAccount';
 import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
-import { Wallet2 } from 'lucide-react';
+import { Box, Ticket, Wallet2 } from 'lucide-react';
+import GiftBoxes from './components/GiftBoxes';
+import { useCasinoLink } from '@/hooks/useCasinoLink';
 
 export default function LinkToWinPage() {
+  const hasLinkedAccount = !!useCasinoLink()?.data;
   const loggedIn = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
   const currentWave = useCurrentTicketWave();
+  const rewardsAccount = useRewardsAccount();
 
   return (
     <div className="space-y-5 p-3 sm:p-5">
@@ -27,8 +40,10 @@ export default function LinkToWinPage() {
               VIP spot. Don&apos;t miss out!
             </p>
             <p className="text-lg md:max-w-[66%] xl:text-xl">
-              Ready for free tickets? Link your wallet and get 50 instant
-              tickets!
+              Ready for free tickets? Link your wallet and{' '}
+              <strong className="font-bold">
+                get {FREE_TICKETS} instant tickets!
+              </strong>
             </p>
 
             {!loggedIn && (
@@ -75,6 +90,37 @@ export default function LinkToWinPage() {
           </div>
         </div>
       </Banner>
+      {loggedIn && hasLinkedAccount && (
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <div className="flex items-center justify-between">
+                <span>
+                  <Box className="inline size-6" /> Mystery Boxes
+                </span>
+                {rewardsAccount.isLoading ? (
+                  <Skeleton className="h-6 w-40 rounded-full" />
+                ) : (
+                  <span className="font-medium">
+                    You have{' '}
+                    <span className="text-primary">
+                      <Ticket className="mb-1 inline size-4" />{' '}
+                      {rewardsAccount.data?.reedeemableTickets}
+                    </span>{' '}
+                    tickets remaining.
+                  </span>
+                )}
+              </div>
+            </CardTitle>
+            <CardDescription>
+              Test your luck and pick a box to win a prize!
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <GiftBoxes />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

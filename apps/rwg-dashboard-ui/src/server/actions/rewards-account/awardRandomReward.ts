@@ -1,17 +1,21 @@
+'use server';
+
 import prisma from '@/server/prisma/client';
 import { getUserIdFromToken } from '../auth';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import assert from 'assert';
 import { getRandomWeightedItem } from '@/utils';
 
-export const awardRandomReward = async (authToken: string) => {
+export const awardRandomReward = async (
+  authToken: string,
+  nearWins: number,
+) => {
   const userId = await getUserIdFromToken(authToken);
   if (!userId) {
     throw new Error('Invalid token');
   }
 
-  let reward = null;
-  await prisma.$transaction(
+  return await prisma.$transaction(
     async (tx) => {
       const rewardsAccount = await tx.rewardsAccount.findFirst({
         where: {
@@ -35,14 +39,15 @@ export const awardRandomReward = async (authToken: string) => {
 
       assert(preset?.remaining, 'Limit reached');
 
-      reward = {
-        userId,
-        type: preset.type,
-        amount: preset.prize,
-        waveId: rewardWave.id,
-      };
-
-      await Promise.all([
+      const [reward] = await Promise.all([
+        tx.reward.create({
+          data: {
+            userId,
+            type: preset.type,
+            amount: preset.prize,
+            waveId: rewardWave.id,
+          },
+        }),
         tx.rewardsAccount.update({
           where: {
             userId,
@@ -61,15 +66,25 @@ export const awardRandomReward = async (authToken: string) => {
             remaining: { decrement: 1 },
           },
         }),
-        tx.reward.create({
-          data: reward,
-        }),
       ]);
+
+      return {
+        reward: {
+          ...reward,
+          amount: Number(reward.amount),
+        },
+        nearWins: Array.from({ length: nearWins }).map(() => {
+          const item = getRandomWeightedItem(
+            rewardWave.rewardPresets,
+            rewardWave.rewardPresets.map((p) => p.remaining),
+          );
+
+          return { ...item, amount: item.prize };
+        }),
+      };
     },
     {
       isolationLevel: 'RepeatableRead',
     },
   );
-
-  return reward;
 };

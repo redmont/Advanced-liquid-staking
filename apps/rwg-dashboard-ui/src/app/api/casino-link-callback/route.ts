@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { validateSignature } from './validateSignature';
 import { env } from '@/env';
 import prisma from '@/server/prisma/client';
+import { FREE_TICKETS } from '@/config/linkToWin';
 
 const createCasinoLink = async ({
   userId,
@@ -23,7 +24,7 @@ const createCasinoLink = async ({
     prisma.rewardsAccount.create({
       data: {
         userId,
-        reedeemableTickets: 50,
+        reedeemableTickets: FREE_TICKETS,
       },
     }),
   ]);
