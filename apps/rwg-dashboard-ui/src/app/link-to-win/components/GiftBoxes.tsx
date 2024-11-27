@@ -147,7 +147,9 @@ const GiftBoxes = () => {
       awardReward.mutateAsync(),
       wait(1100),
     ]);
-    void queryClient.invalidateQueries({ queryKey: ['rewardsAccount'] });
+    void queryClient.invalidateQueries({
+      queryKey: ['rewardsAccount', 'current-wave'],
+    });
     setState((state) => {
       const newState = [...state];
       newState[boxIndex] =
