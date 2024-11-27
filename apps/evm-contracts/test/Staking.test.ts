@@ -1,8 +1,7 @@
 import { expect } from "chai";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { viem } from "hardhat";
-import { parseEther, parseUnits, getAddress } from "viem";
-import { PublicClient, WalletClient, Account } from "viem";
+import { parseEther, getAddress } from "viem";
 
 describe("RWGStakingRewards", function () {
   async function deployContractsFixture() {
@@ -10,7 +9,7 @@ describe("RWGStakingRewards", function () {
     const publicClient = await viem.getPublicClient();
 
     // Deploy mock ERC20 tokens for staking and rewards
-    const mockERC20Factory = await viem.deployContract("MockERC20", ["Staking Token", "STK"]);
+    //const mockERC20Factory = await viem.deployContract("MockERC20", ["Staking Token", "STK"]);
     const stakingToken = await viem.deployContract("MockERC20", ["Staking Token", "STK"]);
     const rewardToken = await viem.deployContract("MockERC20", ["Reward Token", "RWD"]);
 
@@ -154,7 +153,7 @@ describe("RWGStakingRewards", function () {
     });
 
     it("Should calculate rewards correctly", async function () {
-      const { rwgStakingRewards, stakingToken, addr1, publicClient } = await loadFixture(deployContractsFixture);
+      const { rwgStakingRewards, stakingToken, addr1 } = await loadFixture(deployContractsFixture);
       await stakingToken.write.approve([rwgStakingRewards.address, parseEther("100")], {
         account: addr1.account,
       });
