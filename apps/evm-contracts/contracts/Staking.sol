@@ -116,7 +116,7 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
             })
         );
 
-        // if (!STAKING_TOKEN.transferFrom(msg.sender, address(this), amount)) revert StakeTransferFailed();
+        if (!STAKING_TOKEN.transferFrom(msg.sender, address(this), amount)) revert StakeTransferFailed();
         emit Staked(msg.sender, amount, tierIndex);
     }
 
@@ -138,7 +138,7 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
         userStakes[msg.sender][stakeIndex] = userStakes[msg.sender][userStakes[msg.sender].length - 1];
         userStakes[msg.sender].pop();
 
-        // if (!STAKING_TOKEN.transfer(msg.sender, amount)) revert UnstakeTransferFailed();
+        if (!STAKING_TOKEN.transfer(msg.sender, amount)) revert UnstakeTransferFailed();
         emit Unstaked(msg.sender, amount);
     }
 
@@ -150,7 +150,7 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
 
         if (reward > 0) {
             userStake.lastClaimEpoch = currentEpoch;
-            // if (!REWARD_TOKEN.transfer(msg.sender, reward)) revert RewardTransferFailed();
+            if (!REWARD_TOKEN.transfer(msg.sender, reward)) revert RewardTransferFailed();
             emit RewardClaimed(msg.sender, reward);
         }
     }
