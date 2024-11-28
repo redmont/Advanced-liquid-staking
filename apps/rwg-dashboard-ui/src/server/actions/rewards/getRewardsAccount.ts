@@ -14,8 +14,14 @@ export const getRewardsAccount = async (token: string) => {
     where: {
       userId,
     },
+
     include: {
-      waveMemberships: true,
+      waveMemberships: {
+        include: {
+          awardedTickets: true,
+          rewards: true,
+        },
+      },
     },
   });
 
@@ -23,5 +29,14 @@ export const getRewardsAccount = async (token: string) => {
     return null;
   }
 
-  return rewardsAccount;
+  return {
+    ...rewardsAccount,
+    waveMemberships: rewardsAccount.waveMemberships.map((membership) => ({
+      ...membership,
+      rewards: membership.rewards.map((r) => ({
+        ...r,
+        amount: Number(r.amount),
+      })),
+    })),
+  };
 };

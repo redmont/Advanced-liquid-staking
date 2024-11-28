@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { validateSignature } from './validateSignature';
 import { env } from '@/env';
-import { createCasinoLink } from '@/server/actions/casino-token/createCasinoLink';
+import { createCasinoLink } from '@/server/actions/account/createCasinoLink';
 
 const CasinoLinkCallbackSchema = z.object({
   ts: z.number(),

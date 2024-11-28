@@ -6,7 +6,7 @@ import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { generateHash } from '../api/casino-link-callback/validateSignature';
-import { getCasinoLink } from '@/server/actions/casino-token/getCasinoLink';
+import { getCasinoLink } from '@/server/actions/account/getCasinoLink';
 import Link from 'next/link';
 
 export default function CasinoTestLinkerPage() {

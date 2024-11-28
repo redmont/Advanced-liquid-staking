@@ -40,13 +40,14 @@ model RewardWave {
   ticketsPerMember  Int
   live              Boolean  @default(true)
   totalRewards      Int
-  rewards           Reward[]
   rewardPresets     RewardPresets[]
   memberships       WaveMembership[]
 }
 
 model WaveMembership {
   id                      Int      @id @default(autoincrement())
+  rewards                 Reward[]
+  awardedTickets          AwardedTickets[]
   seatNumber              Int
   accountId               Int
   account                 RewardsAccount @relation(fields: [accountId], references: [id])
@@ -54,6 +55,20 @@ model WaveMembership {
   wave                    RewardWave @relation(fields: [waveId], references: [id])
   reedeemableTickets      Int      @default(0)
   createdAt               DateTime @default(now())
+}
+
+enum AwardedTicketsType {
+  WaveSignupBonus
+  TwitterShare
+}
+
+model AwardedTickets {
+  id              Int      @id @default(autoincrement())
+  type            AwardedTicketsType
+  membershipId    Int
+  membership      WaveMembership @relation(fields: [membershipId], references: [id])
+  amount          Int
+  createdAt       DateTime @default(now())
 }
 
 model RewardPresets {
@@ -71,7 +86,7 @@ model Reward {
   type            RewardType
   amount          Decimal?
   redeemed        Boolean  @default(false)
-  waveId          Int
-  wave            RewardWave @relation(fields: [waveId], references: [id])
+  membershipId    Int
+  membership      WaveMembership @relation(fields: [membershipId], references: [id])
   createdAt       DateTime @default(now())
 }

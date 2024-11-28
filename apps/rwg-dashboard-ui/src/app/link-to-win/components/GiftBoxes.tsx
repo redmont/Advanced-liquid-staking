@@ -1,16 +1,17 @@
-import { Gift } from 'lucide-react';
+import { Diamond, Gift, Rocket } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import useSound from 'use-sound';
 import balloonPop from '@/assets/sounds/balloon-pop.mp3';
 import riser from '@/assets/sounds/riser.mp3';
 import assert from 'assert';
-import { awardRandomReward } from '@/server/actions/wave-membership/awardRandomReward';
+import { awardRandomReward } from '@/server/actions/rewards/awardRandomReward';
 import { getAuthToken } from '@dynamic-labs/sdk-react-core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ArrayElementType } from '@/utils';
 import { RewardType } from '@prisma/client';
 import { useToken } from '@/hooks/useToken';
+import { Button } from '@/components/ui/button';
 
 type AwardedReward = Awaited<ReturnType<typeof awardRandomReward>>;
 
@@ -42,18 +43,26 @@ const GiftBox = ({
       {reward && state.startsWith('reveal') && (
         <div>
           {reward.type === 'None' ? (
-            <h3 className="text-3xl">You lose</h3>
+            <h3 className="text-md md:text-2xl">You lose</h3>
           ) : (
             <>
               {state === 'reveal-prize' && (
-                <h3 className="text-2xl font-medium text-primary">You win</h3>
+                <h3 className="text-md font-medium text-primary md:text-xl">
+                  You win!
+                </h3>
+              )}
+              {reward.type === RewardType.RealBetCredit && (
+                <Rocket className="inline size-6 text-primary md:size-12 xl:size-6" />
+              )}
+              {reward.type === RewardType.TokenBonus && (
+                <Diamond className="inline size-6 text-primary md:size-12 xl:size-6" />
               )}
               {reward.type === RewardType.RealBetCredit && (
                 <>
-                  <h3 className="text-[2rem]">RealbetCredit</h3>{' '}
+                  <h3 className="text-sm md:text-xl">RealbetCredit</h3>{' '}
                   <p
                     className={cn(
-                      'text-2xl font-bold',
+                      'text-sm font-bold md:text-xl',
                       state === 'reveal-prize' && 'text-primary',
                     )}
                   >
@@ -63,10 +72,10 @@ const GiftBox = ({
               )}
               {reward.type === RewardType.TokenBonus && (
                 <>
-                  <h3 className="text-3xl">TokenBonus </h3>{' '}
+                  <h3 className="text-sm md:text-xl">TokenBonus </h3>{' '}
                   <p
                     className={cn(
-                      'text-2xl font-bold',
+                      'text-sm font-bold md:text-xl',
                       state === 'reveal-prize' && 'text-primary',
                     )}
                   >
@@ -105,6 +114,8 @@ const GiftBoxes = () => {
   const [playBalloonPop] = useSound(balloonPop, { volume: 0.35 });
   const [states, setState] = useState<GiftBoxesState>(initialState);
   const [indexClicked, setIndexClicked] = useState<number | null>(null);
+  const [autoMode, setAutoMode] = useState(false);
+  const [boxCounter, setBoxCounter] = useState(0);
 
   const awardReward = useMutation({
     mutationFn: async () => {
@@ -113,9 +124,6 @@ const GiftBoxes = () => {
         throw new Error('No token');
       }
       return awardRandomReward(authToken, 2);
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['rewardsAccount'] });
     },
   });
 
@@ -130,60 +138,98 @@ const GiftBoxes = () => {
     });
   }, [awardReward.data, indexClicked, states.length]);
 
-  const makeHandler = (boxIndex: number) => async () => {
-    if (states[boxIndex] !== 'idle') {
-      return;
+  const openBox = useCallback(
+    async (boxIndex: number) => {
+      if (states[boxIndex] !== 'idle') {
+        return;
+      }
+      void wait(1100).then(() => playBalloonPop());
+      assert(boxIndex < states.length, 'Invalid box index');
+      setIndexClicked(boxIndex);
+      playRiser();
+      setState(() => {
+        const newState = ['waiting', 'waiting', 'waiting'];
+        newState[boxIndex] = 'popping';
+        return newState as GiftBoxesState;
+      });
+      const [{ reward }] = await Promise.all([
+        awardReward.mutateAsync(),
+        wait(1100),
+      ]);
+      setState((state) => {
+        const newState = [...state];
+        newState[boxIndex] =
+          reward.type === 'None' ? 'reveal-loss' : 'reveal-prize';
+        return newState as GiftBoxesState;
+      });
+      await wait(2000);
+      setState(
+        (state) =>
+          state.map((gift) =>
+            gift.startsWith('reveal') ? gift : 'reveal-loss',
+          ) as GiftBoxesState,
+      );
+      await wait(3000);
+      setState(initialState);
+      setBoxCounter((c) => c + 1);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ['rewardsAccount'],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['currentWave'],
+        }),
+      ]);
+    },
+    [states, playRiser, awardReward, queryClient, playBalloonPop],
+  );
+
+  useEffect(() => {
+    if (autoMode) {
+      void openBox(Math.floor(Math.random() * 3));
     }
-    void wait(1100).then(() => playBalloonPop());
-    assert(boxIndex < states.length, 'Invalid box index');
-    setIndexClicked(boxIndex);
-    playRiser();
-    setState(() => {
-      const newState = ['waiting', 'waiting', 'waiting'];
-      newState[boxIndex] = 'popping';
-      return newState as GiftBoxesState;
-    });
-    const [{ reward }] = await Promise.all([
-      awardReward.mutateAsync(),
-      wait(1100),
-    ]);
-    void queryClient.invalidateQueries({
-      queryKey: ['rewardsAccount', 'current-wave'],
-    });
-    setState((state) => {
-      const newState = [...state];
-      newState[boxIndex] =
-        reward.type === 'None' ? 'reveal-loss' : 'reveal-prize';
-      return newState as GiftBoxesState;
-    });
-    await wait(2000);
-    setState(
-      (state) =>
-        state.map((gift) =>
-          gift.startsWith('reveal') ? gift : 'reveal-loss',
-        ) as GiftBoxesState,
-    );
-    await wait(3000);
-    setState(initialState);
-  };
+  }, [boxCounter, autoMode, openBox]);
 
   return (
-    <div className="grid grid-cols-3 gap-8">
+    <div className="grid grid-cols-3 gap-3 md:gap-5 lg:gap-8 xl:gap-3 2xl:gap-5">
       <GiftBox
-        onClick={makeHandler(0)}
+        onClick={() => openBox(0)}
         state={states[0]}
         reward={rewardArray[0]}
       />
       <GiftBox
-        onClick={makeHandler(1)}
+        onClick={() => openBox(1)}
         state={states[1]}
         reward={rewardArray[1]}
       />
       <GiftBox
-        onClick={makeHandler(2)}
+        onClick={() => openBox(2)}
         state={states[2]}
         reward={rewardArray[2]}
       />
+      <div className="col-span-3">
+        {autoMode ? (
+          <Button
+            variant="neutral"
+            className="w-full"
+            size="lg"
+            onClick={() => setAutoMode(false)}
+          >
+            Stop Auto Mode
+          </Button>
+        ) : (
+          <Button
+            onClick={() => {
+              setAutoMode(true);
+            }}
+            className="w-full"
+            size="lg"
+            variant="outline"
+          >
+            Start Auto Mode
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getAuthToken } from '@/lib/dynamic';
-import { generateLinkingToken } from '@/server/actions/casino-token/generateLinkingToken';
+import { generateLinkingToken } from '@/server/actions/account/generateLinkingToken';
 import { useMutation } from '@tanstack/react-query';
 import { env } from '@/env';
 import { useCasinoLink } from '@/hooks/useCasinoLink';

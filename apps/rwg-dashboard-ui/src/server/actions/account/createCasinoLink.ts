@@ -2,6 +2,7 @@
 
 import prisma from '@/server/prisma/client';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
+import { AwardedTicketsType } from '@prisma/client';
 
 // no auth, use server side only
 export const createCasinoLink = async ({
@@ -37,6 +38,12 @@ export const createCasinoLink = async ({
                     reedeemableTickets:
                       wave?.availableSeats > 0 ? wave.ticketsPerMember : 0,
                     seatNumber,
+                    awardedTickets: {
+                      create: {
+                        type: AwardedTicketsType.WaveSignupBonus,
+                        amount: wave.ticketsPerMember,
+                      },
+                    },
                   },
                 }
               : undefined,

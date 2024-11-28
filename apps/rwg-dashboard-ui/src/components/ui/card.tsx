@@ -2,27 +2,19 @@ import * as React from 'react';
 import { cn } from '@/lib/cn';
 import { Skeleton } from './skeleton';
 
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  loading?: boolean;
-  skeleton?: React.ReactNode;
-}
+type CardProps = React.HTMLAttributes<HTMLDivElement>;
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, skeleton, loading = false, ...props }, ref) => (
+  ({ className, ...props }, ref) => (
     <div
       ref={ref}
       className={cn(
-        'relative overflow-hidden rounded-3xl bg-card text-card-foreground shadow',
+        'relative flex flex-col overflow-hidden rounded-3xl bg-card text-card-foreground shadow',
         className,
       )}
       {...props}
     >
-      {loading && (
-        <div className="absolute inset-0 z-10 animate-skeleton bg-light">
-          {skeleton}
-        </div>
-      )}
-      {!loading && props.children}
+      {props.children}
     </div>
   ),
 );
@@ -75,13 +67,15 @@ interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const CardContent = React.forwardRef<HTMLDivElement, CardContentProps>(
   ({ className, loading = false, ...props }, ref) => (
-    <div ref={ref} className={cn('p-5 pt-0', className)} {...props}>
-      <div className="relative">
-        {loading && (
-          <Skeleton className="absolute inset-0 z-10 animate-skeleton" />
-        )}
-        {props.children}
-      </div>
+    <div
+      ref={ref}
+      className={cn('relative grow p-5 pt-0', className)}
+      {...props}
+    >
+      {loading && (
+        <Skeleton className="absolute inset-0 z-10 animate-skeleton" />
+      )}
+      {props.children}
     </div>
   ),
 );

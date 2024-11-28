@@ -19,7 +19,6 @@ export const getCurrentWave = async (tx?: Prisma.TransactionClient) => {
       rewardPresets: true,
       _count: {
         select: {
-          rewards: true,
           memberships: true,
         },
       },

@@ -1,19 +1,37 @@
-import { getRewardsAccount } from '@/server/actions/wave-membership/getRewardsAccount';
-import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
-import { useQuery } from '@tanstack/react-query';
+import { getRewardsAccount } from '@/server/actions/rewards/getRewardsAccount';
+import { useAuthenticatedQuery } from './useAuthenticatedQuery';
+import { AwardedTicketsType, RewardType } from '@prisma/client';
 
 export const useRewardsAccount = () => {
-  const loggedIn = useIsLoggedIn();
-
-  return useQuery({
+  const account = useAuthenticatedQuery({
     queryKey: ['rewardsAccount'],
-    enabled: loggedIn,
-    queryFn: async () => {
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('No token');
-      }
+    queryFn: async (token) => {
       return getRewardsAccount(token);
     },
   });
+
+  const rewards = account.data?.waveMemberships.flatMap((membership) => [
+    ...membership.rewards.map((r) => ({ ...r, amount: Number(r.amount) })),
+    ...membership.awardedTickets,
+  ]);
+
+  const rewardTotals = rewards?.reduce(
+    (acc, reward) => ({
+      ...acc,
+      [reward.type]: (acc[reward.type] ?? 0) + reward.amount,
+    }),
+    {
+      [AwardedTicketsType.TwitterShare]: 0,
+      [AwardedTicketsType.WaveSignupBonus]: 0,
+      [RewardType.None]: 0,
+      [RewardType.RealBetCredit]: 0,
+      [RewardType.TokenBonus]: 0,
+    },
+  );
+
+  return {
+    ...account,
+    rewardTotals,
+    rewards,
+  };
 };

@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useDynamicContext } from '@/lib/dynamic';
 import { useMutation } from '@tanstack/react-query';
-import { issueVestingToken } from '@/server/actions/casino-token/issueVestingToken';
+import { issueVestingToken } from '@/server/actions/issueVestingToken';
 
 const DeveloperPage = () => {
   const { primaryWallet } = useDynamicContext();

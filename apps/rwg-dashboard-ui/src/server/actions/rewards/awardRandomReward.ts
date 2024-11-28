@@ -54,7 +54,7 @@ export const awardRandomReward = async (
             userId,
             type: preset.type,
             amount: preset.prize,
-            waveId: rewardWave.id,
+            membershipId: waveMembership.id,
           },
         }),
         tx.waveMembership.update({
