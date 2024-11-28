@@ -1,4 +1,4 @@
-import { getRewardsAccount } from '@/server/actions/rewards-account/getRewardsAccount';
+import { getRewardsAccount } from '@/server/actions/wave-membership/getRewardsAccount';
 import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { useQuery } from '@tanstack/react-query';
 

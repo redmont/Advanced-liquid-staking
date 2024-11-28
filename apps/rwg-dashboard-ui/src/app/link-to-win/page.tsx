@@ -11,21 +11,42 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FREE_TICKETS } from '@/config/linkToWin';
 import { useCurrentTicketWave } from '@/hooks/useCurrentTicketWave';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { useRewardsAccount } from '@/hooks/useRewardsAccount';
-import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
-import { Box, Ticket, Wallet2 } from 'lucide-react';
+import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
+import { Box, Diamond, Rocket, Ticket, Trophy, Wallet2 } from 'lucide-react';
 import GiftBoxes from './components/GiftBoxes';
+import { subscribeToCurrentWave } from '@/server/actions/wave-membership/subscribeToCurrentWave';
+import { useMutation } from '@tanstack/react-query';
 import { useCasinoLink } from '@/hooks/useCasinoLink';
+import { Progress } from '@/components/ui/progress';
+import { useToken } from '@/hooks/useToken';
+import { cn } from '@/lib/cn';
 
 export default function LinkToWinPage() {
-  const hasLinkedAccount = !!useCasinoLink()?.data;
+  const token = useToken();
+  const accountLinked = !!useCasinoLink()?.data;
   const loggedIn = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
   const currentWave = useCurrentTicketWave();
   const rewardsAccount = useRewardsAccount();
+
+  const currentWaveMembership = rewardsAccount.data?.waveMemberships.find(
+    (m) => m.waveId === currentWave.data?.id,
+  );
+
+  const subscribeToWave = useMutation({
+    mutationFn: async () => {
+      const authToken = getAuthToken();
+      if (!authToken) {
+        throw new Error('No token');
+      }
+      return subscribeToCurrentWave(authToken);
+    },
+    onSuccess: () =>
+      Promise.all([rewardsAccount.refetch(), currentWave.refetch()]),
+  });
 
   return (
     <div className="space-y-5 p-3 sm:p-5">
@@ -42,7 +63,7 @@ export default function LinkToWinPage() {
             <p className="text-lg md:max-w-[66%] xl:text-xl">
               Ready for free tickets? Link your wallet and{' '}
               <strong className="font-bold">
-                get {FREE_TICKETS} instant tickets!
+                get {currentWave.data?.ticketsPerMember} instant tickets!
               </strong>
             </p>
 
@@ -77,50 +98,156 @@ export default function LinkToWinPage() {
               {currentWave.isLoading ? (
                 <Skeleton className="inline-block h-10 w-24 rounded-full" />
               ) : (
-                <span>{currentWave.data?.remainingRewards ?? 0}</span>
+                <span>{currentWave.data?.availableSeats ?? 0}</span>
               )}
               /
               {currentWave.isLoading ? (
                 <Skeleton className="inline-block h-10 w-24 rounded-full" />
               ) : (
-                <span>{currentWave.data?.totalRewards ?? 0}</span>
+                <span>{currentWave.data?.totalSeats ?? 0}</span>
               )}
             </div>
-            <p className="font-medium text-muted">Rewards remaining</p>
+            <p className="font-medium text-muted">Seats remaining</p>
+            {loggedIn && accountLinked && !currentWaveMembership && (
+              <>
+                <p className="text-destructive empty:hidden">
+                  {subscribeToWave.error?.message}
+                </p>
+                <Button
+                  onClick={() => subscribeToWave.mutate()}
+                  className="mt-5 w-full"
+                  size="lg"
+                  variant="outline"
+                >
+                  Wave Signup
+                </Button>
+              </>
+            )}
+            {currentWaveMembership && (
+              <p className="text-2xl font-medium">
+                {currentWaveMembership?.seatNumber === 420 && <span> 🔥</span>}
+                You got seat{' '}
+                <span
+                  className={cn('text-primary', {
+                    'text-[#FFD700]': currentWaveMembership?.seatNumber === 1,
+                    'text-[#C0C0C0]': currentWaveMembership?.seatNumber === 2,
+                    'text-[#CD7F32]': currentWaveMembership?.seatNumber === 3,
+                  })}
+                >
+                  #{currentWaveMembership.seatNumber}
+                </span>
+                {currentWaveMembership?.seatNumber === 1 && (
+                  <Trophy className="mb-1 inline size-8 p-1 text-[#FFD700]" />
+                )}
+                {currentWaveMembership?.seatNumber === 2 && (
+                  <Trophy className="mb-1 inline size-8 p-1 text-[#C0C0C0]" />
+                )}
+                {currentWaveMembership?.seatNumber === 3 && (
+                  <Trophy className="mb-1 inline size-8 p-1 text-[#CD7F32]" />
+                )}
+                {currentWaveMembership?.seatNumber === 69 && ', nice'}
+                {currentWaveMembership?.seatNumber === 420 && <span> 🔥</span>}
+              </p>
+            )}
           </div>
         </div>
       </Banner>
-      {loggedIn && hasLinkedAccount && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              <div className="flex items-center justify-between">
-                <span>
-                  <Box className="inline size-6" /> Mystery Boxes
-                </span>
-                {rewardsAccount.isLoading ? (
-                  <Skeleton className="h-6 w-40 rounded-full" />
-                ) : (
-                  <span className="font-medium">
-                    You have{' '}
-                    <span className="text-primary">
-                      <Ticket className="mb-1 inline size-4" />{' '}
-                      {rewardsAccount.data?.reedeemableTickets}
-                    </span>{' '}
-                    tickets remaining.
-                  </span>
-                )}
-              </div>
-            </CardTitle>
-            <CardDescription>
-              Test your luck and pick a box to win a prize!
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <GiftBoxes />
-          </CardContent>
-        </Card>
-      )}
+      <div className="space-y-5">
+        {loggedIn && !!currentWaveMembership && (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <Trophy className="inline size-6" /> Community Prize Pool
+                </CardTitle>
+                <CardDescription>
+                  Limited prizes remaining — act fast.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 md:gap-5 lg:gap-8">
+                  <div className="space-y-2">
+                    <div className="flex w-full items-center justify-between">
+                      <h3 className="text-2xl font-medium">
+                        <Rocket className="mb-1 inline size-6 text-primary" />{' '}
+                        Token Bonus
+                      </h3>
+                      <div>
+                        {currentWave.data?.prizePools.TokenBonus ?? '0'} /{' '}
+                        {currentWave.data?.totals.TokenBonus ?? '0'}{' '}
+                        <small>remaining</small>
+                      </div>
+                    </div>
+                    <Progress
+                      value={
+                        ((currentWave.data?.prizePools.TokenBonus ?? 0) /
+                          (currentWave.data?.totals.TokenBonus ?? 1)) *
+                        100
+                      }
+                    />
+                    <p className="text-sm">
+                      Receive a percentage bonus in {token.symbol} tokens on
+                      your purchases during the public token sale.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex w-full items-center justify-between">
+                      <h3 className="text-2xl font-medium">
+                        <Diamond className="mb-1 inline size-6 text-primary" />{' '}
+                        Realbet Credit
+                      </h3>
+                      <div>
+                        {currentWave.data?.prizePools.RealBetCredit ?? '0'} /{' '}
+                        {currentWave.data?.totals.RealBetCredit ?? '0'}{' '}
+                        <small>remaining</small>
+                      </div>
+                    </div>
+                    <Progress
+                      value={
+                        ((currentWave.data?.prizePools.RealBetCredit ?? 0) /
+                          (currentWave.data?.totals.RealBetCredit ?? 1)) *
+                        100
+                      }
+                    />
+                    <p className="text-sm">
+                      Get {token.symbol} credits for use in the Realbet Casino.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  <div className="flex items-center justify-between">
+                    <span>
+                      <Box className="inline size-6" /> Mystery Boxes
+                    </span>
+                    {rewardsAccount.isLoading ? (
+                      <Skeleton className="h-6 w-40 rounded-full" />
+                    ) : (
+                      <span className="font-medium">
+                        You have{' '}
+                        <span className="text-primary">
+                          <Ticket className="mb-1 inline size-4" />{' '}
+                          {currentWaveMembership?.reedeemableTickets}
+                        </span>{' '}
+                        tickets remaining.
+                      </span>
+                    )}
+                  </div>
+                </CardTitle>
+                <CardDescription>
+                  Test your luck and pick a box to win a prize!
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GiftBoxes />
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
     </div>
   );
 }

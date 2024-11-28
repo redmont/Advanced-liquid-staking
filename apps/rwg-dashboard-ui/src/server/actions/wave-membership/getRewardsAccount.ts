@@ -14,6 +14,9 @@ export const getRewardsAccount = async (token: string) => {
     where: {
       userId,
     },
+    include: {
+      waveMemberships: true,
+    },
   });
 
   if (!rewardsAccount) {

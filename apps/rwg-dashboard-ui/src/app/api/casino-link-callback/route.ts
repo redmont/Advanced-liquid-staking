@@ -1,36 +1,8 @@
 import { z } from 'zod';
 import { validateSignature } from './validateSignature';
 import { env } from '@/env';
-import prisma from '@/server/prisma/client';
-import { FREE_TICKETS } from '@/config/linkToWin';
+import { createCasinoLink } from '@/server/actions/casino-token/createCasinoLink';
 
-const createCasinoLink = async ({
-  userId,
-  realbetUserId,
-  realbetUsername,
-}: {
-  userId: string;
-  realbetUserId: string;
-  realbetUsername: string;
-}) => {
-  const [casinoLink, rewardsAccount] = await prisma.$transaction([
-    prisma.casinoLink.create({
-      data: {
-        userId,
-        realbetUserId,
-        realbetUsername,
-      },
-    }),
-    prisma.rewardsAccount.create({
-      data: {
-        userId,
-        reedeemableTickets: FREE_TICKETS,
-      },
-    }),
-  ]);
-
-  return { casinoLink, rewardsAccount };
-};
 const CasinoLinkCallbackSchema = z.object({
   ts: z.number(),
   extUserId: z.string(),

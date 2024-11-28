@@ -5,7 +5,7 @@ import useSound from 'use-sound';
 import balloonPop from '@/assets/sounds/balloon-pop.mp3';
 import riser from '@/assets/sounds/riser.mp3';
 import assert from 'assert';
-import { awardRandomReward } from '@/server/actions/rewards-account/awardRandomReward';
+import { awardRandomReward } from '@/server/actions/wave-membership/awardRandomReward';
 import { getAuthToken } from '@dynamic-labs/sdk-react-core';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { ArrayElementType } from '@/utils';

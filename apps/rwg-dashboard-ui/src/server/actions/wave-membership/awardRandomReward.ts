@@ -14,22 +14,31 @@ export const awardRandomReward = async (
   if (!userId) {
     throw new Error('Invalid token');
   }
+  const account = await prisma.rewardsAccount.findFirst({
+    where: {
+      userId,
+    },
+  });
+  if (!account) {
+    throw new Error('No account');
+  }
 
   return await prisma.$transaction(
     async (tx) => {
-      const rewardsAccount = await tx.rewardsAccount.findFirst({
-        where: {
-          userId,
-        },
-      });
-
-      if (!rewardsAccount || rewardsAccount.reedeemableTickets <= 0) {
-        throw new Error('No tickets remaining');
-      }
-
       const rewardWave = await getCurrentWave(tx);
       if (!rewardWave) {
         throw new Error('No active ticket wave');
+      }
+
+      const waveMembership = await tx.waveMembership.findFirst({
+        where: {
+          accountId: account.id,
+          waveId: rewardWave.id,
+        },
+      });
+
+      if (!waveMembership || waveMembership.reedeemableTickets <= 0) {
+        throw new Error('No tickets remaining');
       }
 
       const preset = getRandomWeightedItem(
@@ -48,9 +57,9 @@ export const awardRandomReward = async (
             waveId: rewardWave.id,
           },
         }),
-        tx.rewardsAccount.update({
+        tx.waveMembership.update({
           where: {
-            userId,
+            id: waveMembership.id,
           },
           data: {
             reedeemableTickets: {
@@ -84,7 +93,7 @@ export const awardRandomReward = async (
       };
     },
     {
-      isolationLevel: 'RepeatableRead',
+      isolationLevel: 'Serializable',
     },
   );
 };

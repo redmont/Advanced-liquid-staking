@@ -19,8 +19,9 @@ model CasinoLink {
 }
 
 model RewardsAccount {
-  userId                     String   @unique
-  reedeemableTickets         Int      @default(0)
+  id                  Int      @id @default(autoincrement())
+  userId              String   @unique
+  waveMemberships     WaveMembership[]
 }
 
 enum RewardType {
@@ -30,15 +31,29 @@ enum RewardType {
 }
 
 model RewardWave {
-  id              Int      @id @default(autoincrement())
-  label           String
-  description     String
-  startTime       DateTime
-  endTime         DateTime
-  live            Boolean  @default(true)
-  totalRewards    Int
-  rewards         Reward[]
-  rewardPresets   RewardPresets[]
+  id                Int      @id @default(autoincrement())
+  label             String
+  description       String
+  startTime         DateTime
+  endTime           DateTime
+  availableSeats    Int
+  ticketsPerMember  Int
+  live              Boolean  @default(true)
+  totalRewards      Int
+  rewards           Reward[]
+  rewardPresets     RewardPresets[]
+  memberships       WaveMembership[]
+}
+
+model WaveMembership {
+  id                      Int      @id @default(autoincrement())
+  seatNumber              Int
+  accountId               Int
+  account                 RewardsAccount @relation(fields: [accountId], references: [id])
+  waveId                  Int
+  wave                    RewardWave @relation(fields: [waveId], references: [id])
+  reedeemableTickets      Int      @default(0)
+  createdAt               DateTime @default(now())
 }
 
 model RewardPresets {
@@ -55,6 +70,7 @@ model Reward {
   userId          String
   type            RewardType
   amount          Decimal?
+  redeemed        Boolean  @default(false)
   waveId          Int
   wave            RewardWave @relation(fields: [waveId], references: [id])
   createdAt       DateTime @default(now())
