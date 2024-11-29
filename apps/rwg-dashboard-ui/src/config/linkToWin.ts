@@ -78,3 +78,5 @@ export const WAVE_CONFIGURATIONS = {
     ],
   },
 } as const;
+
+export const TWITTER_BONUS_TICKETS = 5;

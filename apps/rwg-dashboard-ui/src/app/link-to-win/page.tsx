@@ -35,7 +35,8 @@ import { Progress } from '@/components/ui/progress';
 import { useToken } from '@/hooks/useToken';
 import { cn } from '@/lib/cn';
 import { useCurrentWaveMembership } from '@/hooks/useCurrentWaveMembership';
-import { TWITTER_BONUS_TICKETS } from '@/server/actions/rewards/awardTwitterBonus';
+import { awardTwitterBonus } from '@/server/actions/rewards/awardTwitterBonus';
+import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
 
 export default function LinkToWinPage() {
   const token = useToken();
@@ -336,7 +337,7 @@ export default function LinkToWinPage() {
                         <Skeleton className="h-6 w-48 rounded-full" />
                       ) : (
                         <span className="flex items-center gap-2 text-2xl font-medium leading-none">
-                          <Ticket className="inline size-6 text-primary" />{' '}
+                          <Ticket className="inline size-6" />{' '}
                           <div>
                             {rewardTotals?.WaveSignupBonus ?? 0}{' '}
                             <span className="text-xl text-muted">tickets</span>
@@ -366,12 +367,23 @@ export default function LinkToWinPage() {
                       </div>
                     )}
                   </div>
-                  <Button asChild variant="outline" className="w-full">
+                  <Button
+                    onClick={() => {
+                      const authToken = getAuthToken();
+                      if (!authToken) {
+                        throw new Error('No token');
+                      }
+                      return awardTwitterBonus(authToken);
+                    }}
+                    asChild
+                    variant="outline"
+                    className="w-full"
+                  >
                     <a
                       className="twitter-share-button"
                       rel="nofollow noopener noreferrer"
                       target="_blank"
-                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just got $REAL with @rwg_official for linking my realbet.io account to the dashboard. Get get yours: ${window.location.href}`)}`}
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just got $REAL with @rwg_official for linking my realbet.io account to the dashboard. Come get yours: ${window.location.href}`)}`}
                     >
                       Share to X for {TWITTER_BONUS_TICKETS} Extra Tickets
                     </a>

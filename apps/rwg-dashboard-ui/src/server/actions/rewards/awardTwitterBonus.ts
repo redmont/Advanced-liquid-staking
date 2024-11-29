@@ -1,8 +1,9 @@
+'use server';
+
 import prisma from '@/server/prisma/client';
 import { getUserIdFromToken } from '../auth';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
-
-export const TWITTER_BONUS_TICKETS = 5;
+import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
 
 export const awardTwitterBonus = async (authToken: string) => {
   const userId = await getUserIdFromToken(authToken);
@@ -56,7 +57,7 @@ export const awardTwitterBonus = async (authToken: string) => {
       tx.awardedTickets.create({
         data: {
           type: 'TwitterShare',
-          amount: currentWave.ticketsPerMember,
+          amount: TWITTER_BONUS_TICKETS,
           membershipId: currentWaveMembership.accountId,
         },
       }),
