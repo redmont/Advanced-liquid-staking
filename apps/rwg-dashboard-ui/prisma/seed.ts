@@ -2,7 +2,9 @@
 import { PrismaClient } from '@prisma/client';
 import { WAVE_CONFIGURATIONS } from '@/config/linkToWin';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasourceUrl: process.env.SUPABASE_DB_POSTGRES_URL_NON_POOLING,
+});
 
 const waveConfig = WAVE_CONFIGURATIONS[1];
 
