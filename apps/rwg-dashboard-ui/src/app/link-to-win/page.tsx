@@ -108,7 +108,7 @@ export default function LinkToWinPage() {
                 </>
               )) ?? (
                 <>
-                  {loggedIn && !isWhitelisted && (
+                  {loggedIn && isWhitelisted === false && (
                     <span className="mr-5 inline-block rounded-md bg-black/50 px-5 py-3 font-semibold text-warning">
                       Unfortunately at this time we are only accepting
                       whitelisted addresses for this wave. If you are interested

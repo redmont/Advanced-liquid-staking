@@ -10,5 +10,5 @@ export const useCurrentWaveWhiteListed = () => {
     WAVE_CONFIGURATIONS[currentWave?.id as keyof typeof WAVE_CONFIGURATIONS]
       ?.whitelist ?? [];
 
-  return whitelist.some((address) => addresses.includes(address));
+  return addresses && whitelist.some((address) => addresses.includes(address));
 };
