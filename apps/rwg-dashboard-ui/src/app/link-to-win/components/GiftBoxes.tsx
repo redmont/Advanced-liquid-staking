@@ -143,7 +143,7 @@ const GiftBoxes = () => {
       if (states[boxIndex] !== 'idle') {
         return;
       }
-      void wait(1100).then(() => playBalloonPop());
+      const awarded = awardReward.mutateAsync();
       assert(boxIndex < states.length, 'Invalid box index');
       setIndexClicked(boxIndex);
       playRiser();
@@ -152,10 +152,8 @@ const GiftBoxes = () => {
         newState[boxIndex] = 'popping';
         return newState as GiftBoxesState;
       });
-      const [{ reward }] = await Promise.all([
-        awardReward.mutateAsync(),
-        wait(1100),
-      ]);
+      const [{ reward }] = await Promise.all([awarded, wait(1100)]);
+      playBalloonPop();
       setState((state) => {
         const newState = [...state];
         newState[boxIndex] =
