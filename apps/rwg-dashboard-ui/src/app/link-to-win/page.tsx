@@ -117,6 +117,7 @@ export default function LinkToWinPage() {
                   )}
                   {loggedIn && (
                     <Button
+                      size="lg"
                       onClick={() => linkCasinoAccount.mutateAsync()}
                       loading={linkCasinoAccount.isPending}
                       disabled={linkCasinoAccount.isPending || !isWhitelisted}
