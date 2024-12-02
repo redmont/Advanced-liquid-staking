@@ -108,20 +108,22 @@ export default function LinkToWinPage() {
                 </>
               )) ?? (
                 <>
-                  {!isWhitelisted && (
+                  {loggedIn && !isWhitelisted && (
                     <span className="mr-5 inline-block rounded-md bg-black/50 px-5 py-3 font-semibold text-warning">
                       Unfortunately at this time we are only accepting
                       whitelisted addresses for this wave. If you are interested
                       in joining, please contact us.
                     </span>
                   )}
-                  <Button
-                    onClick={() => linkCasinoAccount.mutateAsync()}
-                    loading={linkCasinoAccount.isPending}
-                    disabled={linkCasinoAccount.isPending || !isWhitelisted}
-                  >
-                    Link your account
-                  </Button>
+                  {loggedIn && (
+                    <Button
+                      onClick={() => linkCasinoAccount.mutateAsync()}
+                      loading={linkCasinoAccount.isPending}
+                      disabled={linkCasinoAccount.isPending || !isWhitelisted}
+                    >
+                      Link your account
+                    </Button>
+                  )}
                 </>
               ))
             )}
