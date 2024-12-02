@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract RWGStakingRewards is ReentrancyGuard, Ownable {
-    IERC20 public immutable STAKING_TOKEN;
-    IERC20 public immutable REWARD_TOKEN;
+contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
+    IERC20 public immutable TOKEN;
 
     uint256 private constant MULTIPLIER = 100;
-    uint256 public epochDuration = 7; // 7 seconds per epoch (scaled down from 1 week)
+    uint256 public epochDuration;
     uint256 private currentEpoch;
     uint256 public votingDelay = 1; // 1 second delay (scaled down from 1 day)
 
@@ -57,10 +57,11 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
     error StakeTransferFailed();
     error UnstakeTransferFailed();
     error RewardTransferFailed();
+    error TransferNotAllowed();
 
-    constructor(address _stakingToken, address _rewardToken) Ownable(msg.sender) {
-        STAKING_TOKEN = IERC20(_stakingToken);
-        REWARD_TOKEN = IERC20(_rewardToken);
+    constructor(address token, uint256 _epochDuration) ERC20("Staked REAL", "sREAL") Ownable(msg.sender) {
+        TOKEN = IERC20(token);
+        epochDuration = _epochDuration;
 
         // Initialize tiers
         tiers.push(Tier(90, 10)); // 90 seconds, 0.1x
@@ -74,7 +75,9 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
     }
 
     function setTier(uint256 index, uint256 lockPeriod, uint256 multiplier) external onlyOwner {
-        if (multiplier == 0) revert MultiplierMustBeGreaterThanZero();
+        if (multiplier == 0) {
+            revert MultiplierMustBeGreaterThanZero();
+        }
         if (index < tiers.length) {
             tiers[index] = Tier(lockPeriod, multiplier);
             emit TierUpdated(index, lockPeriod, multiplier);
@@ -90,14 +93,20 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
     }
 
     function setRewardForEpoch(uint256 epoch, uint256 reward) external onlyOwner {
-        if (epoch < getCurrentEpoch()) revert CannotSetRewardForPastEpochs();
+        if (epoch < getCurrentEpoch()) {
+            revert CannotSetRewardForPastEpochs();
+        }
         rewardsPerEpoch[epoch] = reward;
         emit RewardSet(epoch, reward);
     }
 
     function stake(uint256 amount, uint256 tierIndex) external nonReentrant {
-        if (amount == 0) revert CannotStakeZeroAmount();
-        if (tierIndex >= tiers.length) revert InvalidTierIndex();
+        if (amount == 0) {
+            revert CannotStakeZeroAmount();
+        }
+        if (tierIndex >= tiers.length) {
+            revert InvalidTierIndex();
+        }
 
         _updateCurrentEpoch();
 
@@ -111,19 +120,28 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
                 amount: amount,
                 effectiveAmount: effectiveAmount,
                 tierIndex: tierIndex,
-                startTime: block.timestamp,
+                startTime: getCurrentTime(),
                 lastClaimEpoch: currentEpoch
             })
         );
 
-        if (!STAKING_TOKEN.transferFrom(msg.sender, address(this), amount)) revert StakeTransferFailed();
+        if (!TOKEN.transferFrom(msg.sender, address(this), amount)) {
+            revert StakeTransferFailed();
+        }
+
+        _mint(msg.sender, effectiveAmount);
+
         emit Staked(msg.sender, amount, tierIndex);
     }
 
     function unstake(uint256 stakeIndex) external nonReentrant {
-        if (stakeIndex >= userStakes[msg.sender].length) revert InvalidStakeIndex();
+        if (stakeIndex >= userStakes[msg.sender].length) {
+            revert InvalidStakeIndex();
+        }
         Stake storage userStake = userStakes[msg.sender][stakeIndex];
-        if (block.timestamp < userStake.startTime + tiers[userStake.tierIndex].lockPeriod) revert LockPeriodNotEnded();
+        if (getCurrentTime() < userStake.startTime + tiers[userStake.tierIndex].lockPeriod) {
+            revert LockPeriodNotEnded();
+        }
 
         _updateCurrentEpoch();
 
@@ -138,19 +156,28 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
         userStakes[msg.sender][stakeIndex] = userStakes[msg.sender][userStakes[msg.sender].length - 1];
         userStakes[msg.sender].pop();
 
-        if (!STAKING_TOKEN.transfer(msg.sender, amount)) revert UnstakeTransferFailed();
+        if (!TOKEN.transfer(msg.sender, amount)) {
+            revert UnstakeTransferFailed();
+        }
+
+        _burn(msg.sender, userStake.effectiveAmount);
+
         emit Unstaked(msg.sender, amount);
     }
 
     function _claimRewards(uint256 stakeIndex) internal {
-        if (stakeIndex >= userStakes[msg.sender].length) revert InvalidStakeIndex();
+        if (stakeIndex >= userStakes[msg.sender].length) {
+            revert InvalidStakeIndex();
+        }
 
         Stake storage userStake = userStakes[msg.sender][stakeIndex];
         uint256 reward = calculateRewards(stakeIndex);
 
         if (reward > 0) {
             userStake.lastClaimEpoch = currentEpoch;
-            if (!REWARD_TOKEN.transfer(msg.sender, reward)) revert RewardTransferFailed();
+            if (!TOKEN.transfer(msg.sender, reward)) {
+                revert RewardTransferFailed();
+            }
             emit RewardClaimed(msg.sender, reward);
         }
     }
@@ -161,11 +188,13 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
     }
 
     function calculateRewards(uint256 stakeIndex) public view returns (uint256) {
-        if (stakeIndex >= userStakes[msg.sender].length) revert InvalidStakeIndex();
+        if (stakeIndex >= userStakes[msg.sender].length) {
+            revert InvalidStakeIndex();
+        }
         Stake memory userStake = userStakes[msg.sender][stakeIndex];
 
         uint256 reward = 0;
-        uint256 lastEpoch = (block.timestamp - votingDelay) / epochDuration;
+        uint256 lastEpoch = (getCurrentTime() - votingDelay) / epochDuration;
         //uint256 stakeLockEndEpoch = (userStake.startTime + tiers[userStake.tierIndex].lockPeriod) / epochDuration;
         //lastEpoch = lastEpoch < stakeLockEndEpoch ? lastEpoch : stakeLockEndEpoch;
 
@@ -184,7 +213,7 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
     }
 
     function getCurrentEpoch() public view returns (uint256) {
-        return block.timestamp / epochDuration;
+        return getCurrentTime() / epochDuration;
     }
 
     function getUserStakes(address user) external view returns (Stake[] memory) {
@@ -204,8 +233,10 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
 
     function updateTotalEffectiveSupply(uint256 newSupply) private {
         // Fill in any gaps in recorded supply
-        for (uint256 i = currentEpoch - 1; i > lastTotalEffectiveSupplyChangedAtEpoch; i--) {
-            totalEffectiveSupplyAtEpoch[i] = totalEffectiveSupplyAtEpoch[lastTotalEffectiveSupplyChangedAtEpoch];
+        if (currentEpoch > 0) {
+            for (uint256 i = currentEpoch - 1; i > lastTotalEffectiveSupplyChangedAtEpoch; i--) {
+                totalEffectiveSupplyAtEpoch[i] = totalEffectiveSupplyAtEpoch[lastTotalEffectiveSupplyChangedAtEpoch];
+            }
         }
         totalEffectiveSupplyAtEpoch[currentEpoch] = newSupply;
         lastTotalEffectiveSupplyChangedAtEpoch = currentEpoch;
@@ -224,5 +255,22 @@ contract RWGStakingRewards is ReentrancyGuard, Ownable {
 
         // future epochs
         return 0;
+    }
+
+    /**
+     * @dev Returns the current time.
+     * @return the current timestamp in seconds.
+     */
+    function getCurrentTime() internal view virtual returns (uint256) {
+        return block.timestamp;
+    }
+
+    function _update(address from, address to, uint256 value) internal override {
+        // End-users cannot transfer or burn their tokens
+        if (from != address(0) && to != address(0)) {
+            revert TransferNotAllowed();
+        }
+
+        super._update(from, to, value);
     }
 }
