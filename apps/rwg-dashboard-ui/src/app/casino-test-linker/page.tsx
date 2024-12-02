@@ -56,7 +56,7 @@ export default function CasinoTestLinkerPage() {
         body,
       });
 
-      console.log('JSON Response', await response.json());
+      console.log('JSON Response', await response.body?.getReader().read());
 
       if (!response.ok) {
         throw new Error('Failed to link account');
