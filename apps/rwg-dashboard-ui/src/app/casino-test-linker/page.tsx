@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { generateHash } from '../api/casino-link-callback/validateSignature';
 import { getCasinoLink } from '@/server/actions/account/getCasinoLink';
 import Link from 'next/link';
+import { signMessage } from './linkAccount';
 
 export default function CasinoTestLinkerPage() {
   const router = useRouter();
@@ -36,17 +36,8 @@ export default function CasinoTestLinkerPage() {
         throw new Error('Missing parameters');
       }
 
-      const realbetId = Math.floor(
-        Math.random() * Number.MAX_SAFE_INTEGER,
-      ).toString();
-      const body = JSON.stringify({
-        userId,
-        ts: parseInt(ts),
-        token,
-        username: `Realbet user #${realbetId}`,
-        extUserId: realbetId,
-      });
-      const signature = generateHash(body, 'dummy');
+      const { signature, body } = await signMessage(userId, ts, token);
+
       const response = await fetch('/api/casino-link-callback', {
         method: 'POST',
         headers: {
@@ -55,8 +46,6 @@ export default function CasinoTestLinkerPage() {
         },
         body,
       });
-
-      console.log('JSON Response', await response.body?.getReader().read());
 
       if (!response.ok) {
         throw new Error('Failed to link account');
