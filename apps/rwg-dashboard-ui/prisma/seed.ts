@@ -1,14 +1,23 @@
 /* eslint-disable no-console */
 import { PrismaClient } from '@prisma/client';
-const prisma = new PrismaClient();
 import { WAVE_CONFIGURATIONS } from '@/config/linkToWin';
+
+const prisma = new PrismaClient();
+
+const waveConfig = WAVE_CONFIGURATIONS[1];
 
 async function main() {
   await prisma.rewardWave.upsert({
     where: { id: 1 },
     update: {},
     create: {
-      ...WAVE_CONFIGURATIONS[1],
+      id: 1,
+      label: waveConfig.label,
+      description: waveConfig.description,
+      startTime: waveConfig.startTime,
+      endTime: waveConfig.endTime,
+      availableSeats: waveConfig.availableSeats,
+      ticketsPerMember: waveConfig.ticketsPerMember,
       live: true,
       totalRewards: WAVE_CONFIGURATIONS[1].rewardPresets.reduce(
         (sum, preset) => sum + preset.remaining,
