@@ -38,10 +38,24 @@ const DeveloperPage = () => {
         <div>
           <label className="mb-2 block">Primary Wallet Address Override</label>
           <Input
+            className="mb-3"
             placeholder="0x..."
             value={addressOverride ?? ''}
             onChange={(e) => setAddressOverride(e.target.value)}
           />
+          <div className="flex gap-3">
+            <Button
+              variant="default"
+              onClick={() =>
+                setAddressOverride('0xB6b7cE10a5Aaf0B9dB80bdB8aAAc01237CB78103')
+              }
+            >
+              Make me Admin
+            </Button>
+            <Button variant="outline" onClick={() => setAddressOverride(null)}>
+              Clear
+            </Button>
+          </div>
         </div>
         <div>
           <label htmlFor="wallet-addresses" className="mb-2 block">

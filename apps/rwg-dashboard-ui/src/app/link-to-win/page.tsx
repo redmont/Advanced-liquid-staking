@@ -1,7 +1,6 @@
 'use client';
 
 import Banner from '@/components/banner';
-import { CasinoLink } from '@/components/casino-link';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -37,16 +36,21 @@ import { cn } from '@/lib/cn';
 import { useCurrentWaveMembership } from '@/hooks/useCurrentWaveMembership';
 import { awardTwitterBonus } from '@/server/actions/rewards/awardTwitterBonus';
 import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
+import { useCurrentWaveWhiteListed } from '@/hooks/useTicketWaveWhitelist';
+import { useLinkCasinoAccount } from '@/hooks/useLinkCasinoAccount';
 
 export default function LinkToWinPage() {
   const token = useToken();
-  const accountLinked = !!useCasinoLink()?.data;
+  const casinoLink = useCasinoLink();
+  const accountLinked = !!casinoLink.data;
   const loggedIn = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
   const currentWave = useCurrentTicketWave();
   const rewardsAccount = useRewardsAccount();
   const { rewardTotals } = rewardsAccount;
   const currentWaveMembership = useCurrentWaveMembership();
+  const isWhitelisted = useCurrentWaveWhiteListed();
+  const linkCasinoAccount = useLinkCasinoAccount();
 
   const subscribeToWave = useMutation({
     mutationFn: async () => {
@@ -89,7 +93,38 @@ export default function LinkToWinPage() {
                 <Wallet2 className="mr-2" /> Connect Wallet
               </Button>
             )}
-            {loggedIn && <CasinoLink />}
+            {loggedIn &&
+            (casinoLink.isLoading || casinoLink.data === undefined) ? (
+              <Skeleton className="h-6 w-48 rounded-full" />
+            ) : (
+              ((casinoLink.data && (
+                <>
+                  <span className="mr-5 inline-block font-semibold">
+                    Linked to account{' '}
+                    <span className="font-semibold">
+                      {casinoLink.data.realbetUsername}
+                    </span>
+                  </span>
+                </>
+              )) ?? (
+                <>
+                  {!isWhitelisted && (
+                    <span className="mr-5 inline-block rounded-md bg-black/50 px-5 py-3 font-semibold text-warning">
+                      Unfortunately at this time we are only accepting
+                      whitelisted addresses for this wave. If you are interested
+                      in joining, please contact us.
+                    </span>
+                  )}
+                  <Button
+                    onClick={() => linkCasinoAccount.mutateAsync()}
+                    loading={linkCasinoAccount.isPending}
+                    disabled={linkCasinoAccount.isPending || !isWhitelisted}
+                  >
+                    Link your account
+                  </Button>
+                </>
+              ))
+            )}
           </div>
           <div className="flex w-full flex-col gap-2 md:items-center md:text-center">
             <p className="text-2xl font-medium">

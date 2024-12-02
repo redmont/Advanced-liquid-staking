@@ -7,6 +7,7 @@ export const WAVE_CONFIGURATIONS = {
     description: 'Secure your rewards among the first VIPs',
     startTime: new Date('2024-11-20T00:00:00.000Z'),
     endTime: new Date('2034-11-20T00:00:00.000Z'),
+    whitelist: ['0xB6b7cE10a5Aaf0B9dB80bdB8aAAc01237CB78103'],
     availableSeats: 500,
     ticketsPerMember: 50,
     rewardPresets: [
