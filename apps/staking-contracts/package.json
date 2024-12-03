@@ -4,10 +4,10 @@
   "description": "Staking contracts",
   "main": "dist/exports.js",
   "scripts": {
-    "prettier": "npx prettier --write .",
+    "prettier": "pnpm dlx prettier --write .",
     "test": "hardhat test",
-    "coverage": "npx hardhat coverage --solcoverjs ./.solcover.js",
-    "flatten": "npx hardhat flatten",
+    "coverage": "SOLIDITY_COVERAGE=true hardhat coverage --solcoverjs ./.solcover.js",
+    "flatten": "pnpm dlx hardhat flatten",
     "check:format": "solhint contracts/*.sol --fix",
     "compile": "hardhat compile",
     "deploy:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TestStaking.ts --network sepolia --parameters ./ignition/parameters/sepolia.json"

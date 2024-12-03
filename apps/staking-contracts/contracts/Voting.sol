@@ -17,7 +17,7 @@ contract Voting is Ownable {
     }
 
     function hasVoted(uint256 epoch, address user, bytes32[] calldata merkleProof) public view returns (bool) {
-        bytes32 leaf = keccak256(abi.encodePacked(user));
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(user))));
         return MerkleProof.verify(merkleProof, epochMerkleRoots[epoch], leaf);
     }
 }
