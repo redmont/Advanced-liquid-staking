@@ -50,6 +50,7 @@ export default function LinkToWinPage() {
   const rewardsAccount = useRewardsAccount();
   const { rewardTotals, postedToTwitterAlready } = rewardsAccount;
   const currentWaveMembership = useCurrentWaveMembership();
+  const hasMembership = !!currentWaveMembership.data;
   const isWhitelisted = useCurrentWaveWhiteListed();
   const linkCasinoAccount = useLinkCasinoAccount();
 
@@ -65,6 +66,18 @@ export default function LinkToWinPage() {
       Promise.all([rewardsAccount.refetch(), currentWave.refetch()]),
   });
 
+  const linkedWithoutMembershipWithNoSeatsLeft =
+    loggedIn &&
+    accountLinked &&
+    !hasMembership &&
+    currentWave.data?.availableSeats === 0;
+
+  const loggedInWithoutLinkAndHasRemainingSeats =
+    loggedIn &&
+    !accountLinked &&
+    currentWave.isSuccess &&
+    currentWave.data!.availableSeats > 0;
+
   return (
     <div className="space-y-5 p-3 sm:p-5">
       <Banner frog={false}>
@@ -77,12 +90,20 @@ export default function LinkToWinPage() {
               Connect your wallet to join the #REAL community and secure your
               VIP spot. Don&apos;t miss out!
             </p>
-            <p className="text-lg md:max-w-[66%] xl:text-xl">
-              Ready for free tickets? Link your wallet and{' '}
-              <strong className="font-bold">
-                get {currentWave.data?.ticketsPerMember} instant tickets!
-              </strong>
-            </p>
+            {linkedWithoutMembershipWithNoSeatsLeft && (
+              <p className="bg-black/50 p-2 text-lg font-semibold text-warning xl:text-xl">
+                The maximum number of seats for this wave is reached. Signup
+                bonus tickets are not available. Please come back later.
+              </p>
+            )}
+            {loggedInWithoutLinkAndHasRemainingSeats && (
+              <p className="text-lg md:max-w-[66%] xl:text-xl">
+                Ready for free tickets? Link your wallet and{' '}
+                <strong className="font-bold">
+                  get {currentWave.data?.ticketsPerMember} instant tickets!
+                </strong>
+              </p>
+            )}
 
             {!loggedIn && (
               <Button
