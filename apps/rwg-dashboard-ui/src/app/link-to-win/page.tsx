@@ -105,50 +105,46 @@ export default function LinkToWinPage() {
               </p>
             )}
 
-            {!loggedIn && (
-              <Button
-                className="py-6"
-                size="lg"
-                onClick={authHandler}
-                variant="default"
-              >
-                <Wallet2 className="mr-2" /> Connect Wallet
-              </Button>
-            )}
-            {loggedIn &&
-            (casinoLink.isLoading || casinoLink.data === undefined) ? (
+            {casinoLink.isLoading ? (
               <Skeleton className="h-6 w-48 rounded-full" />
+            ) : casinoLink.data ? (
+              <span className="mr-5 inline-block font-semibold">
+                Linked to account{' '}
+                <span className="font-semibold">
+                  {casinoLink.data.realbetUsername}
+                </span>
+              </span>
             ) : (
-              ((casinoLink.data && (
-                <>
-                  <span className="mr-5 inline-block font-semibold">
-                    Linked to account{' '}
-                    <span className="font-semibold">
-                      {casinoLink.data.realbetUsername}
-                    </span>
+              <>
+                {loggedIn && isWhitelisted === false && (
+                  <span className="mr-5 inline-block rounded-md bg-black/50 px-5 py-3 font-semibold text-warning">
+                    Unfortunately at this time we are only accepting whitelisted
+                    addresses for this wave. If you are interested in joining,
+                    please contact us.
                   </span>
-                </>
-              )) ?? (
-                <>
-                  {loggedIn && isWhitelisted === false && (
-                    <span className="mr-5 inline-block rounded-md bg-black/50 px-5 py-3 font-semibold text-warning">
-                      Unfortunately at this time we are only accepting
-                      whitelisted addresses for this wave. If you are interested
-                      in joining, please contact us.
-                    </span>
-                  )}
-                  {loggedIn && (
-                    <Button
-                      size="lg"
-                      onClick={() => linkCasinoAccount.mutateAsync()}
-                      loading={linkCasinoAccount.isPending}
-                      disabled={linkCasinoAccount.isPending || !isWhitelisted}
-                    >
-                      Link your account
-                    </Button>
-                  )}
-                </>
-              ))
+                )}
+                {loggedIn && (
+                  <Button
+                    size="lg"
+                    onClick={() => linkCasinoAccount.mutateAsync()}
+                    loading={linkCasinoAccount.isPending}
+                    disabled={linkCasinoAccount.isPending || !isWhitelisted}
+                  >
+                    Link your account
+                  </Button>
+                )}
+
+                {!loggedIn && (
+                  <Button
+                    className="py-6"
+                    size="lg"
+                    onClick={authHandler}
+                    variant="default"
+                  >
+                    <Wallet2 className="mr-2" /> Connect Wallet
+                  </Button>
+                )}
+              </>
             )}
           </div>
           <div className="flex w-full flex-col gap-2 md:items-center md:text-center">
