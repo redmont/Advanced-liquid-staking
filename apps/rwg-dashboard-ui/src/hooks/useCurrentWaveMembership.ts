@@ -18,7 +18,7 @@ export const useCurrentWaveMembership = () => {
         rewardsAccount.data?.waveMemberships.find(
           (m) => m.waveId === currentWave.data?.id,
         ),
-      [rewardsAccount, currentWave],
+      [rewardsAccount.data, currentWave.data],
     ),
   };
 };

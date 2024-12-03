@@ -1,9 +1,5 @@
 import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
-import {
-  useQuery,
-  type UseQueryOptions,
-  type UseQueryResult,
-} from '@tanstack/react-query';
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
 type AuthQueryFunction<TData> = (token: string) => Promise<TData>;
 
@@ -16,12 +12,11 @@ type AuthQueryOptions<TData = unknown, TError = unknown> = Omit<
 
 export const useAuthenticatedQuery = <TData = unknown, TError = unknown>(
   options: AuthQueryOptions<TData, TError>,
-): UseQueryResult<TData, TError> => {
+) => {
   const isLoggedIn = useIsLoggedIn();
 
-  return useQuery({
+  const query = useQuery({
     ...options,
-    queryKey: ['authed', isLoggedIn, options.queryKey],
     enabled: isLoggedIn || options.enabled,
     queryFn: async () => {
       const token = getAuthToken();
@@ -36,4 +31,9 @@ export const useAuthenticatedQuery = <TData = unknown, TError = unknown>(
       return options.queryFn(token);
     },
   });
+
+  return {
+    ...query,
+    data: isLoggedIn ? query.data : undefined,
+  };
 };

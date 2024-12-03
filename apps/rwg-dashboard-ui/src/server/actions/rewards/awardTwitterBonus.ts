@@ -46,7 +46,7 @@ export const awardTwitterBonus = async (authToken: string) => {
     }
 
     const currentWaveMembership = account?.waveMemberships.find(
-      (membership) => membership.id === currentWave.id,
+      (membership) => membership.waveId === currentWave.id,
     );
 
     if (!currentWaveMembership) {

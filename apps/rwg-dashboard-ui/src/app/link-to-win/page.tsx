@@ -28,7 +28,7 @@ import {
 import RealIcon from '@/assets/images/R.svg';
 import GiftBoxes from './components/GiftBoxes';
 import { subscribeToCurrentWave } from '@/server/actions/ticket-waves/subscribeToCurrentWave';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCasinoLink } from '@/hooks/useCasinoLink';
 import { Progress } from '@/components/ui/progress';
 import { useToken } from '@/hooks/useToken';
@@ -40,6 +40,7 @@ import { useCurrentWaveWhiteListed } from '@/hooks/useTicketWaveWhitelist';
 import { useLinkCasinoAccount } from '@/hooks/useLinkCasinoAccount';
 
 export default function LinkToWinPage() {
+  const queryClient = useQueryClient();
   const token = useToken();
   const casinoLink = useCasinoLink();
   const accountLinked = !!casinoLink.data;
@@ -47,7 +48,7 @@ export default function LinkToWinPage() {
   const authHandler = useDynamicAuthClickHandler();
   const currentWave = useCurrentTicketWave();
   const rewardsAccount = useRewardsAccount();
-  const { rewardTotals } = rewardsAccount;
+  const { rewardTotals, postedToTwitterAlready } = rewardsAccount;
   const currentWaveMembership = useCurrentWaveMembership();
   const isWhitelisted = useCurrentWaveWhiteListed();
   const linkCasinoAccount = useLinkCasinoAccount();
@@ -405,27 +406,32 @@ export default function LinkToWinPage() {
                       </div>
                     )}
                   </div>
-                  <Button
-                    onClick={() => {
-                      const authToken = getAuthToken();
-                      if (!authToken) {
-                        throw new Error('No token');
-                      }
-                      return awardTwitterBonus(authToken);
-                    }}
-                    asChild
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <a
-                      className="twitter-share-button"
-                      rel="nofollow noopener noreferrer"
-                      target="_blank"
-                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just got $REAL with @rwg_official for linking my realbet.io account to the dashboard. Come get yours: ${window.location.href}`)}`}
+                  {!postedToTwitterAlready && (
+                    <Button
+                      disabled={postedToTwitterAlready}
+                      onClick={async () => {
+                        const authToken = getAuthToken();
+                        if (!authToken) {
+                          throw new Error('No token');
+                        }
+                        await awardTwitterBonus(authToken);
+                        await queryClient.invalidateQueries({
+                          queryKey: ['rewardsAccount'],
+                        });
+                      }}
+                      variant="outline"
+                      className="w-full"
                     >
-                      Share to X for {TWITTER_BONUS_TICKETS} Extra Tickets
-                    </a>
-                  </Button>
+                      <a
+                        className="twitter-share-button"
+                        rel="nofollow noopener noreferrer"
+                        target="_blank"
+                        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just got $REAL with @rwg_official for linking my realbet.io account to the dashboard. Come get yours: ${window.location.href}`)}`}
+                      >
+                        Share to X for {TWITTER_BONUS_TICKETS} Extra Tickets
+                      </a>
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
