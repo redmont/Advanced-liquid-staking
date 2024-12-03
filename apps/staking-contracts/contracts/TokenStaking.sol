@@ -5,14 +5,15 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { Voting } from "./Voting.sol";
 
-contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
+contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     IERC20 public immutable TOKEN;
 
-    uint256 private constant MULTIPLIER = 100;
-    uint256 public epochDuration;
+    uint256 private constant MULTIPLIER = 1e18;
+    uint256 public epochDuration = 1 weeks;
     uint256 private currentEpoch;
-    uint256 public votingDelay = 1; // 1 second delay (scaled down from 1 day)
+    uint256 public votingDelay = 1 days;
 
     struct Tier {
         uint256 lockPeriod;
@@ -58,20 +59,24 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
     error UnstakeTransferFailed();
     error RewardTransferFailed();
     error TransferNotAllowed();
+    error InvalidEpoch();
 
-    constructor(address token, uint256 _epochDuration) ERC20("Staked REAL", "sREAL") Ownable(msg.sender) {
+    constructor(address token) ERC20("Staked REAL", "sREAL") Ownable(msg.sender) Voting(msg.sender) {
         TOKEN = IERC20(token);
-        epochDuration = _epochDuration;
 
         // Initialize tiers
-        tiers.push(Tier(90, 10)); // 90 seconds, 0.1x
-        tiers.push(Tier(180, 50)); // 180 seconds, 0.5x
-        tiers.push(Tier(360, 110)); // 360 seconds, 1.1x
-        tiers.push(Tier(720, 150)); // 720 seconds, 1.5x
-        tiers.push(Tier(1440, 210)); // 1440 seconds, 2.1x
+        tiers.push(Tier(90 days, 1e17)); // 3 months, 0.1x
+        tiers.push(Tier(180 days, 5e17)); // 6 months, 0.5x
+        tiers.push(Tier(360 days, 11e17)); // 12 months, 1.1x
+        tiers.push(Tier(720 days, 15e17)); // 24 months, 1.5x
+        tiers.push(Tier(1440 days, 21e17)); // 48 months, 2.1x
 
         currentEpoch = block.timestamp / epochDuration;
         lastTotalEffectiveSupplyChangedAtEpoch = currentEpoch;
+    }
+
+    function setEpochDuration(uint256 _epochDuration) external onlyOwner {
+        epochDuration = _epochDuration;
     }
 
     function setTier(uint256 index, uint256 lockPeriod, uint256 multiplier) external onlyOwner {
@@ -165,13 +170,13 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
         emit Unstaked(msg.sender, amount);
     }
 
-    function _claimRewards(uint256 stakeIndex) internal {
+    function _claimRewards(uint256 stakeIndex, uint256[] calldata epochs, bytes32[][] calldata merkleProofs) internal {
         if (stakeIndex >= userStakes[msg.sender].length) {
             revert InvalidStakeIndex();
         }
 
         Stake storage userStake = userStakes[msg.sender][stakeIndex];
-        uint256 reward = calculateRewards(stakeIndex);
+        uint256 reward = calculateRewards(stakeIndex, epochs, merkleProofs);
 
         if (reward > 0) {
             userStake.lastClaimEpoch = currentEpoch;
@@ -182,12 +187,20 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
         }
     }
 
-    function claimRewards(uint256 stakeIndex) external nonReentrant {
+    function claimRewards(
+        uint256 stakeIndex,
+        uint256[] calldata epochs,
+        bytes32[][] calldata merkleProofs
+    ) external nonReentrant {
         _updateCurrentEpoch();
-        _claimRewards(stakeIndex);
+        _claimRewards(stakeIndex, epochs, merkleProofs);
     }
 
-    function calculateRewards(uint256 stakeIndex) public view returns (uint256) {
+    function calculateRewards(
+        uint256 stakeIndex,
+        uint256[] calldata epochs,
+        bytes32[][] calldata merkleProofs
+    ) public view returns (uint256) {
         if (stakeIndex >= userStakes[msg.sender].length) {
             revert InvalidStakeIndex();
         }
@@ -195,14 +208,22 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
 
         uint256 reward = 0;
         uint256 lastEpoch = (block.timestamp - votingDelay) / epochDuration;
-        //uint256 stakeLockEndEpoch = (userStake.startTime + tiers[userStake.tierIndex].lockPeriod) / epochDuration;
-        //lastEpoch = lastEpoch < stakeLockEndEpoch ? lastEpoch : stakeLockEndEpoch;
 
-        for (uint256 epoch = userStake.lastClaimEpoch; epoch < lastEpoch; epoch++) {
-            uint256 epochReward = getRewardsForEpoch(epoch);
-            uint256 epochTotalEffectiveSupply = getTotalEffectiveSupplyAtEpoch(epoch);
+        uint256 lastProcessedEpoch = userStake.lastClaimEpoch;
 
-            reward += (epochReward * userStake.effectiveAmount) / epochTotalEffectiveSupply;
+        for (uint256 i = 0; i < epochs.length; i++) {
+            uint256 epoch = epochs[i];
+
+            // Ensure epochs are in ascending order and not repeated
+            if (epoch <= lastProcessedEpoch || epoch >= lastEpoch) {
+                revert InvalidEpoch();
+            }
+            if (hasVoted(epoch, msg.sender, merkleProofs[i])) {
+                uint256 epochReward = getRewardsForEpoch(epoch);
+                uint256 epochTotalEffectiveSupply = getTotalEffectiveSupplyAtEpoch(epoch);
+                reward += (epochReward * userStake.effectiveAmount) / epochTotalEffectiveSupply;
+            }
+            lastProcessedEpoch = epoch;
         }
 
         return reward;
@@ -264,5 +285,37 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
         }
 
         super._update(from, to, value);
+    }
+
+    // Use this view function to calculate rewards for a user
+    function calculateRewardsWithVoting(
+        uint256 stakeIndex,
+        uint256[] calldata votedEpochs
+    ) public view returns (uint256) {
+        if (stakeIndex >= userStakes[msg.sender].length) {
+            revert InvalidStakeIndex();
+        }
+        Stake memory userStake = userStakes[msg.sender][stakeIndex];
+
+        uint256 reward = 0;
+        uint256 lastEpoch = (block.timestamp - votingDelay) / epochDuration;
+
+        for (uint256 epoch = userStake.lastClaimEpoch; epoch < lastEpoch; epoch++) {
+            bool hasVotedInEpoch = false;
+            for (uint256 i = 0; i < votedEpochs.length; i++) {
+                if (votedEpochs[i] == epoch) {
+                    hasVotedInEpoch = true;
+                    break;
+                }
+            }
+
+            if (hasVotedInEpoch) {
+                uint256 epochReward = getRewardsForEpoch(epoch);
+                uint256 epochTotalEffectiveSupply = getTotalEffectiveSupplyAtEpoch(epoch);
+                reward += (epochReward * userStake.effectiveAmount) / epochTotalEffectiveSupply;
+            }
+        }
+
+        return reward;
     }
 }
