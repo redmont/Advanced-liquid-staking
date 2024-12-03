@@ -31,7 +31,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
 
     mapping(address user => Stake[] stakes) public userStakes;
 
-    uint256 public defaultEpochRewards = 100;
+    uint256 public defaultEpochRewards = 100 ether;
     mapping(uint256 epoch => uint256 reward) public rewardsPerEpoch;
 
     uint256 public totalEffectiveSupply;
@@ -129,7 +129,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
             revert StakeTransferFailed();
         }
 
-        _mint(msg.sender, effectiveAmount);
+        _mint(msg.sender, amount);
 
         emit Staked(msg.sender, amount, tierIndex);
     }
@@ -160,7 +160,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
             revert UnstakeTransferFailed();
         }
 
-        _burn(msg.sender, userStake.effectiveAmount);
+        _burn(msg.sender, amount);
 
         emit Unstaked(msg.sender, amount);
     }

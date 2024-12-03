@@ -7,19 +7,19 @@ import testStaking from "../ignition/modules/TestTokenStaking";
 const stakingModuleFixture = async () => ignition.deploy(testStaking);
 
 describe("TokenStaking", function () {
-  describe("Deployment", function () {
-    it("Should set the correct owner", async function () {
+  describe("deployment", function () {
+    it("should set the correct owner", async function () {
       const [admin] = await viem.getWalletClients();
       const { staking } = await loadFixture(stakingModuleFixture);
       expect(await staking.read.owner()).to.equal(getAddress(admin.account.address));
     });
 
-    it("Should set the correct staking and reward tokens", async function () {
+    it("should set the correct staking and reward tokens", async function () {
       const { staking, realToken } = await loadFixture(stakingModuleFixture);
       expect(await staking.read.TOKEN()).to.equal(realToken.address);
     });
 
-    it("Should initialize tiers correctly", async function () {
+    it("should initialize tiers correctly", async function () {
       const { staking } = await loadFixture(stakingModuleFixture);
       const tier0 = await staking.read.tiers([0n]);
       expect(tier0[0]).to.equal(90n);
@@ -31,8 +31,8 @@ describe("TokenStaking", function () {
     });
   });
 
-  describe("Staking", function () {
-    it("Should allow users to stake tokens", async function () {
+  describe("staking", function () {
+    it("should allow users to stake tokens", async function () {
       const client = await viem.getPublicClient();
       const [, addr1] = await viem.getWalletClients();
       const { staking, realToken } = await loadFixture(stakingModuleFixture);
@@ -61,7 +61,7 @@ describe("TokenStaking", function () {
       expect(userStakes[0].tierIndex).to.equal(0n);
     });
 
-    it("Should not allow staking with invalid tier", async function () {
+    it("should not allow staking with invalid tier", async function () {
       const [, addr1] = await viem.getWalletClients();
 
       const { staking, realToken } = await loadFixture(stakingModuleFixture);
@@ -74,10 +74,56 @@ describe("TokenStaking", function () {
         "InvalidTierIndex",
       );
     });
+
+    it("should revert if an invalid stake index is provided", async function () {
+      const [, addr1] = await viem.getWalletClients();
+      const { staking } = await loadFixture(stakingModuleFixture);
+
+      await expect(staking.read.calculateRewards([5n], { account: addr1.account })).to.be.rejectedWith(
+        "InvalidStakeIndex",
+      );
+    });
+
+    it("should give the staker an sREAL balance after staking", async function () {
+      const client = await viem.getPublicClient();
+      const [, addr1] = await viem.getWalletClients();
+      const { staking, realToken } = await loadFixture(stakingModuleFixture);
+
+      await realToken.write.mint([addr1.account.address, parseEther("1000")]);
+      await realToken.write.approve([staking.address, parseEther("100")], {
+        account: addr1.account,
+      });
+
+      const tx = await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      await client.waitForTransactionReceipt({ hash: tx });
+
+      const balance = await staking.read.balanceOf([addr1.account.address]);
+      expect(balance).to.equal(parseEther("100"));
+    });
+
+    it("should not allow transfers of the staking token", async function () {
+      const client = await viem.getPublicClient();
+      const [admin, addr1] = await viem.getWalletClients();
+      const { staking, realToken } = await loadFixture(stakingModuleFixture);
+
+      await realToken.write.mint([addr1.account.address, parseEther("1000")]);
+      await realToken.write.approve([staking.address, parseEther("100")], {
+        account: addr1.account,
+      });
+
+      const tx = await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      await client.waitForTransactionReceipt({ hash: tx });
+
+      await expect(
+        staking.write.transfer([admin.account.address, parseEther("100")], {
+          account: addr1.account,
+        }),
+      ).to.be.rejectedWith("TransferNotAllowed");
+    });
   });
 
-  describe("Unstaking", function () {
-    it("Should not allow unstaking before lock period ends", async function () {
+  describe("unstaking", function () {
+    it("should not allow unstaking before lock period ends", async function () {
       const [, addr1] = await viem.getWalletClients();
 
       const { staking, realToken } = await loadFixture(stakingModuleFixture);
@@ -91,7 +137,7 @@ describe("TokenStaking", function () {
       await expect(staking.write.unstake([0n], { account: addr1.account })).to.be.rejectedWith("LockPeriodNotEnded");
     });
 
-    it("Should allow unstaking after lock period", async function () {
+    it("should allow unstaking after lock period", async function () {
       const client = await viem.getPublicClient();
       const [, addr1] = await viem.getWalletClients();
 
@@ -122,8 +168,8 @@ describe("TokenStaking", function () {
     });
   });
 
-  describe("Rewards", function () {
-    it("Should allow setting rewards for future epochs", async function () {
+  describe("rewards", function () {
+    it("should allow setting rewards for future epochs", async function () {
       const client = await viem.getPublicClient();
       const [admin] = await viem.getWalletClients();
 
@@ -144,7 +190,7 @@ describe("TokenStaking", function () {
       expect(logs[0].args.amount).to.equal(parseEther("10"));
     });
 
-    it("Should not allow setting rewards for past epochs", async function () {
+    it("should not allow setting rewards for past epochs", async function () {
       const [admin] = await viem.getWalletClients();
       const { staking } = await loadFixture(stakingModuleFixture);
 
@@ -154,7 +200,7 @@ describe("TokenStaking", function () {
       ).to.be.rejectedWith("CannotSetRewardForPastEpochs");
     });
 
-    it("Should calculate rewards correctly", async function () {
+    it("should calculate rewards correctly", async function () {
       const [, addr1] = await viem.getWalletClients();
       const { staking, realToken } = await loadFixture(stakingModuleFixture);
 
@@ -172,10 +218,45 @@ describe("TokenStaking", function () {
       const rewards = await staking.read.calculateRewards([0n], { account: addr1.account });
       expect(rewards).to.be.gt(0n);
     });
+
+    it("should allow user to claim rewards", async function () {
+      const client = await viem.getPublicClient();
+      const [, addr1] = await viem.getWalletClients();
+      const { staking, realToken } = await loadFixture(stakingModuleFixture);
+
+      await realToken.write.mint([addr1.account.address, parseEther("1000")]);
+      await realToken.write.approve([staking.address, parseEther("100")], {
+        account: addr1.account,
+      });
+
+      await realToken.write.mint([staking.address, parseEther("10000")]);
+
+      await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+
+      // Fast forward time
+      const epochDuration = await staking.read.epochDuration();
+      await time.increase(epochDuration * 3n); // 3 epochs
+
+      // Initial balance subtracted by stake amount, plus default epoch rewards x 3
+      const expectedBalance = parseEther("900") + parseEther("100") * 3n;
+
+      const tx = await staking.write.claimRewards([0n], { account: addr1.account });
+      await client.waitForTransactionReceipt({ hash: tx });
+
+      const balance = await realToken.read.balanceOf([addr1.account.address]);
+      expect(balance).to.equal(expectedBalance);
+    });
+
+    it("should revert if an invalid stake index is provided", async function () {
+      const [, addr1] = await viem.getWalletClients();
+      const { staking } = await loadFixture(stakingModuleFixture);
+
+      await expect(staking.read.claimRewards([5n], { account: addr1.account })).to.be.rejectedWith("InvalidStakeIndex");
+    });
   });
 
-  describe("Admin functions", function () {
-    it("Should allow owner to set new tier", async function () {
+  describe("admin functions", function () {
+    it("should allow owner to set new tier", async function () {
       const client = await viem.getPublicClient();
       const [admin] = await viem.getWalletClients();
 
