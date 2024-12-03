@@ -1,12 +1,10 @@
 import { expect } from "chai";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
+import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { ignition, viem } from "hardhat";
 import { parseEther, getAddress } from "viem";
 import testStaking from "../ignition/modules/TestTokenStaking";
 
 const stakingModuleFixture = async () => ignition.deploy(testStaking);
-
-const baseTime = 1733083200n; // 01/12/2024 @ 20:00:00 UTC
 
 describe("TokenStaking", function () {
   describe("Deployment", function () {
@@ -38,7 +36,6 @@ describe("TokenStaking", function () {
       const client = await viem.getPublicClient();
       const [, addr1] = await viem.getWalletClients();
       const { staking, realToken } = await loadFixture(stakingModuleFixture);
-      await staking.write.setCurrentTime([baseTime]);
 
       await realToken.write.mint([addr1.account.address, parseEther("1000")]);
       await realToken.write.approve([staking.address, parseEther("100")], {
@@ -89,8 +86,6 @@ describe("TokenStaking", function () {
         account: addr1.account,
       });
 
-      await staking.write.setCurrentTime([baseTime]);
-
       await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
 
       await expect(staking.write.unstake([0n], { account: addr1.account })).to.be.rejectedWith("LockPeriodNotEnded");
@@ -108,12 +103,10 @@ describe("TokenStaking", function () {
 
       await realToken.write.mint([staking.address, parseEther("10000")]);
 
-      await staking.write.setCurrentTime([baseTime]);
-
       await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
 
       // Fast forward time
-      await staking.write.setCurrentTime([baseTime + 91n]);
+      await time.increase(91n);
 
       const tx = await staking.write.unstake([0n], { account: addr1.account });
       await client.waitForTransactionReceipt({ hash: tx });
@@ -155,8 +148,6 @@ describe("TokenStaking", function () {
       const [admin] = await viem.getWalletClients();
       const { staking } = await loadFixture(stakingModuleFixture);
 
-      await staking.write.setCurrentTime([baseTime]);
-
       const currentEpoch = await staking.read.getCurrentEpoch();
       await expect(
         staking.write.setRewardForEpoch([currentEpoch - 1n, parseEther("10")], { account: admin.account }),
@@ -172,13 +163,11 @@ describe("TokenStaking", function () {
         account: addr1.account,
       });
 
-      await staking.write.setCurrentTime([baseTime]);
-
       await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
 
       // Fast forward time
       const epochDuration = await staking.read.epochDuration();
-      await staking.write.setCurrentTime([baseTime + epochDuration * 3n]); // 3 epochs
+      await time.increase(epochDuration * 3n); // 3 epochs
 
       const rewards = await staking.read.calculateRewards([0n], { account: addr1.account });
       expect(rewards).to.be.gt(0n);

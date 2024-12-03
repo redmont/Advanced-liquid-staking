@@ -120,7 +120,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
                 amount: amount,
                 effectiveAmount: effectiveAmount,
                 tierIndex: tierIndex,
-                startTime: getCurrentTime(),
+                startTime: block.timestamp,
                 lastClaimEpoch: currentEpoch
             })
         );
@@ -139,7 +139,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
             revert InvalidStakeIndex();
         }
         Stake storage userStake = userStakes[msg.sender][stakeIndex];
-        if (getCurrentTime() < userStake.startTime + tiers[userStake.tierIndex].lockPeriod) {
+        if (block.timestamp < userStake.startTime + tiers[userStake.tierIndex].lockPeriod) {
             revert LockPeriodNotEnded();
         }
 
@@ -194,7 +194,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
         Stake memory userStake = userStakes[msg.sender][stakeIndex];
 
         uint256 reward = 0;
-        uint256 lastEpoch = (getCurrentTime() - votingDelay) / epochDuration;
+        uint256 lastEpoch = (block.timestamp - votingDelay) / epochDuration;
         //uint256 stakeLockEndEpoch = (userStake.startTime + tiers[userStake.tierIndex].lockPeriod) / epochDuration;
         //lastEpoch = lastEpoch < stakeLockEndEpoch ? lastEpoch : stakeLockEndEpoch;
 
@@ -213,7 +213,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
     }
 
     function getCurrentEpoch() public view returns (uint256) {
-        return getCurrentTime() / epochDuration;
+        return block.timestamp / epochDuration;
     }
 
     function getUserStakes(address user) external view returns (Stake[] memory) {
@@ -255,14 +255,6 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable {
 
         // future epochs
         return 0;
-    }
-
-    /**
-     * @dev Returns the current time.
-     * @return the current timestamp in seconds.
-     */
-    function getCurrentTime() internal view virtual returns (uint256) {
-        return block.timestamp;
     }
 
     function _update(address from, address to, uint256 value) internal override {
