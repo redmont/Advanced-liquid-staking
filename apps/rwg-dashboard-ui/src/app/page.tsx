@@ -139,7 +139,6 @@ export default function HomePage() {
       </Card>
       <div className="z-20 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         <Card
-          loading={!sdkHasLoaded}
           className="relative aspect-[6/7] overflow-hidden bg-cover transition-transform hover:scale-105"
           style={{
             backgroundImage: sdkHasLoaded ? `url(${brawlersPoster.src})` : '',
@@ -153,7 +152,6 @@ export default function HomePage() {
           />
         </Card>
         <Card
-          loading={!sdkHasLoaded}
           className="relative aspect-[6/7] overflow-hidden bg-cover transition-transform hover:scale-105"
           style={{
             backgroundImage: sdkHasLoaded ? `url(${stakingPoster.src})` : '',
@@ -166,7 +164,6 @@ export default function HomePage() {
           />
         </Card>
         <Card
-          loading={!sdkHasLoaded}
           className="relative aspect-[6/7] overflow-hidden bg-cover"
           style={{
             backgroundImage: sdkHasLoaded ? `url(${bonusChecker.src})` : '',
@@ -182,7 +179,6 @@ export default function HomePage() {
           /> */}
         </Card>
         <Card
-          loading={!sdkHasLoaded}
           className="relative aspect-[6/7] overflow-hidden bg-cover"
           style={{
             backgroundImage: sdkHasLoaded ? `url(${brinkoPoster.src})` : '',

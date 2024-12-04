@@ -68,6 +68,10 @@ export default {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
         border: 'hsl(var(--border))',
         'input-border': 'hsl(var(--input-border))',
         input: 'hsl(var(--input))',
@@ -95,10 +99,45 @@ export default {
           '0%, 100%': { backgroundColor: 'hsl(0 0% 6%)' },
           '50%': { backgroundColor: 'hsl(0 0% 10%)' },
         },
+        shake: {
+          '10%': {
+            transform: 'scale(1.25) translate3d(0, 2px, 0)',
+          },
+          '20%': {
+            transform: 'scale(1.3) translate3d(4px, -4px, 0)',
+          },
+          '30%': {
+            transform: 'scale(1.35) translate3d(-8px, 0px, 0)',
+          },
+          '40%': {
+            transform: 'scale(1.4) translate3d(8px, 4px, 0)',
+          },
+          '50%': {
+            transform: 'scale(1.45) translate3d(-8px, -8px, 0)',
+          },
+          '60%': {
+            transform: 'scale(1.5) translate3d(8px, 6px, 0)',
+          },
+          '70%': {
+            transform: 'scale(1.55) translate3d(-8px, 8px, 0)',
+          },
+          '80%': {
+            transform: 'scale(1.6) translate3d(8px, -8px, 0)',
+          },
+          '90%': {
+            transform: 'scale(1.65) translate3d(-8px, 10px, 0)',
+            opacity: '1',
+          },
+          '100%': {
+            transform: 'scale(5) translate3d(0, 0, 0)',
+            opacity: '0',
+          },
+        },
       },
       animation: {
         pulse: 'pulse 1.25s infinite',
         skeleton: 'skeleton 1.25s infinite',
+        shake: 'shake 1.25s ease forwards',
       },
     },
   },
