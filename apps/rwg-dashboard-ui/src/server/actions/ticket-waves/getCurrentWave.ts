@@ -13,7 +13,9 @@ export const getCurrentWave = async (tx?: Prisma.TransactionClient) => {
       startTime: {
         lte: new Date(),
       },
-      live: true,
+      live: {
+        equals: true,
+      },
     },
     include: {
       rewardPresets: true,
@@ -61,6 +63,9 @@ export const getCurrentWave = async (tx?: Prisma.TransactionClient) => {
     ...currentWave,
     rewardPresets,
     remainingRewards,
+    whitelist:
+      WAVE_CONFIGURATIONS[currentWave.id as keyof typeof WAVE_CONFIGURATIONS]
+        .whitelist,
     totalSeats:
       WAVE_CONFIGURATIONS[currentWave.id as keyof typeof WAVE_CONFIGURATIONS]
         .availableSeats,

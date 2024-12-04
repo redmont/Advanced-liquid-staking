@@ -77,7 +77,10 @@ export default function CasinoTestLinkerPage() {
           </p>
         </>
       ) : (
-        <Button onClick={() => linkMutation.mutate()}>
+        <Button
+          loading={linkMutation.isPending}
+          onClick={() => linkMutation.mutate()}
+        >
           Link casino account
         </Button>
       )}

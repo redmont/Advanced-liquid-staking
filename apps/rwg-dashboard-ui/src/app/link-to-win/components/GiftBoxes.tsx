@@ -59,7 +59,7 @@ const GiftBox = ({
               )}
               {reward.type === RewardType.RealBetCredit && (
                 <>
-                  <h3 className="text-sm md:text-xl">RealbetCredit</h3>{' '}
+                  <h3 className="text-sm md:text-xl">Realbet Credits</h3>{' '}
                   <p
                     className={cn(
                       'text-sm font-bold md:text-xl',
@@ -72,7 +72,7 @@ const GiftBox = ({
               )}
               {reward.type === RewardType.TokenBonus && (
                 <>
-                  <h3 className="text-sm md:text-xl">TokenBonus </h3>{' '}
+                  <h3 className="text-sm md:text-xl">Public Sale Boost</h3>{' '}
                   <p
                     className={cn(
                       'text-sm font-bold md:text-xl',
@@ -168,8 +168,8 @@ const GiftBoxes = () => {
       await wait(timings.revealWin);
       setState(
         (state) =>
-          state.map((gift) =>
-            gift.startsWith('reveal') ? gift : 'reveal-loss',
+          state.map((giftState) =>
+            giftState.startsWith('reveal') ? giftState : 'reveal-loss',
           ) as GiftBoxesState,
       );
       await wait(timings.revealNearMisses);
