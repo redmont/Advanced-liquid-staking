@@ -17,8 +17,7 @@
     "prettier:check": "prettier --check \"**/*.{js,json,md,sol,ts,yml}\"",
     "prettier:write": "prettier --write \"**/*.{js,json,md,sol,ts,yml}\"",
     "build": "pnpm run clean && pnpm run compile && pnpm tsc && pnpm run lint",
-    "deploy:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TestStakingVault.ts --network sepolia",
-    "deployStaking:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TestStaking.ts --network sepolia"
+    "deploy:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TestStakingVault.ts --network sepolia"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.7",
