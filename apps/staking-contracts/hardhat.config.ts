@@ -1,6 +1,7 @@
 import "@nomicfoundation/hardhat-ignition-viem";
 import "@nomicfoundation/hardhat-toolbox-viem";
 import "hardhat-chai-matchers-viem";
+import "hardhat-gas-reporter";
 import type { HardhatUserConfig } from "hardhat/config";
 import { vars } from "hardhat/config";
 import type { NetworkUserConfig } from "hardhat/types";
@@ -9,6 +10,7 @@ import * as chains from "viem/chains";
 const mnemonic: string = vars.get("MNEMONIC", "test test test test test test test test test test test junk");
 const alchemyApiKey: string = vars.get("ALCHEMY_API_KEY", "oKxs-03sij-U_N0iOlrSsZFr29-IqbuF");
 const etherscanApiKey: string = vars.get("ETHERSCAN_API_KEY", "");
+const coinmarketcapApiKey: string = vars.get("COINMARKETCAP_API_KEY", "");
 
 const getUrl = (chain: keyof typeof chains): string => chains[chain].rpcUrls.default.http[0];
 
@@ -46,6 +48,12 @@ const config: HardhatUserConfig = {
     mainnet: getChainConfig("mainnet", `https://eth-mainnet.g.alchemy.com/v2/${alchemyApiKey}`),
     polygonAmoy: getChainConfig("polygonAmoy"),
     polygon: getChainConfig("polygon", `https://polygon-mainnet.g.alchemy.com/v2/${alchemyApiKey}`),
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS === "true",
+    L1: "ethereum",
+    L1Etherscan: etherscanApiKey,
+    coinmarketcap: coinmarketcapApiKey,
   },
 };
 

@@ -6,6 +6,7 @@
   "scripts": {
     "prettier": "pnpm dlx prettier --write .",
     "test": "hardhat test",
+    "gas-report": "REPORT_GAS=true hardhat test",
     "coverage": "SOLIDITY_COVERAGE=true hardhat coverage --solcoverjs ./.solcover.js",
     "flatten": "pnpm dlx hardhat flatten",
     "check:format": "solhint contracts/*.sol --fix",
@@ -33,7 +34,7 @@
     "hardhat-abi-exporter": "^2.2.1",
     "hardhat-chai-matchers-viem": "^2.0.8",
     "hardhat-docgen": "^1.1.1",
-    "hardhat-gas-reporter": "^1.0.4",
+    "hardhat-gas-reporter": "^2.2.2",
     "hardhat-preprocessor": "^0.1.5",
     "hardhat-tracer": "^1.0.0-alpha.6",
     "prettier": "^3.3.3",
@@ -41,5 +42,8 @@
     "solmate": "6.7.0",
     "typescript": "~5.0.4",
     "viem": "^2.21.35"
+  },
+  "resolutions": {
+    "hardhat-gas-reporter": "^2.2.1"
   }
 }
