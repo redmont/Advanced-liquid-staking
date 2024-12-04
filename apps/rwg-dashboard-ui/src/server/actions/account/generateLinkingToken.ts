@@ -11,6 +11,7 @@ export const generateLinkingToken = async (authToken: string) => {
     env.TESTNET_SIGNER_PRIVATE_KEY?.startsWith('0x'),
     'TESTNET_SIGNER_PRIVATE_KEY is required',
   );
+
   const userId = await getUserIdFromToken(authToken);
 
   if (!userId) {

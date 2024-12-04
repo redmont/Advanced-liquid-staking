@@ -143,6 +143,11 @@ const GiftBoxes = () => {
       if (states[boxIndex] !== 'idle') {
         return;
       }
+      const timings = {
+        buildup: 1100,
+        revealWin: autoMode ? 1000 : 2000,
+        revealNearMisses: autoMode ? 1500 : 3000,
+      };
       const awarded = awardReward.mutateAsync();
       assert(boxIndex < states.length, 'Invalid box index');
       setIndexClicked(boxIndex);
@@ -152,7 +157,7 @@ const GiftBoxes = () => {
         newState[boxIndex] = 'popping';
         return newState as GiftBoxesState;
       });
-      const [{ reward }] = await Promise.all([awarded, wait(1100)]);
+      const [{ reward }] = await Promise.all([awarded, wait(timings.buildup)]);
       playBalloonPop();
       setState((state) => {
         const newState = [...state];
@@ -160,14 +165,14 @@ const GiftBoxes = () => {
           reward.type === 'None' ? 'reveal-loss' : 'reveal-prize';
         return newState as GiftBoxesState;
       });
-      await wait(2000);
+      await wait(timings.revealWin);
       setState(
         (state) =>
           state.map((gift) =>
             gift.startsWith('reveal') ? gift : 'reveal-loss',
           ) as GiftBoxesState,
       );
-      await wait(3000);
+      await wait(timings.revealNearMisses);
       setState(initialState);
       setBoxCounter((c) => c + 1);
       await Promise.all([
@@ -179,7 +184,7 @@ const GiftBoxes = () => {
         }),
       ]);
     },
-    [states, playRiser, awardReward, queryClient, playBalloonPop],
+    [states, playRiser, awardReward, queryClient, playBalloonPop, autoMode],
   );
 
   useEffect(() => {
