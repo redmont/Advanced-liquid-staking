@@ -30,6 +30,10 @@ export const getCurrentWave = async () => {
   return (
     wave && {
       ...wave,
+      rewardPresets: wave.rewardPresets.map((preset) => ({
+        ...preset,
+        prize: Number(preset.prize),
+      })),
       totalSeats:
         WAVE_CONFIGURATIONS[wave.id as keyof typeof WAVE_CONFIGURATIONS]
           .availableSeats,

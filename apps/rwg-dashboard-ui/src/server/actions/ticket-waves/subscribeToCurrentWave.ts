@@ -3,6 +3,7 @@
 import prisma from '@/server/prisma/client';
 import { decodeUser } from '../auth';
 import { getCurrentWave } from './getCurrentWave';
+import { AwardedTicketsType } from '@prisma/client';
 
 export const subscribeToCurrentWave = async (authToken: string) => {
   const decodedUser = await decodeUser(authToken);
@@ -49,6 +50,12 @@ export const subscribeToCurrentWave = async (authToken: string) => {
             waveId: currentWave.id,
             reedeemableTickets: currentWave.ticketsPerMember,
             seatNumber: currentWave._count.memberships + 1,
+            awardedTickets: {
+              create: {
+                type: AwardedTicketsType.WaveSignupBonus,
+                amount: currentWave.ticketsPerMember,
+              },
+            },
           },
         }),
         tx.rewardWave.update({

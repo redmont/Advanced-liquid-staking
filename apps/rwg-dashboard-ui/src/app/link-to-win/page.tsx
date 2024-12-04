@@ -97,44 +97,11 @@ export default function LinkToWinPage() {
   return (
     <div className="space-y-5 p-3 sm:p-5">
       <Banner frog={false}>
-        <div className="flex flex-col items-center justify-between gap-5 md:flex-row">
+        <div className="flex flex-col items-start justify-between gap-5 md:flex-row">
           <div className="space-y-5">
             <div className="inline-block rounded-sm bg-accent-2/80 px-5 py-2 font-monoline text-4xl text-accent-2-foreground xl:text-5xl">
               Link to Win
             </div>
-            {showSeatData && currentWaveMembership.data && (
-              <p className="text-2xl font-medium">
-                {currentWaveMembership.data.seatNumber === 420 && (
-                  <span> 🔥</span>
-                )}
-                You got seat{' '}
-                <span
-                  className={cn('text-primary', {
-                    'text-[#FFD700]':
-                      currentWaveMembership.data.seatNumber === 1,
-                    'text-[#C0C0C0]':
-                      currentWaveMembership.data.seatNumber === 2,
-                    'text-[#CD7F32]':
-                      currentWaveMembership.data.seatNumber === 3,
-                  })}
-                >
-                  #{currentWaveMembership.data.seatNumber}
-                </span>
-                {currentWaveMembership.data.seatNumber === 1 && (
-                  <Trophy className="mb-1 inline size-8 p-1 text-[#FFD700]" />
-                )}
-                {currentWaveMembership.data.seatNumber === 2 && (
-                  <Trophy className="mb-1 inline size-8 p-1 text-[#C0C0C0]" />
-                )}
-                {currentWaveMembership.data.seatNumber === 3 && (
-                  <Trophy className="mb-1 inline size-8 p-1 text-[#CD7F32]" />
-                )}
-                {currentWaveMembership.data.seatNumber === 69 && ', nice'}
-                {currentWaveMembership.data.seatNumber === 420 && (
-                  <span> 🔥</span>
-                )}
-              </p>
-            )}
             {showLinkPrompt && (
               <p className="text-lg md:max-w-[66%] xl:text-xl">
                 Link your wallet with your RealBet account to check your VIP
@@ -147,32 +114,33 @@ export default function LinkToWinPage() {
                 sale bonuses and free RealBet credits.
               </p>
             )}
-
-            {casinoLink.isLoading ? (
-              <Skeleton className="h-6 w-48 rounded-full" />
-            ) : casinoLink.data ? (
-              <Button disabled>
-                Linked <Check className="inline size-6" />
-              </Button>
-            ) : loggedIn ? (
-              <Button
-                size="lg"
-                onClick={() => linkCasinoAccount.mutateAsync()}
-                loading={linkCasinoAccount.isPending}
-                disabled={linkCasinoAccount.isPending}
-              >
-                Link your account
-              </Button>
-            ) : (
-              <Button
-                className="py-6"
-                size="lg"
-                onClick={authHandler}
-                variant="default"
-              >
-                <Wallet2 className="mr-2" /> Connect Wallet
-              </Button>
-            )}
+            <div>
+              {casinoLink.isLoading ? (
+                <Skeleton className="h-6 w-48 rounded-full" />
+              ) : casinoLink.data ? (
+                <Button disabled>
+                  Linked <Check className="inline size-6" />
+                </Button>
+              ) : loggedIn ? (
+                <Button
+                  size="lg"
+                  onClick={() => linkCasinoAccount.mutateAsync()}
+                  loading={linkCasinoAccount.isPending}
+                  disabled={linkCasinoAccount.isPending}
+                >
+                  Link your account
+                </Button>
+              ) : (
+                <Button
+                  className="py-6"
+                  size="lg"
+                  onClick={authHandler}
+                  variant="default"
+                >
+                  <Wallet2 className="mr-2" /> Connect Wallet
+                </Button>
+              )}
+            </div>
           </div>
           <div className="flex w-full flex-col gap-2 md:items-center md:text-center">
             <p className="text-2xl font-medium">
@@ -231,6 +199,39 @@ export default function LinkToWinPage() {
                   Wave Signup
                 </Button>
               </>
+            )}
+            {showSeatData && currentWaveMembership.data && (
+              <p className="text-2xl font-medium">
+                {currentWaveMembership.data.seatNumber === 420 && (
+                  <span> 🔥</span>
+                )}
+                You got seat{' '}
+                <span
+                  className={cn('text-primary', {
+                    'text-[#FFD700]':
+                      currentWaveMembership.data.seatNumber === 1,
+                    'text-[#C0C0C0]':
+                      currentWaveMembership.data.seatNumber === 2,
+                    'text-[#CD7F32]':
+                      currentWaveMembership.data.seatNumber === 3,
+                  })}
+                >
+                  #{currentWaveMembership.data.seatNumber}
+                </span>
+                {currentWaveMembership.data.seatNumber === 1 && (
+                  <Trophy className="mb-1 inline size-8 p-1 text-[#FFD700]" />
+                )}
+                {currentWaveMembership.data.seatNumber === 2 && (
+                  <Trophy className="mb-1 inline size-8 p-1 text-[#C0C0C0]" />
+                )}
+                {currentWaveMembership.data.seatNumber === 3 && (
+                  <Trophy className="mb-1 inline size-8 p-1 text-[#CD7F32]" />
+                )}
+                {currentWaveMembership.data.seatNumber === 69 && ', nice'}
+                {currentWaveMembership.data.seatNumber === 420 && (
+                  <span> 🔥</span>
+                )}
+              </p>
             )}
           </div>
         </div>
