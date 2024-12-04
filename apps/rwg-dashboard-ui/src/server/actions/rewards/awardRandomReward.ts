@@ -11,9 +11,6 @@ export const awardRandomReward = async (
   nearWins: number,
 ) => {
   const userId = await getUserIdFromToken(authToken);
-  if (!userId) {
-    throw new Error('Invalid token');
-  }
   const account = await prisma.rewardsAccount.findFirst({
     where: {
       userId,

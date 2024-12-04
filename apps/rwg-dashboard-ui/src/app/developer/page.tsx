@@ -9,25 +9,28 @@ import { useAtom } from 'jotai';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { getAuthToken, useDynamicContext } from '@/lib/dynamic';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { issueVestingToken } from '@/server/actions/issueVestingToken';
 import { isDev } from '@/env';
 import assert from 'assert';
-import { useCurrentTicketWave } from '@/hooks/useCurrentTicketWave';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { RewardWave } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import { saveWave } from './saveWave';
+import { getCurrentWave } from './getWave';
 
 type WaveUpdate = Pick<
   RewardWave,
   'label' | 'live' | 'availableSeats' | 'ticketsPerMember' | 'id'
 >;
 
+const useDevWave = () =>
+  useQuery({ queryKey: ['devRewardWave'], queryFn: () => getCurrentWave() });
+
 const DeveloperPage = () => {
   assert(isDev, 'Not in dev mode');
   const queryClient = useQueryClient();
-  const currentWave = useCurrentTicketWave();
+  const currentWave = useDevWave();
   const { primaryWallet } = useDynamicContext();
 
   const [addressOverride, setAddressOverride] = useAtom(
@@ -80,7 +83,7 @@ const DeveloperPage = () => {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ['currentWave'],
+        queryKey: ['devRewardWave'],
       });
     },
   });
@@ -135,7 +138,9 @@ const DeveloperPage = () => {
           </p>
         </div>
         <div className="flex flex-col gap-3">
-          <h3 className="mb-3 text-xl font-medium">Modify Reward Wave</h3>
+          <h3 className="mb-3 text-xl font-medium">
+            Modify Current Reward Wave
+          </h3>
           {waveState !== undefined && (
             <>
               <div className="flex items-center gap-2">

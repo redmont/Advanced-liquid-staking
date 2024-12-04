@@ -13,10 +13,17 @@ export const useRewardsAccount = () => {
 
   const rewards = useMemo(
     () =>
-      account.data?.waveMemberships.flatMap((membership) => [
-        ...membership.rewards.map((r) => ({ ...r, amount: Number(r.amount) })),
-        ...membership.awardedTickets,
-      ]),
+      account.data?.waveMemberships.flatMap((membership) =>
+        membership.rewards.map((r) => ({ ...r, amount: Number(r.amount) })),
+      ),
+    [account.data?.waveMemberships],
+  );
+
+  const awardedTickets = useMemo(
+    () =>
+      account.data?.waveMemberships.flatMap(
+        (membership) => membership.awardedTickets,
+      ),
     [account.data?.waveMemberships],
   );
 
@@ -28,14 +35,27 @@ export const useRewardsAccount = () => {
           [reward.type]: (acc[reward.type] ?? 0) + reward.amount,
         }),
         {
-          [AwardedTicketsType.TwitterShare]: 0,
-          [AwardedTicketsType.WaveSignupBonus]: 0,
           [RewardType.None]: 0,
           [RewardType.RealBetCredit]: 0,
           [RewardType.TokenBonus]: 0,
         },
       ),
     [rewards],
+  );
+
+  const ticketTotals = useMemo(
+    () =>
+      awardedTickets?.reduce(
+        (acc, ticket) => ({
+          ...acc,
+          [ticket.type]: (acc[ticket.type] ?? 0) + ticket.amount,
+        }),
+        {
+          [AwardedTicketsType.WaveSignupBonus]: 0,
+          [AwardedTicketsType.TwitterShare]: 0,
+        },
+      ),
+    [awardedTickets],
   );
 
   const postedToTwitterAlready = useMemo(
@@ -52,6 +72,8 @@ export const useRewardsAccount = () => {
     ...account,
     rewardTotals,
     rewards,
+    awardedTickets,
+    ticketTotals,
     postedToTwitterAlready,
   };
 };

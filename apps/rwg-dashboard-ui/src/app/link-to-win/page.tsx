@@ -15,9 +15,8 @@ import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { useRewardsAccount } from '@/hooks/useRewardsAccount';
 import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import {
-  Bird,
   Box,
-  Cake,
+  Check,
   Diamond,
   Gift,
   Rocket,
@@ -38,6 +37,12 @@ import { awardTwitterBonus } from '@/server/actions/rewards/awardTwitterBonus';
 import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
 import { useCurrentWaveWhiteListed } from '@/hooks/useTicketWaveWhitelist';
 import { useLinkCasinoAccount } from '@/hooks/useLinkCasinoAccount';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 
 export default function LinkToWinPage() {
   const queryClient = useQueryClient();
@@ -66,86 +71,76 @@ export default function LinkToWinPage() {
       Promise.all([rewardsAccount.refetch(), currentWave.refetch()]),
   });
 
-  const linkedWithoutMembershipWithNoSeatsLeft =
+  const hasSeatsRemaining =
+    currentWave.data && currentWave.data?.availableSeats > 0;
+  const showLinkPrompt = !loggedIn || (loggedIn && !accountLinked);
+  const showMaxSeatsReachedMessage =
+    currentWave.data &&
     loggedIn &&
     accountLinked &&
     !hasMembership &&
-    currentWave.data?.availableSeats === 0;
-
-  const loggedInWithoutLinkAndHasRemainingSeats =
+    !hasSeatsRemaining;
+  const showFreeTicketsPrompt =
+    !loggedIn ||
+    (loggedIn && !accountLinked) ||
+    (accountLinked && !hasMembership);
+  const showNotWhitelistedMessage =
     loggedIn &&
-    !accountLinked &&
-    currentWave.isSuccess &&
-    currentWave.data!.availableSeats > 0;
+    accountLinked &&
+    currentWave.data &&
+    !hasMembership &&
+    !isWhitelisted;
+  const showSeatData = loggedIn && accountLinked && hasMembership;
+  const showWaveSignupButton =
+    loggedIn && accountLinked && !hasMembership && isWhitelisted;
 
   return (
     <div className="space-y-5 p-3 sm:p-5">
       <Banner frog={false}>
-        <div className="flex flex-col items-center justify-between gap-5 md:flex-row">
+        <div className="flex flex-col items-start justify-between gap-5 md:flex-row">
           <div className="space-y-5">
             <div className="inline-block rounded-sm bg-accent-2/80 px-5 py-2 font-monoline text-4xl text-accent-2-foreground xl:text-5xl">
               Link to Win
             </div>
-            <p className="text-lg md:max-w-[66%] xl:text-xl">
-              Connect your wallet to join the #REAL community and secure your
-              VIP spot. Don&apos;t miss out!
-            </p>
-            {linkedWithoutMembershipWithNoSeatsLeft && (
-              <p className="bg-black/50 p-2 text-lg font-semibold text-warning xl:text-xl">
-                The maximum number of seats for this wave is reached. Signup
-                bonus tickets are not available. Please come back later.
-              </p>
-            )}
-            {loggedInWithoutLinkAndHasRemainingSeats && (
+            {showLinkPrompt && (
               <p className="text-lg md:max-w-[66%] xl:text-xl">
-                Ready for free tickets? Link your wallet and{' '}
-                <strong className="font-bold">
-                  get {currentWave.data?.ticketsPerMember} instant tickets!
-                </strong>
+                Link your wallet with your RealBet account to check your VIP
+                status!
               </p>
             )}
-
-            {casinoLink.isLoading ? (
-              <Skeleton className="h-6 w-48 rounded-full" />
-            ) : casinoLink.data ? (
-              <span className="mr-5 inline-block font-semibold">
-                Linked to account{' '}
-                <span className="font-semibold">
-                  {casinoLink.data.realbetUsername}
-                </span>
-              </span>
-            ) : (
-              <>
-                {loggedIn && isWhitelisted === false && (
-                  <span className="mr-5 inline-block rounded-md bg-black/50 px-5 py-3 font-semibold text-warning">
-                    Unfortunately at this time we are only accepting whitelisted
-                    addresses for this wave. If you are interested in joining,
-                    please contact us.
-                  </span>
-                )}
-                {loggedIn && (
-                  <Button
-                    size="lg"
-                    onClick={() => linkCasinoAccount.mutateAsync()}
-                    loading={linkCasinoAccount.isPending}
-                    disabled={linkCasinoAccount.isPending || !isWhitelisted}
-                  >
-                    Link your account
-                  </Button>
-                )}
-
-                {!loggedIn && (
-                  <Button
-                    className="py-6"
-                    size="lg"
-                    onClick={authHandler}
-                    variant="default"
-                  >
-                    <Wallet2 className="mr-2" /> Connect Wallet
-                  </Button>
-                )}
-              </>
+            {showFreeTicketsPrompt && (
+              <p className="text-lg md:max-w-[66%] xl:text-xl">
+                VIPs get 50 tickets to win. Prizes include {token.symbol} public
+                sale bonuses and free RealBet credits.
+              </p>
             )}
+            <div>
+              {casinoLink.isLoading ? (
+                <Skeleton className="h-6 w-48 rounded-full" />
+              ) : casinoLink.data ? (
+                <Button disabled>
+                  Linked <Check className="inline size-6" />
+                </Button>
+              ) : loggedIn ? (
+                <Button
+                  size="lg"
+                  onClick={() => linkCasinoAccount.mutateAsync()}
+                  loading={linkCasinoAccount.isPending}
+                  disabled={linkCasinoAccount.isPending}
+                >
+                  Link your account
+                </Button>
+              ) : (
+                <Button
+                  className="py-6"
+                  size="lg"
+                  onClick={authHandler}
+                  variant="default"
+                >
+                  <Wallet2 className="mr-2" /> Connect Wallet
+                </Button>
+              )}
+            </div>
           </div>
           <div className="flex w-full flex-col gap-2 md:items-center md:text-center">
             <p className="text-2xl font-medium">
@@ -175,25 +170,39 @@ export default function LinkToWinPage() {
                 <span>{currentWave.data?.totalSeats ?? 0}</span>
               )}
             </div>
-            <p className="font-medium text-muted">Seats remaining</p>
-            {loggedIn && accountLinked && !currentWaveMembership && (
+            <p className="font-medium text-muted">VIP spots remaining</p>
+            {showNotWhitelistedMessage && (
+              <p className="mt-3">
+                <span className="bg-black/50 p-3 text-warning empty:hidden">
+                  Cannot yet join VIP.
+                </span>
+              </p>
+            )}
+
+            {showMaxSeatsReachedMessage && (
+              <p className="bg-black/50 p-2 text-lg font-semibold text-warning xl:text-xl">
+                The maximum number of seats for this wave is reached. Signup
+                bonus tickets are not available. Please come back later.
+              </p>
+            )}
+            {showWaveSignupButton && (
               <>
                 <p className="text-destructive empty:hidden">
                   {subscribeToWave.error?.message}
                 </p>
                 <Button
+                  loading={subscribeToWave.isPending}
                   onClick={() => subscribeToWave.mutate()}
-                  className="mt-5 w-full"
+                  className="mt-5"
                   size="lg"
-                  variant="outline"
                 >
                   Wave Signup
                 </Button>
               </>
             )}
-            {currentWaveMembership.data && (
+            {showSeatData && currentWaveMembership.data && (
               <p className="text-2xl font-medium">
-                {currentWaveMembership?.data.seatNumber === 420 && (
+                {currentWaveMembership.data.seatNumber === 420 && (
                   <span> 🔥</span>
                 )}
                 You got seat{' '}
@@ -232,21 +241,27 @@ export default function LinkToWinPage() {
           <CardHeader>
             <CardTitle>
               <div className="flex items-center gap-2">
-                <Trophy className="inline size-6" /> Community Prize Pool
+                <Trophy className="inline size-6" /> Prize Pool
               </div>
             </CardTitle>
             <CardDescription>
-              Limited prizes remaining — act fast.
+              Limited prizes remaining this wave — act fast.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 md:grid-cols-2 md:gap-5 lg:gap-8">
               <div className="space-y-2">
                 <div className="flex w-full items-center justify-between">
-                  <h3 className="text-md font-medium sm:text-lg md:text-2xl">
-                    <Rocket className="mb-1 inline size-4 text-primary md:size-6" />{' '}
-                    Token Bonus
-                  </h3>
+                  <div>
+                    <h3 className="text-md font-medium sm:text-lg md:text-2xl">
+                      <Rocket className="mb-1 inline size-4 text-primary md:size-6" />{' '}
+                      Public Sale Boost
+                    </h3>
+                    <p className="text-sm">
+                      Percentage bonus in upcoming {token.symbol} public sale.
+                    </p>
+                  </div>
+
                   <div className="text-right">
                     {currentWave.data?.prizePools.TokenBonus ?? '0'} /{' '}
                     {currentWave.data?.totals.TokenBonus ?? '0'}{' '}
@@ -260,17 +275,19 @@ export default function LinkToWinPage() {
                     100
                   }
                 />
-                <p className="text-sm">
-                  Receive a percentage bonus in {token.symbol} tokens on your
-                  purchases during the public token sale.
-                </p>
               </div>
               <div className="space-y-2">
                 <div className="flex w-full items-center justify-between">
-                  <h3 className="text-md font-medium sm:text-lg md:text-2xl">
-                    <Diamond className="mb-1 inline size-4 text-primary md:size-6" />{' '}
-                    Realbet Credit
-                  </h3>
+                  <div>
+                    <h3 className="text-md font-medium sm:text-lg md:text-2xl">
+                      <Diamond className="mb-1 inline size-4 text-primary md:size-6" />{' '}
+                      Realbet Credits
+                    </h3>
+                    <p className="text-sm">
+                      Get free {token.symbol} credits for use in the Realbet
+                      Casino.
+                    </p>
+                  </div>
                   <div className="text-right">
                     {currentWave.data?.prizePools.RealBetCredit ?? '0'} /{' '}
                     {currentWave.data?.totals.RealBetCredit ?? '0'}{' '}
@@ -284,9 +301,6 @@ export default function LinkToWinPage() {
                     100
                   }
                 />
-                <p className="text-sm">
-                  Get {token.symbol} credits for use in the Realbet Casino.
-                </p>
               </div>
             </div>
           </CardContent>
@@ -299,7 +313,7 @@ export default function LinkToWinPage() {
                 <CardTitle>
                   <div className="flex items-center justify-between">
                     <span className="flex-inline items-center gap-2">
-                      <Box className="inline size-6" /> Mystery Boxes
+                      <Box className="inline size-6" /> A REAL Mystery
                     </span>
                     {currentWaveMembership.isLoading ||
                     !currentWaveMembership.data ? (
@@ -311,7 +325,43 @@ export default function LinkToWinPage() {
                           <Ticket className="mb-1 inline size-4" />{' '}
                           {currentWaveMembership.data.reedeemableTickets}
                         </span>{' '}
-                        tickets remaining.
+                        tickets remaining
+                        <Popover>
+                          <PopoverTrigger>
+                            <QuestionMarkCircledIcon className="ml-2 inline size-6 hover:text-primary active:text-primary" />
+                          </PopoverTrigger>
+                          <PopoverContent align="start">
+                            <div className="leading-tight">
+                              You received tickets from the following sources:
+                            </div>
+                            <ul>
+                              <li className="flex flex-wrap items-center gap-2">
+                                <span>
+                                  Wave Signup Bonuses:{' '}
+                                  <span className="text-xl font-medium text-primary">
+                                    {
+                                      rewardsAccount.ticketTotals
+                                        ?.WaveSignupBonus
+                                    }{' '}
+                                    <Ticket className="mb-1 inline size-6 text-muted" />
+                                  </span>{' '}
+                                </span>
+                                <span className="text-xl font-medium"></span>
+                              </li>
+
+                              <li className="flex flex-wrap items-center gap-2">
+                                <span>
+                                  Twitter Share Bonus:{' '}
+                                  <span className="text-xl font-medium text-primary">
+                                    {rewardsAccount.ticketTotals?.TwitterShare}{' '}
+                                    <Ticket className="mb-1 inline size-6 text-muted" />
+                                  </span>{' '}
+                                </span>
+                                <span className="text-xl font-medium"></span>
+                              </li>
+                            </ul>
+                          </PopoverContent>
+                        </Popover>
                       </span>
                     )}
                   </div>
@@ -324,7 +374,7 @@ export default function LinkToWinPage() {
                       hang loose!
                     </p>
                   ) : (
-                    <>Test your luck and pick a box to win a prize!</>
+                    <>Select a REAL box to win! 1 ticket = 1 box open.</>
                   )}
                 </CardDescription>
               </CardHeader>
@@ -344,7 +394,7 @@ export default function LinkToWinPage() {
             <Card className="xl:min-w-96">
               <CardHeader>
                 <CardTitle>
-                  <Gift className="inline size-6" /> Reward Breakdown
+                  <Gift className="inline size-6" /> My Rewards
                 </CardTitle>
                 <CardDescription>Track your personal winnings.</CardDescription>
               </CardHeader>
@@ -353,8 +403,8 @@ export default function LinkToWinPage() {
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-2">
                     <div>
                       <h3 className="text-md mb-2 flex items-center gap-2 font-medium md:text-xl">
-                        <Rocket className="inline size-6 text-primary" /> Token
-                        Bonus
+                        <Rocket className="inline size-6 text-primary" /> Public
+                        Sale Boost
                       </h3>
                       {rewardsAccount.isLoading ? (
                         <Skeleton className="h-6 w-48 rounded-full" />
@@ -368,7 +418,7 @@ export default function LinkToWinPage() {
                     <div>
                       <h3 className="text-md mb-2 flex items-center gap-2 font-medium md:text-xl">
                         <Diamond className="inline size-6 text-primary" />{' '}
-                        Realbet Credit
+                        Realbet Credits
                       </h3>
                       {rewardsAccount.isLoading ? (
                         <Skeleton className="h-6 w-48 rounded-full" />
@@ -384,44 +434,6 @@ export default function LinkToWinPage() {
                         </span>
                       )}
                     </div>
-                    <div>
-                      <h3 className="text-md mb-2 flex items-center gap-2 font-medium md:text-xl">
-                        <Cake className="inline size-6 text-primary" /> Signup
-                        Bonus
-                      </h3>
-                      {rewardsAccount.isLoading ? (
-                        <Skeleton className="h-6 w-48 rounded-full" />
-                      ) : (
-                        <span className="flex items-center gap-2 text-2xl font-medium leading-none">
-                          <Ticket className="inline size-6" />{' '}
-                          <div>
-                            {rewardTotals?.WaveSignupBonus ?? 0}{' '}
-                            <span className="text-xl text-muted">tickets</span>
-                          </div>
-                        </span>
-                      )}
-                    </div>
-                    {rewardTotals && rewardTotals?.TwitterShare > 0 && (
-                      <div>
-                        <h3 className="text-md mb-2 flex items-center gap-2 font-medium md:text-xl">
-                          <Bird className="inline size-6 text-primary" />{' '}
-                          Twitter Share Bonus
-                        </h3>
-                        {rewardsAccount.isLoading ? (
-                          <Skeleton className="h-6 w-48 rounded-full" />
-                        ) : (
-                          <span className="flex items-center gap-2 text-2xl font-medium leading-none">
-                            <Ticket className="inline size-6" />
-                            <div>
-                              {rewardTotals?.TwitterShare ?? 0}{' '}
-                              <span className="text-xl text-muted">
-                                tickets
-                              </span>
-                            </div>
-                          </span>
-                        )}
-                      </div>
-                    )}
                   </div>
                   {!postedToTwitterAlready && (
                     <Button

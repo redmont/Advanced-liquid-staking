@@ -11,7 +11,14 @@ const waveConfig = WAVE_CONFIGURATIONS[1];
 async function main() {
   await prisma.rewardWave.upsert({
     where: { id: 1 },
-    update: {},
+    update: {
+      label: waveConfig.label,
+      description: waveConfig.description,
+      startTime: waveConfig.startTime,
+      endTime: waveConfig.endTime,
+      availableSeats: waveConfig.availableSeats,
+      ticketsPerMember: waveConfig.ticketsPerMember,
+    },
     create: {
       id: 1,
       label: waveConfig.label,

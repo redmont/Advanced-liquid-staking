@@ -6,6 +6,7 @@ import type { JwtPayload, VerifyErrors } from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 import { cache } from 'react';
 import 'server-only';
+import { z } from 'zod';
 
 export const getDynamicPublicKey = cache(async () => {
   const client = jwksClient({
@@ -17,38 +18,43 @@ export const getDynamicPublicKey = cache(async () => {
   return signingKey.getPublicKey();
 });
 
-export const getUserIdFromToken = async (token: string) => {
+const VerifiedCredentialSchema = z.object({
+  address: z.string(),
+});
+
+const JwtPayloadSchema = z
+  .object({
+    sub: z.string(),
+    verified_credentials: z.array(VerifiedCredentialSchema),
+  })
+  .transform((payload) => ({
+    id: payload.sub,
+    addresses: payload.verified_credentials.map((vc) => vc.address),
+  }));
+
+export const decodeUser = async (token: string) => {
   const publicKey = await getDynamicPublicKey();
-
-  const decodedToken = await new Promise<JwtPayload | null>(
-    (resolve, reject) => {
-      jwt.verify(
-        token,
-        publicKey,
-        { algorithms: ['RS256'] },
-        (
-          err: VerifyErrors | null,
-          decoded: string | JwtPayload | undefined,
-        ) => {
-          if (err) {
-            reject(err);
+  return new Promise<z.infer<typeof JwtPayloadSchema>>((resolve, reject) =>
+    jwt.verify(
+      token,
+      publicKey,
+      { algorithms: ['RS256'] },
+      (err: VerifyErrors | null, decoded: string | JwtPayload | undefined) => {
+        if (err) {
+          reject(err);
+        } else {
+          if (typeof decoded === 'object' && decoded !== null) {
+            resolve(JwtPayloadSchema.parse(decoded));
           } else {
-            if (typeof decoded === 'object' && decoded !== null) {
-              resolve(decoded);
-            } else {
-              reject(new Error('Invalid token'));
-            }
+            reject(new Error('Invalid token'));
           }
-        },
-      );
-    },
+        }
+      },
+    ),
   );
+};
 
-  if (!decodedToken) {
-    return null;
-  }
-
-  const { sub } = decodedToken;
-
-  return sub;
+export const getUserIdFromToken = async (token: string) => {
+  const decoded = await decodeUser(token);
+  return decoded.id;
 };
