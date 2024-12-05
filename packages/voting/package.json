@@ -1,0 +1,14 @@
+{
+	"name": "@rwg-dashboard/voting",
+	"version": "1.0.0",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"scripts": {
+		"build": "tsc",
+		"watch": "tsc -w",
+		"clean": "rimraf ./dist"
+	},
+	"dependencies": {
+		"@openzeppelin/merkle-tree": "^1.0.7"
+	}
+}

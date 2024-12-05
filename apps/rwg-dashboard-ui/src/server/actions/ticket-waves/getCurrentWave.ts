@@ -1,7 +1,8 @@
 'use server';
 
+import { WAVE_CONFIGURATIONS } from '@/config/linkToWin';
 import prisma from '@/server/prisma/client';
-import { type Prisma } from '@prisma/client';
+import { type RewardType, type Prisma } from '@prisma/client';
 
 export const getCurrentWave = async (tx?: Prisma.TransactionClient) => {
   const currentWave = await (tx ?? prisma).rewardWave.findFirst({
@@ -12,14 +13,15 @@ export const getCurrentWave = async (tx?: Prisma.TransactionClient) => {
       startTime: {
         lte: new Date(),
       },
-      live: true,
+      live: {
+        equals: true,
+      },
     },
     include: {
       rewardPresets: true,
-
       _count: {
         select: {
-          rewards: true,
+          memberships: true,
         },
       },
     },
@@ -39,9 +41,35 @@ export const getCurrentWave = async (tx?: Prisma.TransactionClient) => {
     0,
   );
 
+  const remainingPrizes = rewardPresets.reduce(
+    (acc, preset) => ({
+      ...acc,
+      [preset.type]: (acc[preset.type] ?? 0) + (preset.remaining || 0),
+    }),
+    { RealBetCredit: 0, TokenBonus: 0 } as Record<RewardType, number>,
+  );
+
+  const prizeTotals = WAVE_CONFIGURATIONS[
+    currentWave.id as keyof typeof WAVE_CONFIGURATIONS
+  ].rewardPresets.reduce(
+    (acc, preset) => ({
+      ...acc,
+      [preset.type]: (acc[preset.type] ?? 0) + (preset.remaining || 0),
+    }),
+    {} as Record<RewardType, number>,
+  );
+
   return {
     ...currentWave,
     rewardPresets,
     remainingRewards,
+    whitelist:
+      WAVE_CONFIGURATIONS[currentWave.id as keyof typeof WAVE_CONFIGURATIONS]
+        .whitelist,
+    totalSeats:
+      WAVE_CONFIGURATIONS[currentWave.id as keyof typeof WAVE_CONFIGURATIONS]
+        .availableSeats,
+    prizePools: remainingPrizes,
+    totals: prizeTotals,
   };
 };

@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("SUPABASE_DB_SUPABASE_URL")
+  url = env("SUPABASE_DB_POSTGRES_URL")
   // Uses direct connection, ⚠️ make sure to keep this to `POSTGRES_URL_NON_POOLING`
   // or you'll have dangling databases from migrations
   directUrl = env("SUPABASE_DB_POSTGRES_URL_NON_POOLING")
@@ -19,8 +19,9 @@ model CasinoLink {
 }
 
 model RewardsAccount {
-  userId                     String   @unique
-  reedeemableTickets         Int      @default(0)
+  id                  Int      @id @default(autoincrement())
+  userId              String   @unique
+  waveMemberships     WaveMembership[]
 }
 
 enum RewardType {
@@ -30,15 +31,44 @@ enum RewardType {
 }
 
 model RewardWave {
+  id                Int      @id @default(autoincrement())
+  label             String
+  description       String
+  startTime         DateTime
+  endTime           DateTime
+  availableSeats    Int
+  ticketsPerMember  Int
+  live              Boolean  @default(true)
+  totalRewards      Int
+  rewardPresets     RewardPresets[]
+  memberships       WaveMembership[]
+}
+
+model WaveMembership {
+  id                      Int      @id @default(autoincrement())
+  rewards                 Reward[]
+  awardedTickets          AwardedTickets[]
+  seatNumber              Int
+  accountId               Int
+  account                 RewardsAccount @relation(fields: [accountId], references: [id])
+  waveId                  Int
+  wave                    RewardWave @relation(fields: [waveId], references: [id])
+  reedeemableTickets      Int      @default(0)
+  createdAt               DateTime @default(now())
+}
+
+enum AwardedTicketsType {
+  WaveSignupBonus
+  TwitterShare
+}
+
+model AwardedTickets {
   id              Int      @id @default(autoincrement())
-  label           String
-  description     String
-  startTime       DateTime
-  endTime         DateTime
-  live            Boolean  @default(true)
-  totalRewards    Int
-  rewards         Reward[]
-  rewardPresets   RewardPresets[]
+  type            AwardedTicketsType
+  membershipId    Int
+  membership      WaveMembership @relation(fields: [membershipId], references: [id])
+  amount          Int
+  createdAt       DateTime @default(now())
 }
 
 model RewardPresets {
@@ -55,7 +85,8 @@ model Reward {
   userId          String
   type            RewardType
   amount          Decimal?
-  waveId          Int
-  wave            RewardWave @relation(fields: [waveId], references: [id])
+  redeemed        Boolean  @default(false)
+  membershipId    Int
+  membership      WaveMembership @relation(fields: [membershipId], references: [id])
   createdAt       DateTime @default(now())
 }

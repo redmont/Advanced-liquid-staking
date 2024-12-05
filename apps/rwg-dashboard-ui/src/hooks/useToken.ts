@@ -87,7 +87,7 @@ export const useToken = () => {
       decimals,
     },
     isLoading: symbol.isLoading || balance.isLoading || decimals.isLoading,
-    symbol: symbol.data ?? '',
+    symbol: `$${symbol.data ?? ''}`,
     balance: balance.data ?? 0n,
     decimals: decimals.data ?? 18,
     contract: testTokenConfig,

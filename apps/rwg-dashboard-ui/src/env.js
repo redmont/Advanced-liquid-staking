@@ -16,6 +16,7 @@ export const env = createEnv({
     ALCHEMY_API_KEY: z.string(),
     TESTNET_SIGNER_PRIVATE_KEY: z.string().optional(),
     CASINO_API_SECRET_KEY: z.string(),
+    SUPABASE_DB_POSTGRES_URL: z.string(),
   },
 
   /**
@@ -49,12 +50,10 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS ??
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
     CASINO_API_SECRET_KEY: process.env.CASINO_API_SECRET_KEY ?? 'dummy',
-    NEXT_PUBLIC_CASINO_URL: '/casino-test-linker',
-    // process.env.NEXT_PUBLIC_VERCEL_ENV === 'development' ||
-    // !process.env.NEXT_PUBLIC_VERCEL_ENV
-    //   ? '/casino-test-linker'
-    //   : 'https://realbet.io',
-    HELIUS_API_KEY: process.env.HELIUS_API_KEY ?? 'dummy',
+    NEXT_PUBLIC_CASINO_URL:
+      process.env.NEXT_PUBLIC_CASINO_URL ?? '/casino-test-linker',
+    HELIUS_API_KEY: process.env.HELIUS_API_KEY,
+    SUPABASE_DB_POSTGRES_URL: process.env.SUPABASE_DB_POSTGRES_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

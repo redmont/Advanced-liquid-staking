@@ -54,12 +54,12 @@ export const useVault = () => {
     enabled: !!primaryWallet && isSuccess,
     queryKey: ['getDeposits', contractAddress, primaryAddress],
     queryFn: async () => {
-      const amounts = await (readContract(config, {
+      const amounts = await readContract(config, {
         abi: testStakingVaultConfig.abi,
         address: contractAddress,
         functionName: 'getDeposits',
         args: [primaryAddress as `0x${string}`],
-      }) as Promise<unknown[]>);
+      });
 
       return amounts
         .map((deposit) => DepositSchema.parse(deposit))

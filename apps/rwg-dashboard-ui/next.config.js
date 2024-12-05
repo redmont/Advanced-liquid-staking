@@ -12,13 +12,33 @@ const withBundleAnalyzer = analyzer({
 });
 
 const config = {
-  webpack: (config) => {
+  webpack: (config, options) => {
     config.resolve.alias['@'] = path.resolve(__dirname, 'src');
     config.module.rules.push({
       test: /\.svg$/,
       use: ['@svgr/webpack'],
     });
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
+
+    // mp3 config
+    config.module.rules.push({
+      test: /\.(ogg|mp3|wav|mpe?g)$/i,
+      exclude: config.exclude,
+      use: [
+        {
+          loader: 'url-loader',
+          options: {
+            limit: config.inlineImageLimit,
+            fallback: 'file-loader',
+            publicPath: `${config.assetPrefix}/_next/static/sounds/`,
+            outputPath: `${options.isServer ? '../' : ''}static/sounds/`,
+            name: '[name]-[hash].[ext]',
+            esModule: config.esModule || false,
+          },
+        },
+      ],
+    });
+
     return config;
   },
 };

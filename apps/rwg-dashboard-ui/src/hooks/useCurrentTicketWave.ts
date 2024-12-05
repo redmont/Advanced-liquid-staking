@@ -3,7 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 
 export const useCurrentTicketWave = () => {
   return useQuery({
-    queryKey: ['current-wave'],
-    queryFn: () => getCurrentWave(),
+    queryKey: ['currentWave'],
+    queryFn: () => {
+      return getCurrentWave();
+    },
   });
 };

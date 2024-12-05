@@ -79,6 +79,8 @@
     --accent-foreground: 0 0% 100%;
     --destructive: 0 97% 33%;
     --destructive-foreground: var(--foreground);
+    --warning: 30 100% 60%;
+    --warning-foreground: var(--foreground);
     --border: var(--background-lightest);
     --ring: 240 10% 20%;
     --chart-1: 12 76% 61%;

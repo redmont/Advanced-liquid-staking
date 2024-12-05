@@ -2,7 +2,7 @@
 
 import { keccak256 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { getUserIdFromToken } from '../auth';
+import { decodeUser } from '../auth';
 import { env } from '@/env';
 import assert from 'assert';
 
@@ -11,11 +11,8 @@ export const generateLinkingToken = async (authToken: string) => {
     env.TESTNET_SIGNER_PRIVATE_KEY?.startsWith('0x'),
     'TESTNET_SIGNER_PRIVATE_KEY is required',
   );
-  const userId = await getUserIdFromToken(authToken);
 
-  if (!userId) {
-    return null;
-  }
+  const { id: userId } = await decodeUser(authToken);
 
   const ts = Date.now() + 1000 * 60 * 5;
   const hash = keccak256(Buffer.from(`${ts}${userId}`));

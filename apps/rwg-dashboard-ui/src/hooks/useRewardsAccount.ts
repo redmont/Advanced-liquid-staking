@@ -1,19 +1,79 @@
-import { getRewardsAccount } from '@/server/actions/rewards-account/getRewardsAccount';
-import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
-import { useQuery } from '@tanstack/react-query';
+import { getRewardsAccount } from '@/server/actions/rewards/getRewardsAccount';
+import { useAuthenticatedQuery } from './useAuthenticatedQuery';
+import { AwardedTicketsType, RewardType } from '@prisma/client';
+import { useMemo } from 'react';
 
 export const useRewardsAccount = () => {
-  const loggedIn = useIsLoggedIn();
-
-  return useQuery({
+  const account = useAuthenticatedQuery({
     queryKey: ['rewardsAccount'],
-    enabled: loggedIn,
-    queryFn: async () => {
-      const token = getAuthToken();
-      if (!token) {
-        throw new Error('No token');
-      }
+    queryFn: async (token) => {
       return getRewardsAccount(token);
     },
   });
+
+  const rewards = useMemo(
+    () =>
+      account.data?.waveMemberships.flatMap((membership) =>
+        membership.rewards.map((r) => ({ ...r, amount: Number(r.amount) })),
+      ),
+    [account.data?.waveMemberships],
+  );
+
+  const awardedTickets = useMemo(
+    () =>
+      account.data?.waveMemberships.flatMap(
+        (membership) => membership.awardedTickets,
+      ),
+    [account.data?.waveMemberships],
+  );
+
+  const rewardTotals = useMemo(
+    () =>
+      rewards?.reduce(
+        (acc, reward) => ({
+          ...acc,
+          [reward.type]: (acc[reward.type] ?? 0) + reward.amount,
+        }),
+        {
+          [RewardType.None]: 0,
+          [RewardType.RealBetCredit]: 0,
+          [RewardType.TokenBonus]: 0,
+        },
+      ),
+    [rewards],
+  );
+
+  const ticketTotals = useMemo(
+    () =>
+      awardedTickets?.reduce(
+        (acc, ticket) => ({
+          ...acc,
+          [ticket.type]: (acc[ticket.type] ?? 0) + ticket.amount,
+        }),
+        {
+          [AwardedTicketsType.WaveSignupBonus]: 0,
+          [AwardedTicketsType.TwitterShare]: 0,
+        },
+      ),
+    [awardedTickets],
+  );
+
+  const postedToTwitterAlready = useMemo(
+    () =>
+      account.data?.waveMemberships.some((membership) =>
+        membership.awardedTickets.some(
+          (ticket) => ticket.type === 'TwitterShare',
+        ),
+      ),
+    [account.data?.waveMemberships],
+  );
+
+  return {
+    ...account,
+    rewardTotals,
+    rewards,
+    awardedTickets,
+    ticketTotals,
+    postedToTwitterAlready,
+  };
 };
