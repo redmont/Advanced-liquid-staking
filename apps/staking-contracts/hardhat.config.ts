@@ -50,12 +50,7 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS === "true",
-    currency: "USD",
-    outputFile: "gas-report.txt",
-    noColors: true,
-    token: "ETH",
-    gasPriceApi: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
-    L1: "ethereum",
+    outputFile: process.env.REPORT_GAS_FILE === "true" ? "gas-report.txt" : undefined,
     L1Etherscan: etherscanApiKey,
     coinmarketcap: coinmarketcapApiKey,
   },
