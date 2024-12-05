@@ -12,8 +12,9 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
 
     uint256 private constant MULTIPLIER = 1e18;
     uint256 public epochDuration = 1 weeks;
+    uint256 public defaultEpochRewards = 100 ether;
+
     uint256 private currentEpoch;
-    uint256 public votingDelay = 1 days;
 
     struct Tier {
         uint256 lockPeriod;
@@ -32,7 +33,6 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
 
     mapping(address user => Stake[] stakes) public userStakes;
 
-    uint256 public defaultEpochRewards = 100 ether;
     mapping(uint256 epoch => uint256 reward) public rewardsPerEpoch;
 
     uint256 public totalEffectiveSupply;
@@ -46,7 +46,6 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     event RewardSet(uint256 indexed epoch, uint256 amount);
     event TierAdded(uint256 lockPeriod, uint256 multiplier);
     event TierUpdated(uint256 index, uint256 lockPeriod, uint256 multiplier);
-    event VotingDelayUpdated(uint256 newDelay);
 
     error MultiplierMustBeGreaterThanZero();
     error CannotSetRewardForPastEpochs();
@@ -61,7 +60,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     error TransferNotAllowed();
     error InvalidEpoch();
 
-    constructor(address token) ERC20("Staked REAL", "sREAL") Ownable(msg.sender) Voting(msg.sender) {
+    constructor(address token) ERC20("Staked REAL", "sREAL") Voting(msg.sender) {
         TOKEN = IERC20(token);
 
         // Initialize tiers
@@ -90,11 +89,6 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
             tiers.push(Tier(lockPeriod, multiplier));
             emit TierAdded(lockPeriod, multiplier);
         }
-    }
-
-    function setVotingDelay(uint256 newDelay) external onlyOwner {
-        votingDelay = newDelay;
-        emit VotingDelayUpdated(newDelay);
     }
 
     function setRewardForEpoch(uint256 epoch, uint256 reward) external onlyOwner {
@@ -139,6 +133,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         emit Staked(msg.sender, amount, tierIndex);
     }
 
+    // This function is for unstaking only. It does not claim rewards.
     function unstake(uint256 stakeIndex) external nonReentrant {
         if (stakeIndex >= userStakes[msg.sender].length) {
             revert InvalidStakeIndex();
@@ -149,8 +144,6 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         }
 
         _updateCurrentEpoch();
-
-        _claimRewards(stakeIndex);
 
         uint256 amount = userStake.amount;
         totalEffectiveSupply -= userStake.effectiveAmount;
@@ -207,7 +200,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         Stake memory userStake = userStakes[msg.sender][stakeIndex];
 
         uint256 reward = 0;
-        uint256 lastEpoch = (block.timestamp - votingDelay) / epochDuration;
+        uint256 lastEpoch = getCurrentEpoch();
 
         uint256 lastProcessedEpoch = userStake.lastClaimEpoch;
 
@@ -298,7 +291,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         Stake memory userStake = userStakes[msg.sender][stakeIndex];
 
         uint256 reward = 0;
-        uint256 lastEpoch = (block.timestamp - votingDelay) / epochDuration;
+        uint256 lastEpoch = getCurrentEpoch();
 
         for (uint256 epoch = userStake.lastClaimEpoch; epoch < lastEpoch; epoch++) {
             bool hasVotedInEpoch = false;
