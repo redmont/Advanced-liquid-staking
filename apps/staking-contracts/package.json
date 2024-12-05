@@ -1,0 +1,50 @@
+{
+  "name": "@bltzr-gg/realbet-staking-contracts",
+  "version": "1.0.1",
+  "description": "Staking contracts",
+  "main": "dist/exports.js",
+  "scripts": {
+    "prettier": "pnpm dlx prettier --write .",
+    "test": "hardhat test",
+    "gas-report": "REPORT_GAS=true hardhat test",
+    "coverage": "SOLIDITY_COVERAGE=true hardhat coverage --solcoverjs ./.solcover.js",
+    "flatten": "pnpm dlx hardhat flatten",
+    "check:format": "solhint contracts/*.sol --fix",
+    "compile": "hardhat compile",
+    "deploy:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TestStaking.ts --network sepolia --parameters ./ignition/parameters/sepolia.json"
+  },
+  "files": [
+    "build/abi",
+    "src"
+  ],
+  "dependencies": {
+    "solc": "npm:solc@^0.8.4",
+    "solidity-coverage": "^0.7.16",
+    "solidity-docgen": "^0.5.13",
+    "surya": "^0.4.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^0.15.6",
+    "@nomicfoundation/hardhat-ignition-viem": "^0.15.7",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.11",
+    "@nomicfoundation/ignition-core": "^0.15.5",
+    "@openzeppelin/contracts": "^5.0.1",
+    "chai": "^4.3.4",
+    "hardhat": "^2.22.9",
+    "hardhat-abi-exporter": "^2.2.1",
+    "hardhat-chai-matchers-viem": "^2.0.8",
+    "hardhat-docgen": "^1.1.1",
+    "hardhat-gas-reporter": "^2.2.2",
+    "hardhat-preprocessor": "^0.1.5",
+    "hardhat-tracer": "^1.0.0-alpha.6",
+    "prettier": "^3.3.3",
+    "prettier-plugin-solidity": "^1.4.1",
+    "solmate": "6.7.0",
+    "typescript": "~5.0.4",
+    "viem": "^2.21.35",
+    "@rwg-dashboard/voting": "workspace:*"
+  },
+  "resolutions": {
+    "hardhat-gas-reporter": "^2.2.1"
+  }
+}
