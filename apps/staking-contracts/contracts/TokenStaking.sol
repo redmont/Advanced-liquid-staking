@@ -120,7 +120,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
                 effectiveAmount: effectiveAmount,
                 tierIndex: tierIndex,
                 startTime: block.timestamp,
-                lastClaimEpoch: currentEpoch
+                lastClaimEpoch: currentEpoch - 1
             })
         );
 

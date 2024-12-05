@@ -42,8 +42,5 @@
     "solmate": "6.7.0",
     "typescript": "~5.0.4",
     "viem": "^2.21.35"
-  },
-  "resolutions": {
-    "hardhat-gas-reporter": "^2.2.1"
   }
 }

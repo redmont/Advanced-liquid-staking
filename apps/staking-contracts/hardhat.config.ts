@@ -1,5 +1,4 @@
 import "@nomicfoundation/hardhat-ignition-viem";
-import "@nomicfoundation/hardhat-toolbox-viem";
 import "hardhat-chai-matchers-viem";
 import "hardhat-gas-reporter";
 import type { HardhatUserConfig } from "hardhat/config";
@@ -51,6 +50,11 @@ const config: HardhatUserConfig = {
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS === "true",
+    currency: "USD",
+    outputFile: "gas-report.txt",
+    noColors: true,
+    token: "ETH",
+    gasPriceApi: "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
     L1: "ethereum",
     L1Etherscan: etherscanApiKey,
     coinmarketcap: coinmarketcapApiKey,
