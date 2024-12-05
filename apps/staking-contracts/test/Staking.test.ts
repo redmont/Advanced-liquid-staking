@@ -146,7 +146,7 @@ describe("TokenStaking", function () {
       await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
 
       // Fast forward time
-      await time.increase(90n * 24n * 60n * 60n + 1n);
+      await time.increase(90n * 24n * 60n * 60n + 1n); // 90 days + 1 second
 
       const tx = await staking.write.unstake([0n], { account: addr1.account });
       await client.waitForTransactionReceipt({ hash: tx });
