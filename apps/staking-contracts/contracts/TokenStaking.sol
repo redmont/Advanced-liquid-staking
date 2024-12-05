@@ -172,7 +172,8 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         uint256 reward = calculateRewards(stakeIndex, epochs, merkleProofs);
 
         if (reward > 0) {
-            userStake.lastClaimEpoch = currentEpoch;
+            // Update last claimed epoch to the last epoch in the list
+            userStake.lastClaimEpoch = epochs[epochs.length - 1];
             if (!TOKEN.transfer(msg.sender, reward)) {
                 revert RewardTransferFailed();
             }

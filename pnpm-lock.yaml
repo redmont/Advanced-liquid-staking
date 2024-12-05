@@ -359,6 +359,9 @@ importers:
       '@openzeppelin/contracts':
         specifier: ^5.0.1
         version: 5.1.0
+      '@openzeppelin/merkle-tree':
+        specifier: ^1.0.7
+        version: 1.0.7
       chai:
         specifier: ^4.3.4
         version: 4.5.0
@@ -5173,7 +5176,6 @@ packages:
       '@ethersproject/bytes': 5.7.0
       '@ethersproject/constants': 5.7.0
       '@ethersproject/keccak256': 5.7.0
-    dev: false
 
   /@parcel/watcher-android-arm64@2.4.1:
     resolution: {integrity: sha512-LOi/WTbbh3aTn2RYddrO8pnapixAziFl6SMxHM69r3tvdSm94JtCenaKgk1GRg5FJ5wpMCpHeW+7yqPlvZv7kg==}

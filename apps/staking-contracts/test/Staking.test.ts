@@ -3,6 +3,7 @@ import { loadFixture, time } from "@nomicfoundation/hardhat-network-helpers";
 import { ignition, viem } from "hardhat";
 import { parseEther, getAddress } from "viem";
 import testStaking from "../ignition/modules/TestTokenStaking";
+import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 
 const stakingModuleFixture = async () => ignition.deploy(testStaking);
 
@@ -233,19 +234,26 @@ describe("TokenStaking", function () {
       const epochDuration = await staking.read.epochDuration();
       await time.increase(epochDuration * 3n); // 3 epochs
 
+      const userStakes = await staking.read.getUserStakes([addr1.account.address]);
+
       // Set Merkle root for epochs
-      const merkleRoot = "0x1234567890123456789012345678901234567890123456789012345678901234";
-      await staking.write.setMerkleRoot([1n, merkleRoot], { account: admin.account });
-      await staking.write.setMerkleRoot([2n, merkleRoot], { account: admin.account });
+      const leaves = [[addr1.account.address]];
+      const tree = StandardMerkleTree.of(leaves, ["address"]);
+
+      await staking.write.setMerkleRoot([userStakes[0].lastClaimEpoch + 1n, tree.root as `0x${string}`], {
+        account: admin.account,
+      });
+
+      await staking.write.setMerkleRoot([userStakes[0].lastClaimEpoch + 2n, tree.root as `0x${string}`], {
+        account: admin.account,
+      });
 
       // Claim rewards
-      const userStakes = await staking.read.getUserStakes([addr1.account.address]);
       const epochs = [userStakes[0].lastClaimEpoch + 1n, userStakes[0].lastClaimEpoch + 2n];
 
-      const merkleProofs: readonly (readonly `0x${string}`[])[] = [
-        ["0x1234567890123456789012345678901234567890123456789012345678901234"],
-        ["0x1234567890123456789012345678901234567890123456789012345678901234"],
-      ];
+      const merkleProofs: readonly (readonly `0x${string}`[])[] = epochs.map(() =>
+        tree.getProof([addr1.account.address]).map((p) => p as `0x${string}`),
+      );
       const tx = await staking.write.claimRewards([0n, epochs, merkleProofs], { account: addr1.account });
       await client.waitForTransactionReceipt({ hash: tx });
 
@@ -254,7 +262,6 @@ describe("TokenStaking", function () {
         abi: staking.abi,
         eventName: "RewardClaimed",
       });
-      console.log(logs);
 
       expect(logs[0].args.user).to.equal(getAddress(addr1.account.address));
       expect(logs[0].args.amount).to.be.gt(0n);
@@ -357,7 +364,7 @@ describe("TokenStaking", function () {
       const currentEpoch = await staking.read.getCurrentEpoch();
       const totalEffectiveSupply = await staking.read.getTotalEffectiveSupplyAtEpoch([currentEpoch]);
 
-      expect(totalEffectiveSupply).to.equal(parseEther("10")); // 100 * 0.1 (tier 0 multiplier)
+      expect(totalEffectiveSupply).to.equal(parseEther("10"));
     });
 
     it("should return correct rewards for epoch", async function () {
