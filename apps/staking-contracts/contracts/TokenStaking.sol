@@ -11,7 +11,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     IERC20 public immutable TOKEN;
 
     uint256 private constant MULTIPLIER = 1e18;
-    uint256 public epochDuration = 1 weeks;
+    uint256 public epochDuration;
     uint256 public defaultEpochRewards = 100 ether;
 
     uint256 private currentEpoch;
@@ -60,15 +60,18 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     error TransferNotAllowed();
     error InvalidEpoch();
 
-    constructor(address token) ERC20("Staked REAL", "sREAL") Voting(msg.sender) {
+    constructor(
+        address token,
+        uint256 _epochDuration,
+        Tier[] memory _tiers
+    ) ERC20("Staked REAL", "sREAL") Voting(msg.sender) {
         TOKEN = IERC20(token);
 
-        // Initialize tiers
-        tiers.push(Tier(90 days, 1e17)); // 3 months, 0.1x
-        tiers.push(Tier(180 days, 5e17)); // 6 months, 0.5x
-        tiers.push(Tier(360 days, 11e17)); // 12 months, 1.1x
-        tiers.push(Tier(720 days, 15e17)); // 24 months, 1.5x
-        tiers.push(Tier(1440 days, 21e17)); // 48 months, 2.1x
+        for (uint256 i = 0; i < _tiers.length; i++) {
+            tiers.push(_tiers[i]);
+        }
+
+        epochDuration = _epochDuration;
 
         currentEpoch = block.timestamp / epochDuration;
         lastTotalEffectiveSupplyChangedAtEpoch = currentEpoch;

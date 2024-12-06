@@ -138,9 +138,6 @@ importers:
       '@next/bundle-analyzer':
         specifier: ^14.2.15
         version: 14.2.16
-      '@openzeppelin/merkle-tree':
-        specifier: ^1.0.7
-        version: 1.0.7
       '@prisma/client':
         specifier: 5.22.0
         version: 5.22.0(prisma@5.22.0)
@@ -368,9 +365,6 @@ importers:
       '@openzeppelin/contracts':
         specifier: ^5.0.1
         version: 5.1.0
-      '@openzeppelin/merkle-tree':
-        specifier: ^1.0.7
-        version: 1.0.7
       '@rwg-dashboard/voting':
         specifier: workspace:*
         version: link:../../packages/voting
@@ -5193,6 +5187,7 @@ packages:
       '@ethersproject/bytes': 5.7.0
       '@ethersproject/constants': 5.7.0
       '@ethersproject/keccak256': 5.7.0
+    dev: false
 
   /@parcel/watcher-android-arm64@2.4.1:
     resolution: {integrity: sha512-LOi/WTbbh3aTn2RYddrO8pnapixAziFl6SMxHM69r3tvdSm94JtCenaKgk1GRg5FJ5wpMCpHeW+7yqPlvZv7kg==}

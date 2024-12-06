@@ -4,6 +4,7 @@ import { ignition, viem } from "hardhat";
 import { getAddress } from "viem";
 import testVoting from "../ignition/modules/TestVoting";
 import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
+import { generateEpochMerkleTree, type Proof } from "@rwg-dashboard/voting";
 
 const votingModuleFixture = async () => ignition.deploy(testVoting);
 
@@ -61,13 +62,11 @@ describe("Voting", function () {
 
       const epoch = 1n;
 
-      const leaves = [[addr1.account.address], [addr2.account.address]];
-      const tree = StandardMerkleTree.of(leaves, ["address"]);
+      const tree = generateEpochMerkleTree([addr1.account.address, addr2.account.address]);
 
       await voting.write.setMerkleRoot([epoch, tree.root as `0x${string}`], { account: admin.account });
 
-      const rawProof = tree.getProof([addr1.account.address]);
-      const proof = rawProof.map((p) => p as `0x${string}`);
+      const proof = tree.proofs.find((x: Proof) => x.address === addr1.account.address)?.proof ?? [];
 
       const hasVoted = await voting.read.hasVoted([epoch, addr1.account.address, proof]);
       expect(hasVoted).to.be.true;
@@ -79,13 +78,11 @@ describe("Voting", function () {
 
       const epoch = 1n;
 
-      const leaves = [[addr1.account.address], [addr2.account.address]];
-      const tree = StandardMerkleTree.of(leaves, ["address"]);
+      const tree = generateEpochMerkleTree([addr1.account.address, addr2.account.address]);
 
       await voting.write.setMerkleRoot([epoch, tree.root as `0x${string}`], { account: admin.account });
 
-      const rawProof = tree.getProof([addr1.account.address]);
-      const proof = rawProof.map((p) => p as `0x${string}`);
+      const proof = tree.proofs.find((x: Proof) => x.address === addr1.account.address)?.proof ?? [];
 
       const hasVoted = await voting.read.hasVoted([epoch, addr3.account.address, proof]);
       expect(hasVoted).to.be.false;
