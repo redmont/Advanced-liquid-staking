@@ -3,17 +3,18 @@ pragma solidity ^0.8.20;
 
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { Voting } from "./Voting.sol";
 
 contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
+    using SafeERC20 for IERC20;
     IERC20 public immutable TOKEN;
 
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 public epochDuration;
     uint256 public defaultEpochRewards;
-    uint256 private currentEpoch;
 
     struct Tier {
         uint256 lockPeriod;
@@ -76,7 +77,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         epochDuration = _epochDuration;
         defaultEpochRewards = _defaultEpochRewards;
 
-        currentEpoch = block.timestamp / epochDuration;
+        uint256 currentEpoch = getCurrentEpoch();
         lastTotalEffectiveSupplyChangedAtEpoch = currentEpoch;
     }
 
@@ -117,10 +118,12 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
             revert InvalidTierIndex();
         }
 
-        _updateCurrentEpoch();
+        uint256 currentEpoch = getCurrentEpoch();
 
         uint256 effectiveAmount = (amount * tiers[tierIndex].multiplier) / MULTIPLIER;
-        totalEffectiveSupply += effectiveAmount;
+
+        uint256 newTotalEffectiveSupply = totalEffectiveSupply + effectiveAmount;
+        totalEffectiveSupply = newTotalEffectiveSupply;
 
         updateTotalEffectiveSupply(totalEffectiveSupply);
 
@@ -134,9 +137,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
             })
         );
 
-        if (!TOKEN.transferFrom(msg.sender, address(this), amount)) {
-            revert StakeTransferFailed();
-        }
+        TOKEN.safeTransferFrom(msg.sender, address(this), amount);
 
         _mint(msg.sender, amount);
 
@@ -153,8 +154,6 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
             revert LockPeriodNotEnded();
         }
 
-        _updateCurrentEpoch();
-
         uint256 amount = userStake.amount;
         totalEffectiveSupply -= userStake.effectiveAmount;
 
@@ -164,9 +163,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         userStakes[msg.sender][stakeIndex] = userStakes[msg.sender][userStakes[msg.sender].length - 1];
         userStakes[msg.sender].pop();
 
-        if (!TOKEN.transfer(msg.sender, amount)) {
-            revert UnstakeTransferFailed();
-        }
+        TOKEN.safeTransfer(msg.sender, amount);
 
         _burn(msg.sender, amount);
 
@@ -184,9 +181,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         if (reward > 0) {
             // Update last claimed epoch to the last epoch in the list
             userStake.lastClaimEpoch = epochs[epochs.length - 1];
-            if (!TOKEN.transfer(msg.sender, reward)) {
-                revert RewardTransferFailed();
-            }
+            TOKEN.safeTransfer(msg.sender, reward);
             emit RewardClaimed(msg.sender, reward);
         }
     }
@@ -196,7 +191,6 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         uint32[] calldata epochs,
         bytes32[][] calldata merkleProofs
     ) external nonReentrant {
-        _updateCurrentEpoch();
         _claimRewards(stakeIndex, epochs, merkleProofs);
     }
 
@@ -233,10 +227,6 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         return reward;
     }
 
-    function _updateCurrentEpoch() private {
-        currentEpoch = getCurrentEpoch();
-    }
-
     function getCurrentEpoch() public view returns (uint256) {
         return block.timestamp / epochDuration;
     }
@@ -257,6 +247,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     }
 
     function updateTotalEffectiveSupply(uint256 newSupply) private {
+        uint256 currentEpoch = getCurrentEpoch();
         // Fill in any gaps in recorded supply
         if (currentEpoch > 0) {
             unchecked {
