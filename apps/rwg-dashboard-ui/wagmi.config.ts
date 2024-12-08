@@ -29,6 +29,12 @@ export default defineConfig({
             [sepolia.id]: '0xC6a6EbB044629647eb5CD2eFCC1C748c38349154',
           },
         },
+        {
+          name: 'TokenStaking',
+          address: {
+            [sepolia.id]: '0x77Ea6Da0F6F7155d78845535771a179Efa4c2a3f',
+          },
+        },
       ],
     }),
     react(),
