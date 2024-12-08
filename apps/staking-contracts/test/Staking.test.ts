@@ -43,7 +43,7 @@ describe("TokenStaking", function () {
         account: addr1.account,
       });
 
-      const tx = await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      const tx = await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
       await client.waitForTransactionReceipt({ hash: tx });
 
       const logs = await client.getContractEvents({
@@ -71,7 +71,7 @@ describe("TokenStaking", function () {
         account: addr1.account,
       });
       await expect(
-        staking.write.stake([parseEther("100"), 5n], { account: addr1.account }),
+        staking.write.stake([parseEther("100"), 5], { account: addr1.account }),
       ).to.be.revertedWithCustomError(staking, "InvalidTierIndex");
     });
 
@@ -85,7 +85,7 @@ describe("TokenStaking", function () {
         account: addr1.account,
       });
 
-      const tx = await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      const tx = await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
       await client.waitForTransactionReceipt({ hash: tx });
 
       const balance = await staking.read.balanceOf([addr1.account.address]);
@@ -102,7 +102,7 @@ describe("TokenStaking", function () {
         account: addr1.account,
       });
 
-      const tx = await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      const tx = await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
       await client.waitForTransactionReceipt({ hash: tx });
 
       await expect(
@@ -123,7 +123,7 @@ describe("TokenStaking", function () {
         account: addr1.account,
       });
 
-      await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
 
       await expect(staking.write.unstake([0n], { account: addr1.account })).to.be.revertedWithCustomError(
         staking,
@@ -143,7 +143,7 @@ describe("TokenStaking", function () {
 
       await realToken.write.mint([staking.address, parseEther("10000")]);
 
-      await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
 
       // Fast forward time
       await time.increase(90n * 24n * 60n * 60n + 1n); // 90 days + 1 second
@@ -203,7 +203,7 @@ describe("TokenStaking", function () {
         account: addr1.account,
       });
 
-      await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
 
       // Fast forward time
       const epochDuration = await staking.read.epochDuration();
@@ -211,7 +211,7 @@ describe("TokenStaking", function () {
 
       const userStakes = await staking.read.getUserStakes([addr1.account.address]);
 
-      const votedEpochs = [userStakes[0].lastClaimEpoch + 1n, userStakes[0].lastClaimEpoch + 2n];
+      const votedEpochs = [BigInt(userStakes[0].lastClaimEpoch + 1), BigInt(userStakes[0].lastClaimEpoch + 2)];
       const rewards = await staking.read.calculateRewardsWithVoting([0n, votedEpochs], { account: addr1.account });
       expect(rewards).to.be.gt(0n);
     });
@@ -228,7 +228,7 @@ describe("TokenStaking", function () {
 
       await realToken.write.mint([staking.address, parseEther("10000")]);
 
-      await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
 
       // Fast forward time
       const epochDuration = await staking.read.epochDuration();
@@ -242,7 +242,7 @@ describe("TokenStaking", function () {
       const epochs = [];
       const merkleProofs = [];
       for (var i = 0; i < 3; i++) {
-        const thisEpoch = userStakes[0].lastClaimEpoch + BigInt(i + 1);
+        const thisEpoch = BigInt(userStakes[0].lastClaimEpoch) + BigInt(i + 1);
         await staking.write.setMerkleRoot([thisEpoch, merkleTree.root]);
         epochs.push(thisEpoch);
         merkleProofs.push(merkleTree.proofs.find((x: Proof) => x.address === addr1.account.address)?.proof ?? []);
@@ -356,7 +356,7 @@ describe("TokenStaking", function () {
         account: addr1.account,
       });
 
-      await staking.write.stake([parseEther("100"), 0n], { account: addr1.account });
+      await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
 
       const currentEpoch = await staking.read.getCurrentEpoch();
       const totalEffectiveSupply = await staking.read.getTotalEffectiveSupplyAtEpoch([currentEpoch]);
