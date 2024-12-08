@@ -15,7 +15,6 @@ const tokenStaking = buildModule("TokenStaking", (m) => {
   ]);
 
   const staking = m.contract("TokenStaking", [token, epochDuration, tiers]);
-
   return {
     staking,
   };
