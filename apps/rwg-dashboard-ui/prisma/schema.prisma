@@ -55,6 +55,8 @@ model WaveMembership {
   wave                    RewardWave @relation(fields: [waveId], references: [id])
   reedeemableTickets      Int      @default(0)
   createdAt               DateTime @default(now())
+
+  @@unique([accountId, waveId])
 }
 
 enum AwardedTicketsType {
@@ -89,4 +91,13 @@ model Reward {
   membershipId    Int
   membership      WaveMembership @relation(fields: [membershipId], references: [id])
   createdAt       DateTime @default(now())
+}
+
+model Claim {
+  id          Int      @id @default(autoincrement())
+  address     String   @unique
+  amount      Decimal  @db.Decimal(30, 0)
+  claimed     Boolean  @default(false)
+  claimedAt   DateTime?
+  createdAt   DateTime @default(now())
 }

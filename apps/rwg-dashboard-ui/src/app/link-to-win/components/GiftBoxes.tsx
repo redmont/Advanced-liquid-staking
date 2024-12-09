@@ -12,6 +12,7 @@ import type { ArrayElementType } from '@/utils';
 import { RewardType } from '@prisma/client';
 import { useToken } from '@/hooks/useToken';
 import { Button } from '@/components/ui/button';
+import { useCurrentWaveMembership } from '@/hooks/useCurrentWaveMembership';
 
 type AwardedReward = Awaited<ReturnType<typeof awardRandomReward>>;
 
@@ -110,6 +111,8 @@ const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const GiftBoxes = () => {
   const queryClient = useQueryClient();
+  const membership = useCurrentWaveMembership();
+  const remainingTickets = membership?.data?.reedeemableTickets ?? 0;
   const [playRiser] = useSound(riser, { playbackRate: 1.85 });
   const [playBalloonPop] = useSound(balloonPop, { volume: 0.35 });
   const [states, setState] = useState<GiftBoxesState>(initialState);
@@ -174,7 +177,6 @@ const GiftBoxes = () => {
       );
       await wait(timings.revealNearMisses);
       setState(initialState);
-      setBoxCounter((c) => c + 1);
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: ['rewardsAccount'],
@@ -183,15 +185,20 @@ const GiftBoxes = () => {
           queryKey: ['currentWave'],
         }),
       ]);
+      setBoxCounter((c) => c + 1);
     },
     [states, playRiser, awardReward, queryClient, playBalloonPop, autoMode],
   );
 
   useEffect(() => {
+    if (remainingTickets === 0) {
+      setAutoMode(false);
+      return;
+    }
     if (autoMode) {
       void openBox(Math.floor(Math.random() * 3));
     }
-  }, [boxCounter, autoMode, openBox]);
+  }, [boxCounter, autoMode, openBox, remainingTickets]);
 
   return (
     <div className="grid grid-cols-3 gap-3 md:gap-5 lg:gap-8 xl:gap-3 2xl:gap-5">

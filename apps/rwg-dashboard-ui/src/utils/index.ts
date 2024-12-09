@@ -5,7 +5,7 @@ import assert from 'assert';
 
 export const formatBalance = (
   balance: bigint,
-  decimals: number,
+  decimals = 18,
   precision = 6,
 ) => {
   const formatted = formatUnits(balance, decimals);

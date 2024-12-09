@@ -25,6 +25,7 @@ import {
   Box,
   Code,
   Rocket,
+  HandCoins,
   // Trophy,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -37,6 +38,7 @@ import {
 } from '@/store/developer';
 import { useAtom } from 'jotai';
 import ConnectWallet from './connect-wallet';
+import { useClaimableAmount } from '@/hooks/useClaimableAmount';
 
 const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
   className,
@@ -75,6 +77,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const navRef = useRef<HTMLDivElement>(null);
   useClickOutside(navRef, () => setNavOpen(false));
   const vault = useVault();
+  const claimableAmount = useClaimableAmount();
 
   // address override is in localstorage which the backend is not aware of,
   // so we need to set this variable on mount to avoid hydration issues
@@ -193,15 +196,6 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
               <span>Link to Win</span>
             </NextLink>
           </li>
-          {/* <li>
-            <NextLink
-              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-              path="/vesting"
-            >
-              <Trophy />
-              <span>Vesting</span>
-            </NextLink>
-          </li> */}
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
@@ -211,6 +205,19 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
               <span>Airdrop</span>
             </NextLink>
           </li>
+          {isAuthenticated &&
+            claimableAmount.data &&
+            claimableAmount.data.claimable > 0n && (
+              <li>
+                <NextLink
+                  className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+                  path="/claim"
+                >
+                  <HandCoins />
+                  <span>Claim</span>
+                </NextLink>
+              </li>
+            )}
           {isDev && (
             <li>
               <NextLink
