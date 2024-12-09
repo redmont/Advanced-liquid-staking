@@ -15,11 +15,11 @@ export const signMessage = async (
     Math.random() * Number.MAX_SAFE_INTEGER,
   ).toString();
   const body = JSON.stringify({
-    userId,
+    userId: realbetId,
     ts: parseInt(ts),
     token,
     username: `Realbet user #${realbetId}`,
-    extUserId: realbetId,
+    extUserId: userId,
   });
 
   const signature = generateHash(body, env.CASINO_API_SECRET_KEY ?? 'dummy');
