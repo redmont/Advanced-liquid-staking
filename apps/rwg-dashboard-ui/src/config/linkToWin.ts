@@ -15,6 +15,7 @@ export const WAVE_CONFIGURATIONS = {
       '0x0500faf49a467CC116BeD6fFB4F86654c089D52A',
       '0xb0a0D621DED63094F5da9045edc18c3e5d604120',
       'Ee5aiMJf7eM5fVt98r4kBoPHv49Zb5pMQbvCwUDZ62sH',
+      '0x1693eEa1384E78c12f04D54D43053EbFf3dcA745',
     ] as string[],
     availableSeats: 500,
     ticketsPerMember: 50,

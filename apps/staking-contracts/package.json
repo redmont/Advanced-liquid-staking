@@ -7,6 +7,7 @@
     "prettier": "pnpm dlx prettier --write .",
     "test": "hardhat test",
     "gas-report": "REPORT_GAS=true hardhat test",
+    "gas-report:file": "REPORT_GAS=true REPORT_GAS_FILE=gas-report.txt hardhat test",
     "coverage": "SOLIDITY_COVERAGE=true hardhat coverage --solcoverjs ./.solcover.js",
     "flatten": "pnpm dlx hardhat flatten",
     "check:format": "solhint contracts/*.sol --fix",
@@ -43,8 +44,5 @@
     "typescript": "~5.0.4",
     "viem": "^2.21.35",
     "@rwg-dashboard/voting": "workspace:*"
-  },
-  "resolutions": {
-    "hardhat-gas-reporter": "^2.2.1"
   }
 }

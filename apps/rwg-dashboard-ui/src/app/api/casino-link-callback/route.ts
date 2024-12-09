@@ -74,8 +74,8 @@ export async function POST(request: Request) {
   const { extUserId, userId, username } = body.data;
 
   const { casinoLink, rewardsAccount } = await createCasinoLink({
-    userId,
-    realbetUserId: extUserId,
+    userId: extUserId,
+    realbetUserId: userId,
     realbetUsername: username,
   });
 
