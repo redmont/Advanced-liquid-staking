@@ -20,7 +20,7 @@ const ClaimPage = () => {
           <HandCoins className="mb-1 inline size-9" /> Claim
         </h2>
         <p className="mb-4 text-xl font-medium leading-tight text-white/80">
-          Claim your tokens from the presale here.
+          Claim your tokens from the public sale here.
         </p>
       </div>
       <Card>
