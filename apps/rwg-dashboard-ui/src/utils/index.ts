@@ -5,33 +5,43 @@ import assert from 'assert';
 
 export const formatBalance = (
   balance: bigint,
-  decimals = 18,
-  precision = 6,
+  options?: { decimals?: number; precision?: number; locale?: string },
 ) => {
-  const formatted = formatUnits(balance, decimals);
-
-  // Identify the point position and ensure no rounding happens
+  const optionsWithDefaults = Object.assign(
+    {
+      decimals: 18,
+      precision: 6,
+      locale: 'en-US',
+    },
+    options,
+  );
+  const formatted = formatUnits(balance, optionsWithDefaults.decimals);
   const dotIndex = formatted.indexOf('.');
+
+  let trimmed;
   if (dotIndex !== -1) {
-    // Trim to the required precision without rounding
-    const neededLength = dotIndex + precision + 1;
-    const trimmed =
+    const neededLength = dotIndex + optionsWithDefaults.precision + 1;
+    trimmed =
       formatted.length > neededLength
         ? formatted.slice(0, neededLength)
         : formatted;
-
-    return trimmed;
+  } else {
+    trimmed = formatted;
   }
 
-  return formatted;
+  // Use Intl.NumberFormat to localize the number
+  const number = parseFloat(trimmed);
+  return new Intl.NumberFormat(optionsWithDefaults.locale, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: optionsWithDefaults.precision,
+  }).format(number);
 };
 
 // Format balance, but truncate trailing zeros that are not significant
 export const formatBalanceTruncated = (
   balance: bigint,
-  decimals: number,
-  precision = 6,
-) => formatBalance(balance, decimals, precision).replace(/\.0+$/, '');
+  options?: { decimals?: number; precision?: number; locale?: string },
+) => formatBalance(balance, options).replace(/\.0+$/, '');
 
 export const parseBalance = (balance: string, decimals: number) =>
   parseUnits(balance, decimals);

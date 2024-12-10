@@ -80,7 +80,7 @@ export default function Styleguide() {
         <h2 className="bg-muted p-2 text-muted-foreground">Muted</h2>
         <h2 className="bg-accent p-2 text-accent-foreground">Accent</h2>
         <h2 className="bg-accent-2 p-2 text-destructive-foreground">
-          accent-2
+          Accent-2
         </h2>
         <h2 className="bg-destructive p-2 text-destructive-foreground">
           Destructive

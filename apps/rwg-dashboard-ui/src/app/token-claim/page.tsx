@@ -1,32 +1,46 @@
 'use client';
 
-import React from 'react';
-import RealIcon from '@/assets/images/R.svg';
+import Countdown from '@/components/countdown';
+import ClaimWarningModal from '@/components/modals/ClaimWarningModal';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
+import RealIcon from '@/assets/images/R.svg';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useClaimableAmount } from '@/hooks/useClaimableAmount';
+import { useToken } from '@/hooks/useToken';
+import { formatBalance } from '@/utils';
+import { Calendar, HandCoins } from 'lucide-react';
+import { formatUnits, parseUnits } from 'viem';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import dayjs from '@/dayjs';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useToken } from '@/hooks/useToken';
-import { parseUnits } from 'viem';
-import { formatBalance } from '@/utils';
-import ErrorComponent from '@/components/error';
 
 const nextUnlockDate = new Date('2023-01-01');
 const progress = 0;
 const unvested = 0n;
 
-export default function Vesting() {
-  const token = useToken();
+const ClaimPage = () => {
   const { sdkHasLoaded } = useDynamicContext();
-
-  if (token.errors.length > 0) {
-    return <ErrorComponent />;
-  }
+  const claimableAmount = useClaimableAmount();
+  const token = useToken();
 
   return (
-    <div className="space-y-5 p-3 sm:p-5">
+    <div className="space-y-8 p-3 sm:p-5">
+      <div>
+        <h2 className="mb-3 text-[2rem] font-medium">
+          <HandCoins className="mb-1 inline size-9" /> Token Claim
+        </h2>
+        <p className="mb-4 text-xl font-medium leading-tight text-white/80">
+          Claim your tokens from various sources here.
+        </p>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle className="uppercase">{token.symbol} Balance</CardTitle>
@@ -62,10 +76,66 @@ export default function Vesting() {
             >
               {token.mint.isPending ? 'Buying' : 'Buy'} {token.symbol}
             </Button>
+            <p className="text-destructive empty:hidden">
+              {token.mint.error?.message}
+            </p>
           </div>
         </CardContent>
       </Card>
-
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-normal">
+              Claimable Public Sale Tokens
+            </CardTitle>
+            <ClaimWarningModal
+              amount={claimableAmount.data?.total ?? 0n}
+              // eslint-disable-next-line no-console
+              onConfirm={() => console.log('confirm')}
+            >
+              <Button loading={claimableAmount.isLoading}>Claim</Button>
+            </ClaimWarningModal>
+          </div>
+        </CardHeader>
+        <CardContent className="pb-3">
+          {claimableAmount.isLoading || token.isLoading ? (
+            <>
+              <Skeleton className="mb-4 h-6 w-full rounded-full" />
+              <Skeleton className="h-6 w-full rounded-full" />
+            </>
+          ) : (
+            <div>
+              <div className="flex items-center justify-between">
+                <h3 className="mb-2 text-lg">Purchased Amount</h3>
+                <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
+                  <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                    <RealIcon className="size-full" />
+                  </span>
+                  {formatBalance(claimableAmount.data?.claimable ?? 0n)}{' '}
+                </h3>
+              </div>
+              <div className="flex items-center justify-between">
+                <h3 className="mb-2 text-lg">
+                  Bonus Amount ({claimableAmount.data?.bonusPercent}%)
+                </h3>
+                <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
+                  <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                    <RealIcon className="size-full" />
+                  </span>
+                  {formatBalance(claimableAmount.data?.bonus ?? 0n)}{' '}
+                </h3>
+              </div>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="text-muted-foreground">
+          <hr className="mb-3 w-full border-lighter" />
+          <div className="flex items-center gap-1">
+            <Calendar className="inline" /> Claim period ends in{' '}
+            <Countdown endDate={claimableAmount.data?.period?.end} />
+          </div>
+        </CardFooter>
+      </Card>
       <Card>
         <CardHeader>
           <div className="flex flex-wrap justify-between gap-5">
@@ -93,7 +163,7 @@ export default function Vesting() {
                 {token.isLoading ? (
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
-                  <span className="">{formatBalance(0n)}</span>
+                  <span className="">{formatUnits(0n, token.decimals)}</span>
                 )}
               </span>
             </div>
@@ -107,7 +177,7 @@ export default function Vesting() {
                   {token.isLoading ? (
                     <Skeleton className="h-6 w-24 rounded-full" />
                   ) : (
-                    <span className="">{formatBalance(0n)}</span>
+                    <span className="">{formatUnits(0n, token.decimals)}</span>
                   )}
                 </span>
                 <Button
@@ -136,7 +206,8 @@ export default function Vesting() {
                 <>
                   <span>{progress.toFixed(0)}% vested</span>
                   <span className="text-sm text-muted">
-                    {formatBalance(0n)} / {formatBalance(0n)}
+                    {formatUnits(0n, token.decimals)} /{' '}
+                    {formatUnits(0n, token.decimals)}
                   </span>
                 </>
               )}
@@ -146,4 +217,6 @@ export default function Vesting() {
       </Card>
     </div>
   );
-}
+};
+
+export default ClaimPage;

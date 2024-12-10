@@ -68,13 +68,23 @@ async function main() {
     },
   });
 
-  await prisma.claim.createMany({
-    data: (await readClaims()).map(({ address, amount }) => ({
-      address,
-      amount: BigInt(amount).toString(),
-      claimed: false,
-    })),
-    skipDuplicates: true,
+  await prisma.claimPeriod.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      end: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7),
+      claims: {
+        createMany: {
+          data: (await readClaims()).map(({ address, amount }) => ({
+            address,
+            amount: BigInt(amount).toString(),
+            claimed: false,
+          })),
+          skipDuplicates: true,
+        },
+      },
+    },
   });
 }
 main()

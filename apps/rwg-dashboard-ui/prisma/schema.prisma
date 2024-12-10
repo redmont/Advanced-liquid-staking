@@ -93,11 +93,22 @@ model Reward {
   createdAt       DateTime @default(now())
 }
 
+model ClaimPeriod {
+  id          Int      @id @default(autoincrement())
+  created     DateTime @default(now())
+  end         DateTime
+  claims      Claim[]
+}
+
 model Claim {
   id          Int      @id @default(autoincrement())
-  address     String   @unique
+  address     String  
   amount      Decimal  @db.Decimal(30, 0)
+  periodId    Int @map("deadlineId")
+  period      ClaimPeriod @relation(fields: [periodId], references: [id])
   claimed     Boolean  @default(false)
   claimedAt   DateTime?
   createdAt   DateTime @default(now())
+
+  @@unique([address, periodId])
 }

@@ -18,6 +18,7 @@ import type { RewardWave } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import { saveWave } from './saveWave';
 import { getCurrentWave } from './getWave';
+import { useToken } from '@/hooks/useToken';
 
 type WaveUpdate = Pick<
   RewardWave,
@@ -29,10 +30,11 @@ const useDevWave = () =>
 
 const DeveloperPage = () => {
   assert(isDev, 'Not in dev mode');
+  const token = useToken();
   const queryClient = useQueryClient();
   const currentWave = useDevWave();
   const { primaryWallet } = useDynamicContext();
-
+  const [mintAmount, setMintAmount] = useState(100);
   const [addressOverride, setAddressOverride] = useAtom(
     primaryWalletAddressOverrideAtom,
   );
@@ -124,6 +126,30 @@ const DeveloperPage = () => {
             id="wallet-addresses"
             placeholder="Comma separated addresses: i.e. 0x123...,0x456..."
           />
+        </div>
+        <div>
+          <label className="mb-2 block">Issue {token.symbol}</label>
+          <Input
+            className="mb-3"
+            placeholder=""
+            value={mintAmount}
+            onChange={(e) => setMintAmount(parseFloat(e.target.value))}
+            endAdornment={
+              <Button
+                loading={token.mint.isPending}
+                onClick={() =>
+                  token.mint.mutate(
+                    BigInt(mintAmount) * BigInt(10 ** token.decimals),
+                  )
+                }
+              >
+                Issue
+              </Button>
+            }
+          />
+          <p className="text-destructive empty:hidden">
+            {issueVestingTokenMutation.error?.message}
+          </p>
         </div>
         <div>
           <label className="mb-2 block">Issue vesting $REAL ($vREAL)</label>

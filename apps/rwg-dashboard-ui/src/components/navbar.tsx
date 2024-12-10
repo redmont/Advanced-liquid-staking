@@ -207,14 +207,14 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
           </li>
           {isAuthenticated &&
             claimableAmount.data &&
-            claimableAmount.data.claimable > 0n && (
+            claimableAmount.data.claims.length > 0 && (
               <li>
                 <NextLink
                   className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-                  path="/claim"
+                  path="/token-claim"
                 >
                   <HandCoins />
-                  <span>Claim</span>
+                  <span>Token Claim</span>
                 </NextLink>
               </li>
             )}

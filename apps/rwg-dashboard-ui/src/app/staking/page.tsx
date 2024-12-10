@@ -284,9 +284,7 @@ export default function Stake() {
             <RealIcon className="inline size-5" />
           </span>
           <span className="mb-1 text-3xl font-medium leading-none">
-            <AnimatedNumber
-              value={formatBalance(vault.deposited, token.decimals)}
-            />
+            <AnimatedNumber value={formatBalance(vault.deposited)} />
           </span>
         </p>
       </Card>
@@ -301,9 +299,7 @@ export default function Stake() {
             <RealIcon className="inline size-5" />
           </span>
           <span className="mb-1 text-3xl font-medium leading-none">
-            <AnimatedNumber
-              value={formatBalance(vault.shares.data ?? 0n, token.decimals)}
-            />
+            <AnimatedNumber value={formatBalance(vault.shares.data ?? 0n)} />
           </span>
         </p>
       </Card>
@@ -320,17 +316,12 @@ export default function Stake() {
                   <FormLabel
                     className={cn('block', { 'text-muted': stakeFormLoading })}
                   >
-                    Stakeable Balance:{' '}
-                    {formatBalance(token.balance, token.decimals)}{' '}
+                    Stakeable Balance: {formatBalance(token.balance)}{' '}
                     {token.symbol}
                     {vault.allowance.isSuccess && vault.allowance.data > 0n && (
                       <>
                         {', '}
-                        Allowance:{' '}
-                        {formatBalance(
-                          vault.allowance.data,
-                          token.decimals,
-                        )}{' '}
+                        Allowance: {formatBalance(vault.allowance.data)}{' '}
                         {token.symbol}
                       </>
                     )}
@@ -511,8 +502,7 @@ export default function Stake() {
                 render={({ field, formState }) => (
                   <FormItem>
                     <FormLabel>
-                      Unlockable Amount:{' '}
-                      {formatBalance(vault.unlockable, token.decimals)}{' '}
+                      Unlockable Amount: {formatBalance(vault.unlockable)}{' '}
                       {token.symbol}
                     </FormLabel>
                     <div className="flex flex-col gap-3 sm:flex-row">
@@ -617,8 +607,7 @@ export default function Stake() {
                         {token.symbol} Stake
                       </div>
                       <div className="text-lg font-medium">
-                        {formatBalance(deposit.amount, token.decimals)}{' '}
-                        {token.symbol}
+                        {formatBalance(deposit.amount)} {token.symbol}
                       </div>
                       <div className="text-lg">
                         {dayjs
