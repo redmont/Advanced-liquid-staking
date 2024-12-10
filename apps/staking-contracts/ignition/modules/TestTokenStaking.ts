@@ -4,6 +4,7 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const testTokenStaking = buildModule("TestTokenStaking", (m) => {
   const realToken = m.contract("TestToken", ["Real Token", "REAL"], { id: "REAL" });
+  const defaultEpochRewards = BigInt(100e18);
   const epochDuration = 7n * 24n * 60n * 60n; // 7 days
   const tiers = [
     [90n * 24n * 60n * 60n, BigInt(1e17)], // 90 days, 0.1x
@@ -13,7 +14,7 @@ const testTokenStaking = buildModule("TestTokenStaking", (m) => {
     [1440n * 24n * 60n * 60n, BigInt(21e17)], // 1440 days, 2.1x
   ];
 
-  const staking = m.contract("TokenStaking", [realToken, epochDuration, tiers]);
+  const staking = m.contract("TokenStaking", [realToken, defaultEpochRewards, epochDuration, tiers]);
 
   return {
     staking,
