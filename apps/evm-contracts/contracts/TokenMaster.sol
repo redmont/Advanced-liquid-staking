@@ -19,7 +19,7 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
     mapping(bytes16 => bool) public claimed;
     mapping(address => uint256) public nonces;
 
-    event TokenPayOut(address indexed walletAddress, bytes16 indexed receiptId, uint256 amount);
+    event TokenPayOut(address indexed walletAddress, bytes16 indexed claimId, uint256 amount);
 
     constructor(address _authorizedSigner, address _treasury, ERC20 _token) {
         require(_authorizedSigner != address(0), "Invalid signer address");
@@ -36,12 +36,12 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
     }
 
     function getMessageHash(
-        bytes16 _receiptId,
+        bytes16 _claimId,
         address _receiver,
         uint256 _amount,
         uint256 _nonce
     ) public view returns (bytes32) {
-        return keccak256(abi.encodePacked(_receiptId, _receiver, _amount, block.chainid, address(this), _nonce));
+        return keccak256(abi.encodePacked(_claimId, _receiver, _amount, block.chainid, address(this), _nonce));
     }
 
     receive() external payable {}
@@ -52,19 +52,19 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
         return data.toEthSignedMessageHash().recover(signature) == authorizedSigner;
     }
 
-    function claimToken(bytes16 receiptId, uint256 amount, bytes memory signature) public whenNotPaused nonReentrant {
+    function claimToken(bytes16 claimId, uint256 amount, bytes memory signature) public whenNotPaused nonReentrant {
         address receiver = msg.sender;
-        bytes32 message = getMessageHash(receiptId, receiver, amount, nonces[receiver]);
+        bytes32 message = getMessageHash(claimId, receiver, amount, nonces[receiver]);
 
         require(_verifySignature(message, signature), "Invalid signature");
-        require(!claimed[receiptId], "Token already issued");
+        require(!claimed[claimId], "Token already issued");
 
-        claimed[receiptId] = true;
+        claimed[claimId] = true;
         nonces[receiver]++;
 
         bool success = token.transferFrom(treasury, receiver, amount);
         require(success, "Failed to send Token");
 
-        emit TokenPayOut(receiver, receiptId, amount);
+        emit TokenPayOut(receiver, claimId, amount);
     }
 }

@@ -8,6 +8,7 @@ const testStakingVault = buildModule("StakingVault", (m) => {
 
   return {
     vault,
+    token: tokenModule.token,
   };
 });
 

@@ -100,15 +100,23 @@ model ClaimPeriod {
   claims      Claim[]
 }
 
+enum ClaimStatus {
+  Pending
+  Signed
+  Claimed
+}
+
 model Claim {
-  id          Int      @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   address     String  
-  amount      Decimal  @db.Decimal(30, 0)
-  periodId    Int @map("deadlineId")
-  period      ClaimPeriod @relation(fields: [periodId], references: [id])
-  claimed     Boolean  @default(false)
+  amount      Decimal       @db.Decimal(30, 0)
+  signature   String?
+  periodId    Int
+  period      ClaimPeriod   @relation(fields: [periodId], references: [id])
+  status      ClaimStatus   @default(Pending)
+  txHash      String?
+  createdAt   DateTime      @default(now())
   claimedAt   DateTime?
-  createdAt   DateTime @default(now())
 
   @@unique([address, periodId])
 }

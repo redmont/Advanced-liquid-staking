@@ -13,6 +13,7 @@ const testTokenMaster = buildModule("TestTokenMaster", (m) => {
 
   return {
     master,
+    token: tokenModule.token,
   };
 });
 
