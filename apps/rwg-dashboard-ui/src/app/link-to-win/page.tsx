@@ -271,9 +271,9 @@ export default function LinkToWinPage() {
               <div className="space-y-2">
                 <div className="flex w-full items-center justify-between">
                   <div>
-                    <h3 className="text-md font-medium sm:text-lg md:text-2xl">
+                    <h3 className="text-md font-medium sm:text-lg">
                       <Rocket className="mb-1 inline size-4 text-primary md:size-6" />{' '}
-                      Public Sale Boost
+                      Public Sale Boost<span className="text-muted">*</span>
                     </h3>
                     <p className="text-sm text-lightest">
                       Percentage bonus in upcoming {token.symbol} public sale.
@@ -293,11 +293,14 @@ export default function LinkToWinPage() {
                     100
                   }
                 />
+                <p className="!mt-0.5 text-right text-xs text-muted">
+                  *Claim up to a maximum of 16,666 {token.symbol}
+                </p>
               </div>
               <div className="space-y-2">
                 <div className="flex w-full items-center justify-between">
                   <div>
-                    <h3 className="text-md font-medium sm:text-lg md:text-2xl">
+                    <h3 className="text-md font-medium sm:text-lg">
                       <Diamond className="mb-1 inline size-4 text-primary md:size-6" />{' '}
                       Realbet Credits
                     </h3>

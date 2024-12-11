@@ -39,10 +39,8 @@ export const useAuthenticatedQuery = <TData = unknown, TError = unknown>(
   });
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      void queryClient.cancelQueries({ queryKey: options.queryKey });
-      void queryClient.invalidateQueries({ queryKey: options.queryKey });
-    }
+    void queryClient.cancelQueries({ queryKey: options.queryKey });
+    void queryClient.invalidateQueries({ queryKey: options.queryKey });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, JSON.stringify(options.queryKey), queryClient]);
 

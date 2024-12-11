@@ -7,24 +7,32 @@ import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol"
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { Multicall } from "@openzeppelin/contracts/utils/Multicall.sol";
 
-contract TokenMaster is AccessControl, ReentrancyGuard, Pausable {
+contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
 
     address public authorizedSigner;
     ERC20 public token;
+    address public treasury;
     mapping(bytes16 => bool) public claimed;
     mapping(address => uint256) public nonces;
 
     event TokenPayOut(address indexed walletAddress, bytes16 indexed receiptId, uint256 amount);
 
-    constructor(address _authorizedSigner, ERC20 _token) {
+    constructor(address _authorizedSigner, address _treasury, ERC20 _token) {
         require(_authorizedSigner != address(0), "Invalid signer address");
         require(address(_token) != address(0), "Invalid token address");
+        require(address(_treasury) != address(0), "Invalid treasury address");
 
         token = _token;
         authorizedSigner = _authorizedSigner;
+    }
+
+    function setTreasury(address _treasury) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(address(_treasury) != address(0), "Invalid treasury address");
+        treasury = _treasury;
     }
 
     function getMessageHash(
@@ -44,15 +52,8 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable {
         return data.toEthSignedMessageHash().recover(signature) == authorizedSigner;
     }
 
-    function withdraw(address payable to, uint256 amount) public onlyRole(DEFAULT_ADMIN_ROLE) nonReentrant {
-        require(amount > 0, "Invalid amount");
-        bool success = token.transfer(to, amount);
-        require(success, "Failed to send token");
-    }
-
     function claimToken(bytes16 receiptId, uint256 amount, bytes memory signature) public whenNotPaused nonReentrant {
         address receiver = msg.sender;
-
         bytes32 message = getMessageHash(receiptId, receiver, amount, nonces[receiver]);
 
         require(_verifySignature(message, signature), "Invalid signature");
@@ -61,10 +62,9 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable {
         claimed[receiptId] = true;
         nonces[receiver]++;
 
-        bool success = token.transfer(receiver, amount);
+        bool success = token.transferFrom(treasury, receiver, amount);
         require(success, "Failed to send Token");
 
         emit TokenPayOut(receiver, receiptId, amount);
     }
-
 }
