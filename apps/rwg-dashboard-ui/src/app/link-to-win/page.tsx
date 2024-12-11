@@ -86,10 +86,6 @@ export default function LinkToWinPage() {
     accountLinked &&
     !hasMembership &&
     !hasSeatsRemaining;
-  const showFreeTicketsPrompt =
-    (sdkHasLoaded && !loggedIn) ||
-    (loggedIn && !accountLinked) ||
-    (accountLinked && !hasMembership);
   const showNotWhitelistedMessage =
     loggedIn &&
     accountLinked &&
@@ -121,12 +117,11 @@ export default function LinkToWinPage() {
                 status!
               </p>
             )}
-            {showFreeTicketsPrompt && (
-              <p className="text-lg md:max-w-[66%] xl:text-xl">
-                VIPs get 50 tickets to win. Prizes include {token.symbol} public
-                sale bonuses and free RealBet credits.
-              </p>
-            )}
+            <p className="text-lg md:max-w-[66%] xl:text-xl">
+              VIPs get {currentWave.data?.ticketsPerMember} tickets to win.
+              Prizes include {token.symbol} public sale bonuses and free RealBet
+              credits.
+            </p>
             {showLinkButton && (
               <Button
                 size="lg"
