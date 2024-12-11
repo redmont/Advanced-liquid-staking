@@ -1,14 +1,13 @@
 /// <reference types="@nomicfoundation/ignition-core" />
-
+import testToken from "./TestToken";
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 const testStakingVault = buildModule("StakingVault", (m) => {
-  const token = m.contract("TestRealToken");
-  const vault = m.contract("StakingVault", [token]);
+  const tokenModule = m.useModule(testToken);
+  const vault = m.contract("StakingVault", [tokenModule.token]);
 
   return {
     vault,
-    token,
   };
 });
 

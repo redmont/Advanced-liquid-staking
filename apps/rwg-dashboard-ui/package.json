@@ -12,6 +12,7 @@
     "start": "next start",
     "prepare": "husky && husky install",
     "scrape-icons": "npx tsx ./scripts/scrapeCoinIcons.ts",
+    "wagmi:generate": "npx wagmi generate",
     "db:pull": "npx prisma db pull",
     "db:generate": "npx prisma generate",
     "db:push": "npx prisma db push",

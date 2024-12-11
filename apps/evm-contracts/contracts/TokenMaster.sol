@@ -67,16 +67,4 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable {
         emit TokenPayOut(receiver, receiptId, amount);
     }
 
-    function batchPayoutPrize(bytes16[] memory receiptIds, uint256[] memory amounts, bytes[] memory signatures) public {
-        require(receiptIds.length == amounts.length, "Input parameter length mismatch");
-        require(receiptIds.length == signatures.length, "Input parameter length mismatch");
-
-        for (uint256 i = 0; i < receiptIds.length; i++) {
-            claimToken(receiptIds[i], amounts[i], signatures[i]);
-        }
-    }
-
-    function blocklistReceipt(bytes16 receiptId) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        claimed[receiptId] = true;
-    }
 }

@@ -14,13 +14,13 @@ export default defineConfig({
         {
           name: 'TestToken',
           address: {
-            [sepolia.id]: '0x80503a00e1B60C9Be8E6f005C3d4fDbbDAbd5be2',
+            [sepolia.id]: '0x77b8aD2325dDCC403e167ac238b15ed194ceCF71',
           },
         },
         {
           name: 'TestStakingVault',
           address: {
-            [sepolia.id]: '0xAfa68D066A7e809EFAb066dcA5001f1cD1e75eA0',
+            [sepolia.id]: '0x274608045cD704A291bFF9d79453D98C4E78baA4',
           },
         },
         {
@@ -33,6 +33,12 @@ export default defineConfig({
           name: 'TokenStaking',
           address: {
             [sepolia.id]: '0x77Ea6Da0F6F7155d78845535771a179Efa4c2a3f',
+          },
+        },
+        {
+          name: 'TokenMaster',
+          address: {
+            [sepolia.id]: '0x642875E3b07Eaf23629b3f4C32c2E514305F203e',
           },
         },
       ],
