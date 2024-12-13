@@ -14,6 +14,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
 
     uint256 internal constant MULTIPLIER = 1e18;
     uint256 public epochDuration;
+    uint256 public epochStartTime;
     uint256 public defaultEpochRewards;
 
     struct Tier {
@@ -64,6 +65,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         address token,
         uint256 _defaultEpochRewards,
         uint256 _epochDuration,
+        uint256 _epochStartTime,
         Tier[] memory _tiers
     ) ERC20("Staked REAL", "sREAL") Voting(msg.sender) {
         TOKEN = IERC20(token);
@@ -75,6 +77,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         }
 
         epochDuration = _epochDuration;
+        epochStartTime = _epochStartTime;
         defaultEpochRewards = _defaultEpochRewards;
 
         uint256 currentEpoch = getCurrentEpoch();
@@ -228,7 +231,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     }
 
     function getCurrentEpoch() public view returns (uint256) {
-        return block.timestamp / epochDuration;
+        return (block.timestamp - epochStartTime) / epochDuration;
     }
 
     function getUserStakes(address user) external view returns (Stake[] memory) {
