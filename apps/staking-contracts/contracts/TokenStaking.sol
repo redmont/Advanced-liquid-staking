@@ -173,6 +173,15 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         emit Unstaked(msg.sender, amount);
     }
 
+    // Check if the stake is locked
+    function isLocked(uint256 stakeIndex) public view returns (bool) {
+        if (stakeIndex >= userStakes[msg.sender].length) {
+            revert InvalidStakeIndex();
+        }
+        Stake memory userStake = userStakes[msg.sender][stakeIndex];
+        return userStake.startTime + tiers[userStake.tierIndex].lockPeriod > block.timestamp;
+    }
+
     function _claimRewards(uint256 stakeIndex, uint32[] calldata epochs, bytes32[][] calldata merkleProofs) internal {
         if (stakeIndex >= userStakes[msg.sender].length) {
             revert InvalidStakeIndex();
