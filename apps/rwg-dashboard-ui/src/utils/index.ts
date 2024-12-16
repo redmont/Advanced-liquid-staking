@@ -32,7 +32,7 @@ export const formatBalance = (
   // Use Intl.NumberFormat to localize the number
   const number = parseFloat(trimmed);
   return new Intl.NumberFormat(optionsWithDefaults.locale, {
-    minimumFractionDigits: 0,
+    minimumFractionDigits: 2,
     maximumFractionDigits: optionsWithDefaults.precision,
   }).format(number);
 };

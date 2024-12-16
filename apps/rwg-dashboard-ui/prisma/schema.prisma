@@ -104,16 +104,19 @@ enum ClaimStatus {
   Pending
   Signed
   Claimed
+  Error
 }
 
 model Claim {
   id          Int           @id @default(autoincrement())
   address     String  
   amount      Decimal       @db.Decimal(30, 0)
+  bonus       Decimal?      @db.Decimal(30, 0)
   signature   String?
   periodId    Int
   period      ClaimPeriod   @relation(fields: [periodId], references: [id])
   status      ClaimStatus   @default(Pending)
+  reason      String?
   txHash      String?
   createdAt   DateTime      @default(now())
   claimedAt   DateTime?

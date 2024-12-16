@@ -38,7 +38,7 @@ import {
 } from '@/store/developer';
 import { useAtom } from 'jotai';
 import ConnectWallet from './connect-wallet';
-import { useClaimableAmount } from '@/hooks/useClaimableAmount';
+import { useClaims } from '@/hooks/useClaims';
 
 const NextLink: FC<PropsWithChildren<{ path: string; className?: string }>> = ({
   className,
@@ -77,7 +77,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const navRef = useRef<HTMLDivElement>(null);
   useClickOutside(navRef, () => setNavOpen(false));
   const vault = useVault();
-  const claimableAmount = useClaimableAmount();
+  const { hasClaims } = useClaims();
 
   // address override is in localstorage which the backend is not aware of,
   // so we need to set this variable on mount to avoid hydration issues
@@ -205,19 +205,17 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
               <span>Airdrop</span>
             </NextLink>
           </li>
-          {isAuthenticated &&
-            claimableAmount.data &&
-            claimableAmount.data.claims.length > 0 && (
-              <li>
-                <NextLink
-                  className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-                  path="/token-claim"
-                >
-                  <HandCoins />
-                  <span>Token Claim</span>
-                </NextLink>
-              </li>
-            )}
+          {isAuthenticated && hasClaims && (
+            <li>
+              <NextLink
+                className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+                path="/token-claim"
+              >
+                <HandCoins />
+                <span>Token Claim</span>
+              </NextLink>
+            </li>
+          )}
           {isDev && (
             <li>
               <NextLink

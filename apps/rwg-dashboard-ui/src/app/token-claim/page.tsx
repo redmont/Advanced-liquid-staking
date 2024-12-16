@@ -10,10 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-
 import RealIcon from '@/assets/images/R.svg';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useClaimableAmount } from '@/hooks/useClaimableAmount';
+import { useClaims } from '@/hooks/useClaims';
 import { useToken } from '@/hooks/useToken';
 import { formatBalance } from '@/utils';
 import { Calendar, HandCoins } from 'lucide-react';
@@ -21,6 +20,7 @@ import { formatUnits, parseUnits } from 'viem';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import dayjs from '@/dayjs';
 import { Progress } from '@/components/ui/progress';
+import { isDev } from '@/env';
 
 const nextUnlockDate = new Date('2023-01-01');
 const progress = 0;
@@ -28,8 +28,9 @@ const unvested = 0n;
 
 const ClaimPage = () => {
   const { sdkHasLoaded } = useDynamicContext();
-  const claimableAmount = useClaimableAmount();
+  const { claims, process, claim, hasError, errors } = useClaims();
   const token = useToken();
+  const showPeriod = claims.isLoading || claims.data?.period;
 
   return (
     <div className="space-y-8 p-3 sm:p-5">
@@ -89,16 +90,32 @@ const ClaimPage = () => {
               Claimable Public Sale Tokens
             </CardTitle>
             <ClaimWarningModal
-              amount={claimableAmount.data?.total ?? 0n}
-              // eslint-disable-next-line no-console
-              onConfirm={() => console.log('confirm')}
+              amount={claims.data?.amounts.total ?? 0n}
+              onConfirm={process.mutate}
             >
-              <Button loading={claimableAmount.isLoading}>Claim</Button>
+              <Button
+                variant={hasError ? 'destructive-outline' : 'default'}
+                loading={claims.isLoading || process.isPending}
+              >
+                {hasError
+                  ? 'Retry'
+                  : process.isPending
+                    ? 'Waiting for Signatures'
+                    : claim.isPending
+                      ? 'Claiming'
+                      : 'Claim'}
+              </Button>
             </ClaimWarningModal>
           </div>
+          <p className="text-right text-sm text-destructive empty:hidden">
+            {process.error?.message}
+          </p>
+          <p className="text-right text-sm text-destructive empty:hidden">
+            {claim.error?.message}
+          </p>
         </CardHeader>
         <CardContent className="pb-3">
-          {claimableAmount.isLoading || token.isLoading ? (
+          {claims.isLoading || token.isLoading ? (
             <>
               <Skeleton className="mb-4 h-6 w-full rounded-full" />
               <Skeleton className="h-6 w-full rounded-full" />
@@ -111,7 +128,7 @@ const ClaimPage = () => {
                   <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                     <RealIcon className="size-full" />
                   </span>
-                  {formatBalance(claimableAmount.data?.claimable ?? 0n)}{' '}
+                  {formatBalance(claims.data?.amounts.claimable ?? 0n)}{' '}
                 </h3>
               </div>
               <div className="flex items-center justify-between">
@@ -120,18 +137,33 @@ const ClaimPage = () => {
                   <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                     <RealIcon className="size-full" />
                   </span>
-                  {formatBalance(claimableAmount.data?.bonus ?? 0n)}{' '}
+                  {formatBalance(claims.data?.amounts.bonus ?? 0n)}{' '}
                 </h3>
               </div>
             </div>
           )}
+          <p className="max-w-[60rem] overflow-x-auto whitespace-pre break-all text-sm text-destructive empty:hidden">
+            {hasError &&
+              !isDev &&
+              "We've detected that something went wrong with at least one of your claims. Please retry later and contact us if it persists."}
+            {hasError && isDev && errors}
+          </p>
         </CardContent>
         <CardFooter className="text-muted-foreground">
-          <hr className="mb-3 w-full border-lighter" />
-          <div className="flex items-center gap-1">
-            <Calendar className="inline" /> Claim period ends in{' '}
-            <Countdown endDate={claimableAmount.data?.period?.end} />
-          </div>
+          {showPeriod && (
+            <>
+              <hr className="mb-3 w-full border-lighter" />
+              <div className="flex items-center gap-1">
+                <Calendar className="inline" /> Claim period ends in{' '}
+                {claims.isLoading && (
+                  <Skeleton className="inline-block h-4 w-24" />
+                )}
+                {claims.isSuccess && (
+                  <Countdown endDate={claims.data?.period?.end} />
+                )}
+              </div>
+            </>
+          )}
         </CardFooter>
       </Card>
       <Card>

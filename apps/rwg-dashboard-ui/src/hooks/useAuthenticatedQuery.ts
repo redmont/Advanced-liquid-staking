@@ -23,7 +23,7 @@ export const useAuthenticatedQuery = <TData = unknown, TError = unknown>(
 
   const query = useQuery({
     ...options,
-    enabled: isLoggedIn || options.enabled,
+    enabled: isLoggedIn && options.enabled,
     queryFn: async () => {
       const token = getAuthToken();
       if (!token) {

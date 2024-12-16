@@ -26,8 +26,10 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
         require(address(_token) != address(0), "Invalid token address");
         require(address(_treasury) != address(0), "Invalid treasury address");
 
+        treasury = _treasury;
         token = _token;
         authorizedSigner = _authorizedSigner;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function setTreasury(address _treasury) public onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -58,6 +60,7 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
 
         require(_verifySignature(message, signature), "Invalid signature");
         require(!claimed[claimId], "Token already issued");
+        require(token.balanceOf(address(this)) >= amount, "Insufficient balance");
 
         claimed[claimId] = true;
         nonces[receiver]++;

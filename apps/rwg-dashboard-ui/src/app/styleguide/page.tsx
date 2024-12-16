@@ -292,7 +292,7 @@ export default function Styleguide() {
           </div>
         </div>
       </div>
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button loading={isLoading} disabled={isDisabled}>
           Default
         </Button>
@@ -301,6 +301,13 @@ export default function Styleguide() {
         </Button>
         <Button loading={isLoading} disabled={isDisabled} variant="outline">
           Outline
+        </Button>
+        <Button
+          loading={isLoading}
+          disabled={isDisabled}
+          variant="destructive-outline"
+        >
+          Destructive Outline
         </Button>
         <Button loading={isLoading} disabled={isDisabled} variant="borderless">
           Borderless

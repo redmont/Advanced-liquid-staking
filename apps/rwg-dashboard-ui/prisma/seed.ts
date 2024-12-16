@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import { PrismaClient } from '@prisma/client';
 import { WAVE_CONFIGURATIONS } from '@/config/linkToWin';
-import { readClaims } from '@/server/actions/getClaimsData';
+import { readClaims } from '../src/server/actions/claim/getClaimsData';
 
 const prisma = new PrismaClient({
   datasourceUrl: process.env.SUPABASE_DB_POSTGRES_URL_NON_POOLING,

@@ -28,9 +28,8 @@ import {
   Wallet2,
 } from 'lucide-react';
 import RealIcon from '@/assets/images/R.svg';
-import GiftBoxes from './components/GiftBoxes';
-import { subscribeToCurrentWave } from '@/server/actions/ticket-waves/subscribeToCurrentWave';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import GiftBoxes from '../../components/gift-boxes';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCasinoLink } from '@/hooks/useCasinoLink';
 import { Progress } from '@/components/ui/progress';
 import { useToken } from '@/hooks/useToken';
@@ -51,7 +50,6 @@ export default function LinkToWinPage() {
   const queryClient = useQueryClient();
   const token = useToken();
   const casinoLink = useCasinoLink();
-  const accountLinked = !!casinoLink.data;
   const { sdkHasLoaded } = useDynamicContext();
   const loggedIn = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
@@ -59,47 +57,30 @@ export default function LinkToWinPage() {
   const rewardsAccount = useRewardsAccount();
   const { rewardTotals, postedToTwitterAlready } = rewardsAccount;
   const currentWaveMembership = useCurrentWaveMembership();
-  const hasMembership = !!currentWaveMembership.data;
   const isWhitelisted = useCurrentWaveWhiteListed();
   const linkCasinoAccount = useLinkCasinoAccount();
-
-  const subscribeToWave = useMutation({
-    mutationFn: async () => {
-      const authToken = getAuthToken();
-      if (!authToken) {
-        throw new Error('No token');
-      }
-      return subscribeToCurrentWave(authToken);
-    },
-    onSuccess: () =>
-      Promise.all([rewardsAccount.refetch(), currentWave.refetch()]),
-  });
 
   const hasSeatsRemaining =
     currentWave.data && currentWave.data?.availableSeats > 0;
   const showLinkPrompt =
     (sdkHasLoaded && !loggedIn) ||
-    (loggedIn && !accountLinked && casinoLink.isSuccess);
+    (loggedIn && !casinoLink.isLinked && casinoLink.isSuccess);
   const showMaxSeatsReachedMessage =
     currentWave.data &&
     loggedIn &&
-    accountLinked &&
-    !hasMembership &&
+    casinoLink.isLinked &&
+    !currentWaveMembership.hasMembership &&
     !hasSeatsRemaining;
   const showNotWhitelistedMessage =
     loggedIn &&
-    accountLinked &&
+    casinoLink.isLinked &&
     currentWave.data &&
-    !hasMembership &&
+    !currentWaveMembership.hasMembership &&
     !isWhitelisted;
-  const showSeatData = loggedIn && accountLinked && hasMembership;
-  const showWaveSignupButton =
-    loggedIn &&
-    accountLinked &&
-    currentWaveMembership.isSuccess &&
-    !hasMembership &&
-    isWhitelisted;
-  const showLinkButton = loggedIn && casinoLink.isSuccess && !accountLinked;
+  const showSeatData =
+    loggedIn && casinoLink.isLinked && currentWaveMembership.hasMembership;
+  const showLinkButton =
+    loggedIn && casinoLink.isSuccess && !casinoLink.isLinked;
   const showVIPSeatsAvailable = currentWave.isLoading || !!currentWave.data;
   const showConnectButton = !loggedIn && sdkHasLoaded;
 
@@ -199,14 +180,14 @@ export default function LinkToWinPage() {
                 bonus tickets are not available. Please come back later.
               </p>
             )}
-            {showWaveSignupButton && (
+            {currentWaveMembership.canSubscribe && (
               <>
                 <p className="text-destructive empty:hidden">
-                  {subscribeToWave.error?.message}
+                  {currentWaveMembership.subscribe.error?.message}
                 </p>
                 <Button
-                  loading={subscribeToWave.isPending}
-                  onClick={() => subscribeToWave.mutate()}
+                  loading={currentWaveMembership.subscribe.isPending}
+                  onClick={() => currentWaveMembership.subscribe.mutate()}
                   size="lg"
                 >
                   Wave Signup

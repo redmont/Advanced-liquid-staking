@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { toBase26 } from '@/utils';
 import usePrimaryAddress from './usePrimaryAddress';
-import { fetchNFTs } from '@/utils/fetchNFTs';
+import { fetchNFTs } from '@/server/actions/fetchNFTs';
 
 const passGroups = [
   { title: 'Single Digit', bzrPerPass: 14_000 },
