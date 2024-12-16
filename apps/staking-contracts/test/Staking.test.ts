@@ -343,8 +343,9 @@ describe("TokenStaking", function () {
       const currentEpoch = await staking.read.getCurrentEpoch();
       const blockTimestamp = await time.latest();
       const epochDuration = await staking.read.epochDuration();
+      const epochStartTime = await staking.read.epochStartTime();
 
-      expect(currentEpoch).to.equal(BigInt(blockTimestamp) / epochDuration);
+      expect(currentEpoch).to.equal((BigInt(blockTimestamp) - epochStartTime) / epochDuration);
     });
 
     it("should return correct total effective supply at epoch", async function () {
