@@ -121,14 +121,14 @@ const ClaimPage = () => {
           </p>
         </CardHeader>
         <CardContent className="pb-3">
-          {claims.isLoading || token.isLoading || !claims.data ? (
+          {claims.isLoading || token.isLoading ? (
             <>
               <Skeleton className="mb-4 h-6 w-full rounded-full" />
               <Skeleton className="h-6 w-full rounded-full" />
             </>
           ) : (
             <div>
-              {claims.data.amounts.claimed > 0n && (
+              {claims.data && claims.data.amounts.claimed > 0n && (
                 <>
                   <div className="flex items-center justify-between">
                     <h3 className="mb-2 text-lg">Claimed Amount</h3>
@@ -150,7 +150,7 @@ const ClaimPage = () => {
                   </div>
                 </>
               )}
-              {claims.data.amounts.claimable > 0n && (
+              {(!claims.data || claims.data.amounts.claimable > 0n) && (
                 <>
                   <div className="flex items-center justify-between">
                     <h3 className="mb-2 text-lg">Purchased Amount</h3>
@@ -172,6 +172,7 @@ const ClaimPage = () => {
                   </div>
                 </>
               )}
+              {}
             </div>
           )}
           <p className="max-w-[60rem] overflow-x-auto whitespace-pre break-all text-sm text-destructive empty:hidden">
