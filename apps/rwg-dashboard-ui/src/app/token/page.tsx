@@ -56,7 +56,7 @@ export default function Token() {
   } = useVesting();
 
   const withdrawableAmountAnimated = useAnimatedNumber(
-    formatBalanceTruncated(withdrawableAmount, token.decimals, 2),
+    formatBalanceTruncated(withdrawableAmount),
     {
       decimals: 0,
       duration: 300,
@@ -96,7 +96,7 @@ export default function Token() {
                     <Skeleton className="-mb-1 inline-block h-6 w-24 rounded-full" />
                   ) : (
                     <span className="text-2xl font-bold sm:text-5xl">
-                      {formatBalance(token.balance, token.decimals)}
+                      {formatBalance(token.balance)}
                     </span>
                   )}{' '}
                   <span className="text-lg font-bold text-primary sm:text-3xl">
@@ -108,7 +108,7 @@ export default function Token() {
             <Button
               loading={!sdkHasLoaded || token.mint.isPending}
               onClick={() =>
-                token.mint.mutate(parseUnits('10000', token.decimals ?? 18))
+                token.mint.mutate(parseUnits('10000', token.decimals))
               }
               variant="neutral"
               size="xl"
@@ -223,7 +223,7 @@ export default function Token() {
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
                   <span className="">
-                    {formatBalanceTruncated(vestingAmount, token.decimals, 6)}
+                    {formatBalanceTruncated(vestingAmount)}
                   </span>
                 )}
               </span>
@@ -257,8 +257,6 @@ export default function Token() {
                   {nextWithdrawal
                     ? `${formatBalanceTruncated(
                         nextWithdrawal?.releasableAmount,
-                        token.decimals,
-                        2,
                       )} ${token.symbol}`
                     : ''}
                 </Button>
