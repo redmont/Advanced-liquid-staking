@@ -8,8 +8,12 @@ const tokenMasterFixture = async () => ignition.deploy(testTokenMaster);
 describe("TokenMaster", function () {
   it("Claiming works", async function () {
     const publicClient = await viem.getPublicClient();
-    const [admin, receiver] = await viem.getWalletClients();
+    const [admin, receiver, treasury] = await viem.getWalletClients();
     const { master, token } = await tokenMasterFixture();
+
+    await master.write.setTreasury([getAddress(treasury.account.address)]);
+    await token.write.mint([parseUnits("1000", 18)], { account: treasury.account });
+    await token.write.approve([master.address, parseUnits("1000", 18)], { account: treasury.account });
 
     expect(await master.read.authorizedSigner()).to.equal(getAddress(admin.account.address));
     const hashedMessage = await master.read.getMessageHash([

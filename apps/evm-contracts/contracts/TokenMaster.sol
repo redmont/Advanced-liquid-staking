@@ -9,6 +9,8 @@ import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Multicall } from "@openzeppelin/contracts/utils/Multicall.sol";
 
+import { console } from "hardhat/console.sol";
+
 contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
@@ -23,12 +25,12 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
 
     constructor(address _authorizedSigner, address _treasury, ERC20 _token) {
         require(_authorizedSigner != address(0), "Invalid signer address");
-        require(address(_token) != address(0), "Invalid token address");
         require(address(_treasury) != address(0), "Invalid treasury address");
+        require(address(_token) != address(0), "Invalid token address");
 
-        treasury = _treasury;
-        token = _token;
         authorizedSigner = _authorizedSigner;
+        token = _token;
+        treasury = _treasury;
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -60,7 +62,9 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
 
         require(_verifySignature(message, signature), "Invalid signature");
         require(!claimed[claimId], "Token already issued");
-        require(token.balanceOf(address(this)) >= amount, "Insufficient balance");
+        uint256 allowed = token.allowance(treasury, address(this));
+        console.log("Allowed", allowed);
+        require(token.allowance(treasury, address(this)) >= amount, "Insufficient allowance");
 
         claimed[claimId] = true;
         nonces[receiver]++;

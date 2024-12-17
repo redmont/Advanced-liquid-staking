@@ -38,7 +38,7 @@ export default defineConfig({
         {
           name: 'TokenMaster',
           address: {
-            [sepolia.id]: '0xadDb572391712a81f92Cf622b0C470E65b34777e',
+            [sepolia.id]: '0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e',
           },
         },
       ],
