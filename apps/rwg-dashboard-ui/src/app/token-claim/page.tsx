@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useClaims } from '@/hooks/useClaims';
 import { useToken } from '@/hooks/useToken';
 import { formatBalance } from '@/utils';
-import { Calendar, HandCoins } from 'lucide-react';
+import { Calendar, Check, HandCoins } from 'lucide-react';
 import { formatUnits, parseUnits } from 'viem';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import dayjs from '@/dayjs';
@@ -28,7 +28,7 @@ const unvested = 0n;
 
 const ClaimPage = () => {
   const { sdkHasLoaded } = useDynamicContext();
-  const { claims, process, claim, hasError, errors } = useClaims();
+  const { claims, process, claim, hasError, errors, allClaimed } = useClaims();
   const token = useToken();
   const showPeriod = claims.isLoading || claims.data?.period;
 
@@ -89,23 +89,29 @@ const ClaimPage = () => {
             <CardTitle className="text-xl font-normal">
               Claimable Public Sale Tokens
             </CardTitle>
-            <ClaimWarningModal
-              amount={claims.data?.amounts.total ?? 0n}
-              onConfirm={process.mutate}
-            >
-              <Button
-                variant={hasError ? 'destructive-outline' : 'default'}
-                loading={claims.isLoading || process.isPending}
+            {allClaimed ? (
+              <h3 className="text-2xl font-medium text-primary">
+                Claimed <Check className="inline" />
+              </h3>
+            ) : (
+              <ClaimWarningModal
+                amount={claims.data?.amounts.total ?? 0n}
+                onConfirm={process.mutate}
               >
-                {hasError
-                  ? 'Retry'
-                  : process.isPending
-                    ? 'Waiting for Signatures'
-                    : claim.isPending
-                      ? 'Claiming'
-                      : 'Claim'}
-              </Button>
-            </ClaimWarningModal>
+                <Button
+                  variant={hasError ? 'destructive-outline' : 'default'}
+                  loading={claims.isLoading || process.isPending}
+                >
+                  {hasError
+                    ? 'Retry'
+                    : process.isPending
+                      ? 'Waiting for Signatures'
+                      : claim.isPending
+                        ? 'Claiming'
+                        : 'Claim'}
+                </Button>
+              </ClaimWarningModal>
+            )}
           </div>
           <p className="text-right text-sm text-destructive empty:hidden">
             {process.error?.message}
@@ -115,31 +121,57 @@ const ClaimPage = () => {
           </p>
         </CardHeader>
         <CardContent className="pb-3">
-          {claims.isLoading || token.isLoading ? (
+          {claims.isLoading || token.isLoading || !claims.data ? (
             <>
               <Skeleton className="mb-4 h-6 w-full rounded-full" />
               <Skeleton className="h-6 w-full rounded-full" />
             </>
           ) : (
             <div>
-              <div className="flex items-center justify-between">
-                <h3 className="mb-2 text-lg">Purchased Amount</h3>
-                <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
-                  <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
-                    <RealIcon className="size-full" />
-                  </span>
-                  {formatBalance(claims.data?.amounts.claimable ?? 0n)}{' '}
-                </h3>
-              </div>
-              <div className="flex items-center justify-between">
-                <h3 className="mb-2 text-lg">Bonus Amount</h3>
-                <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
-                  <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
-                    <RealIcon className="size-full" />
-                  </span>
-                  {formatBalance(claims.data?.amounts.bonus ?? 0n)}{' '}
-                </h3>
-              </div>
+              {claims.data.amounts.claimed > 0n && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h3 className="mb-2 text-lg">Claimed Amount</h3>
+                    <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
+                      <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                        <RealIcon className="size-full" />
+                      </span>
+                      {formatBalance(claims.data?.amounts.claimed ?? 0n)}{' '}
+                    </h3>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="mb-2 text-lg">Bonus Amount</h3>
+                    <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
+                      <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                        <RealIcon className="size-full" />
+                      </span>
+                      {formatBalance(claims.data?.amounts.claimedBonus ?? 0n)}{' '}
+                    </h3>
+                  </div>
+                </>
+              )}
+              {claims.data.amounts.claimable > 0n && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h3 className="mb-2 text-lg">Purchased Amount</h3>
+                    <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
+                      <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                        <RealIcon className="size-full" />
+                      </span>
+                      {formatBalance(claims.data?.amounts.claimable ?? 0n)}{' '}
+                    </h3>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <h3 className="mb-2 text-lg">Bonus Amount</h3>
+                    <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
+                      <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                        <RealIcon className="size-full" />
+                      </span>
+                      {formatBalance(claims.data?.amounts.bonus ?? 0n)}{' '}
+                    </h3>
+                  </div>
+                </>
+              )}
             </div>
           )}
           <p className="max-w-[60rem] overflow-x-auto whitespace-pre break-all text-sm text-destructive empty:hidden">

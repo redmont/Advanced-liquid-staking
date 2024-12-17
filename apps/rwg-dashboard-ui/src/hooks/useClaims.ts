@@ -1,18 +1,19 @@
 import { signPublicSaleClaims } from '@/server/actions/claim/signPublicSaleClaims';
 import { useAuthenticatedMutation } from './useAuthenticatedMutation';
 import { useAuthenticatedQuery } from './useAuthenticatedQuery';
-import { getClaimableAmount } from '@/server/actions/claim/getClaimableAmount';
+import { getClaimableAmounts } from '@/server/actions/claim/getClaimableAmounts';
 import assert from 'assert';
 import { useWriteTokenMaster } from '@/contracts/generated';
 import { toHex } from 'viem';
 import { usePublicClient } from 'wagmi';
 import { updateClaimStatus } from '@/server/actions/claim/updateClaimStatus';
+import useStateWatcher from './useStateWatcher';
 
 export const useClaims = () => {
   const publicClient = usePublicClient();
   const claims = useAuthenticatedQuery({
     queryKey: ['claimableAmount'],
-    queryFn: getClaimableAmount,
+    queryFn: getClaimableAmounts,
   });
 
   const writeTokenMaster = useWriteTokenMaster();
@@ -25,7 +26,6 @@ export const useClaims = () => {
 
       const txs = [];
       for (const claim of claims.data.claimable) {
-        assert(claim.bonus, 'Claim has no bonus');
         assert(
           claim.signature?.startsWith('0x') && claim.signature.length === 132,
           'Claim signature not valid',
@@ -35,7 +35,7 @@ export const useClaims = () => {
             functionName: 'claimToken',
             args: [
               toHex(claim.id, { size: 16 }),
-              claim.amount + claim.bonus,
+              claim.amount + (claim.bonus ?? 0n),
               claim.signature as `0x${string}`,
             ],
           })
@@ -62,21 +62,22 @@ export const useClaims = () => {
 
       await Promise.all(txs);
     },
-    onSuccess: () => {
-      // TODO: show success toast?
-    },
+    onError: () => claims.refetch(),
   });
 
-  const processClaims = useAuthenticatedMutation({
+  const claimWatcher = useStateWatcher(claims.data?.claims);
+
+  const signClaims = useAuthenticatedMutation({
     mutationFn: signPublicSaleClaims,
-    onSettled: () => {
-      void claims.refetch().then(() => claimTokens.mutate());
+    onSuccess: async () => {
+      await claims.refetch();
+      void claimWatcher().then(() => {
+        claimTokens.mutate();
+      });
     },
   });
 
-  const hasClaims =
-    claims.isSuccess &&
-    (claims.data!.signable.length > 0 || claims.data!.claimable.length > 0);
+  const hasClaims = claims.isSuccess && claims.data!.claims.length > 0;
 
   const hasError =
     claims.isSuccess &&
@@ -84,7 +85,10 @@ export const useClaims = () => {
 
   return {
     claims,
-    process: processClaims,
+    allClaimed:
+      claims.isSuccess &&
+      claims.data?.claims.every((claim) => claim.status === 'Claimed'),
+    process: signClaims,
     claim: claimTokens,
     hasClaims,
     hasError,

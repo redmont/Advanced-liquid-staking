@@ -2,7 +2,7 @@
 
 import prisma from '../../prisma/client';
 import { decodeUser } from '../auth';
-import { getClaimableAmount } from './getClaimableAmount';
+import { getClaimableAmounts } from './getClaimableAmounts';
 import { readContracts } from '@wagmi/core';
 import { tokenMasterAddress, tokenMasterAbi } from '@/contracts/generated';
 import config from '@/config/wagmi';
@@ -24,7 +24,7 @@ export const signPublicSaleClaims = async (authToken: string) => {
   }
 
   return prisma.$transaction(async (tx) => {
-    const { signable } = await getClaimableAmount(authToken, tx);
+    const { signable } = await getClaimableAmounts(authToken, tx);
 
     const hashedMessages = (
       await readContracts(config, {
@@ -61,7 +61,7 @@ export const signPublicSaleClaims = async (authToken: string) => {
       ),
     );
 
-    return Promise.all([
+    await Promise.all([
       Promise.all(
         signable.map((claim, index) =>
           tx.claim.update({

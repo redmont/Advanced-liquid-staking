@@ -8,7 +8,7 @@ import prisma from '../../prisma/client';
 const MAX_BONUS = 16666n * 10n ** 18n;
 const bigIntMin = (...args: bigint[]) => args.reduce((m, e) => (e < m ? e : m));
 
-export const getClaimableAmount = async (
+export const getClaimableAmounts = async (
   authToken: string,
   tx?: Prisma.TransactionClient,
 ) => {
@@ -78,7 +78,12 @@ export const getClaimableAmount = async (
     (sum, claim) => sum + claim.amount,
     BigInt(0),
   );
-
+  const claimed = claims.filter((claim) => claim.status === 'Claimed');
+  const claimedAmount = claimed.reduce((sum, claim) => sum + claim.amount, 0n);
+  const claimedBonus = claimed.reduce(
+    (sum, claim) => sum + (claim.bonus ?? 0n),
+    0n,
+  );
   const claimable = claims.filter(
     (claim) => claim.status === 'Signed' || claim.status === 'Error',
   );
@@ -93,7 +98,10 @@ export const getClaimableAmount = async (
   return {
     signable,
     claimable,
+    claimed,
     amounts: {
+      claimed: claimedAmount,
+      claimedBonus,
       claimable: claimableAmount,
       bonus: totalBonus,
       total: claimableAmount + totalBonus,
