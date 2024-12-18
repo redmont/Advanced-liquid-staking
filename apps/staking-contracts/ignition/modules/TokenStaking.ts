@@ -1,10 +1,14 @@
 /// <reference types="@nomicfoundation/ignition-core" />
 
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
+import { getTwoMondaysAgoTimestamp } from "../../utils/getTwoMondaysAgoTimestamp";
 
 const tokenStaking = buildModule("TokenStaking", (m) => {
   const token = m.getParameter("token");
+  const defaultEpochRewards = m.getParameter("defaultEpochRewards", BigInt(100e18));
   const epochDuration = m.getParameter("epochDuration", 7 * 24 * 60 * 60); // default to 1 week
+
+  const epochStartTime = getTwoMondaysAgoTimestamp();
 
   const tiers = m.getParameter("tiers", [
     [90n * 24n * 60n * 60n, BigInt(1e17)], // 90 days, 0.1x
@@ -14,7 +18,7 @@ const tokenStaking = buildModule("TokenStaking", (m) => {
     [1440n * 24n * 60n * 60n, BigInt(21e17)], // 1440 days, 2.1x
   ]);
 
-  const staking = m.contract("TokenStaking", [token, epochDuration, tiers]);
+  const staking = m.contract("TokenStaking", [token, defaultEpochRewards, epochDuration, epochStartTime, tiers]);
   return {
     staking,
   };
