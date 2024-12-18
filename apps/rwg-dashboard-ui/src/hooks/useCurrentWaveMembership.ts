@@ -30,7 +30,7 @@ export const useCurrentWaveMembership = () => {
       rewardsAccount.isSuccess &&
       currentWave.isSuccess &&
       !currentMembership &&
-      currentWave.data?.whitelisted,
+      !!currentWave.data?.whitelisted,
     [
       loggedIn,
       accountLinked,
