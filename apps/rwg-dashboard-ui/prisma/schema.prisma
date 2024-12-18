@@ -42,19 +42,26 @@ model RewardWave {
   totalRewards      Int
   rewardPresets     RewardPresets[]
   memberships       WaveMembership[]
+  whitelist         Whitelist[]
+}
+
+model Whitelist {
+  address String @id
+  rewardWaveId Int
+  rewardWave RewardWave @relation(fields: [rewardWaveId], references: [id])
 }
 
 model WaveMembership {
-  id                      Int      @id @default(autoincrement())
+  id                      Int               @id @default(autoincrement())
   rewards                 Reward[]
   awardedTickets          AwardedTickets[]
   seatNumber              Int
   accountId               Int
-  account                 RewardsAccount @relation(fields: [accountId], references: [id])
+  account                 RewardsAccount    @relation(fields: [accountId], references: [id])
   waveId                  Int
-  wave                    RewardWave @relation(fields: [waveId], references: [id])
-  reedeemableTickets      Int      @default(0)
-  createdAt               DateTime @default(now())
+  wave                    RewardWave        @relation(fields: [waveId], references: [id])
+  reedeemableTickets      Int               @default(0)
+  createdAt               DateTime          @default(now())
 
   @@unique([accountId, waveId])
 }

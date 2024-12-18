@@ -19,6 +19,14 @@ async function main() {
       endTime: waveConfig.endTime,
       availableSeats: waveConfig.availableSeats,
       ticketsPerMember: waveConfig.ticketsPerMember,
+      whitelist: {
+        createMany: {
+          data: waveConfig.whitelist.map((address) => ({
+            address,
+          })),
+          skipDuplicates: true,
+        },
+      },
     },
     create: {
       id: 1,
@@ -36,6 +44,13 @@ async function main() {
       rewardPresets: {
         createMany: {
           data: WAVE_CONFIGURATIONS[1].rewardPresets.slice(),
+        },
+      },
+      whitelist: {
+        createMany: {
+          data: WAVE_CONFIGURATIONS[1].whitelist.map((address) => ({
+            address,
+          })),
         },
       },
     },

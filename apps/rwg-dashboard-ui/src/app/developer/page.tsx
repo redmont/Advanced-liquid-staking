@@ -28,6 +28,8 @@ import {
   useWriteTestTokenTransfer,
 } from '@/contracts/generated';
 import { formatBalance } from '@/utils';
+import { addToWhitelist } from '@/app/developer/addToWhitelist';
+import { clearWhitelist } from './clearWhitelist';
 
 type WaveUpdate = Pick<
   RewardWave,
@@ -37,7 +39,7 @@ type WaveUpdate = Pick<
 const useDevWave = () =>
   useAuthenticatedQuery({
     queryKey: ['devRewardWave'],
-    queryFn: (t) => getCurrentWave(t),
+    queryFn: getCurrentWave,
   });
 
 const DeveloperPage = () => {
@@ -48,6 +50,7 @@ const DeveloperPage = () => {
   const { primaryWallet } = useDynamicContext();
   const [mintAmount, setMintAmount] = useState(100);
   const [fundAmount, setFundAmount] = useState(100);
+  const [whitelistAddress, setWhitelistAddress] = useState('');
   const [addressOverride, setAddressOverride] = useAtom(
     primaryWalletAddressOverrideAtom,
   );
@@ -125,6 +128,30 @@ const DeveloperPage = () => {
     },
   });
 
+  const addToWhitelistMutation = useMutation({
+    mutationFn: () => {
+      if (!currentWave.data) {
+        throw new Error('No current wave');
+      }
+
+      return addToWhitelist(currentWave.data.id, whitelistAddress);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ['devRewardWave'],
+      });
+    },
+  });
+
+  const clearWhitelistMutation = useMutation({
+    mutationFn: clearWhitelist,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ['devRewardWave'],
+      });
+    },
+  });
+
   return (
     <div className="p-5">
       <h2 className="mb-3 text-[2rem] font-medium">Developer Tools</h2>
@@ -186,6 +213,11 @@ const DeveloperPage = () => {
             <h3 className="mb-3 text-xl font-medium">
               Modify Current Reward Wave
             </h3>
+            <p className="text-destructive empty:hidden">
+              {saveWaveMutation.error?.message}
+              {addToWhitelistMutation.error?.message}
+              {currentWave.error?.message}
+            </p>
             {waveState !== undefined && (
               <>
                 <div className="flex items-center gap-2">
@@ -331,6 +363,36 @@ const DeveloperPage = () => {
           <p className="text-destructive empty:hidden">
             {fundTreasuryMutation.error?.message}
           </p>
+        </div>
+        <div>
+          <h3 className="mb-2 font-medium">Add to current wave whitelist</h3>
+          <Input
+            className="mb-3"
+            placeholder="0x..."
+            value={whitelistAddress}
+            onChange={(e) => setWhitelistAddress(e.target.value)}
+            endAdornment={
+              <Button
+                loading={
+                  currentWave.isLoading || addToWhitelistMutation.isPending
+                }
+                onClick={() => {
+                  addToWhitelistMutation.mutate();
+                }}
+              >
+                Add
+              </Button>
+            }
+          />
+          <Button
+            variant="destructive-outline"
+            loading={clearWhitelistMutation.isPending}
+            onClick={() => {
+              clearWhitelistMutation.mutate();
+            }}
+          >
+            Clear Whitelist
+          </Button>
         </div>
       </div>
     </div>

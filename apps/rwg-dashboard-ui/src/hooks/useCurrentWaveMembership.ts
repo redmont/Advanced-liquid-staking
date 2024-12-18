@@ -3,7 +3,6 @@ import { useCurrentTicketWave } from './useCurrentTicketWave';
 import { useRewardsAccount } from './useRewardsAccount';
 import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { useCasinoLink } from './useCasinoLink';
-import { useCurrentWaveWhiteListed } from './useTicketWaveWhitelist';
 import { useAuthenticatedMutation } from './useAuthenticatedMutation';
 import { subscribeToCurrentWave } from '@/server/actions/ticket-waves/subscribeToCurrentWave';
 
@@ -13,7 +12,6 @@ export const useCurrentWaveMembership = () => {
   const accountLinked = !!casinoLink.data;
   const rewardsAccount = useRewardsAccount();
   const currentWave = useCurrentTicketWave();
-  const isWhitelisted = useCurrentWaveWhiteListed();
 
   const calls = [rewardsAccount, currentWave];
 
@@ -32,14 +30,14 @@ export const useCurrentWaveMembership = () => {
       rewardsAccount.isSuccess &&
       currentWave.isSuccess &&
       !currentMembership &&
-      !!isWhitelisted,
+      currentWave.data?.whitelisted,
     [
       loggedIn,
       accountLinked,
       rewardsAccount.isSuccess,
       currentWave.isSuccess,
       currentMembership,
-      isWhitelisted,
+      currentWave.data?.whitelisted,
     ],
   );
 

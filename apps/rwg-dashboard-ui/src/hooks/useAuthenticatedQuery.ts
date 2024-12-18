@@ -15,7 +15,7 @@ type AuthQueryOptions<TData = unknown, TError = unknown> = Omit<
   queryFn: AuthQueryFunction<TData>;
 };
 
-export const useAuthenticatedQuery = <TData = unknown, TError = unknown>(
+export const useAuthenticatedQuery = <TData = unknown, TError = Error>(
   options: AuthQueryOptions<TData, TError>,
 ) => {
   const queryClient = useQueryClient();

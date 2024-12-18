@@ -37,7 +37,6 @@ import { cn } from '@/lib/cn';
 import { useCurrentWaveMembership } from '@/hooks/useCurrentWaveMembership';
 import { awardTwitterBonus } from '@/server/actions/rewards/awardTwitterBonus';
 import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
-import { useCurrentWaveWhiteListed } from '@/hooks/useTicketWaveWhitelist';
 import { useLinkCasinoAccount } from '@/hooks/useLinkCasinoAccount';
 import {
   Popover,
@@ -57,7 +56,6 @@ export default function LinkToWinPage() {
   const rewardsAccount = useRewardsAccount();
   const { rewardTotals, postedToTwitterAlready } = rewardsAccount;
   const currentWaveMembership = useCurrentWaveMembership();
-  const isWhitelisted = useCurrentWaveWhiteListed();
   const linkCasinoAccount = useLinkCasinoAccount();
 
   const hasSeatsRemaining =
@@ -76,7 +74,7 @@ export default function LinkToWinPage() {
     casinoLink.isLinked &&
     currentWave.data &&
     !currentWaveMembership.hasMembership &&
-    !isWhitelisted;
+    !currentWave.data.whitelisted;
   const showSeatData =
     loggedIn && casinoLink.isLinked && currentWaveMembership.hasMembership;
   const showLinkButton =
