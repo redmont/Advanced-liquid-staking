@@ -583,7 +583,7 @@ export const testTokenConfig = {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const tokenMasterAbi = [
   {
@@ -840,11 +840,28 @@ export const tokenMasterAbi = [
   },
   {
     type: 'function',
+    inputs: [{ name: 'claimId', internalType: 'bytes16', type: 'bytes16' }],
+    name: 'resetClaimed',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
     inputs: [
       { name: 'role', internalType: 'bytes32', type: 'bytes32' },
       { name: 'account', internalType: 'address', type: 'address' },
     ],
     name: 'revokeRole',
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    inputs: [
+      { name: '_receiver', internalType: 'address', type: 'address' },
+      { name: '_nonce', internalType: 'uint256', type: 'uint256' },
+    ],
+    name: 'setNonce',
     outputs: [],
     stateMutability: 'nonpayable',
   },
@@ -880,14 +897,14 @@ export const tokenMasterAbi = [
 ] as const;
 
 /**
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const tokenMasterAddress = {
-  11155111: '0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e',
+  11155111: '0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0',
 } as const;
 
 /**
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const tokenMasterConfig = {
   address: tokenMasterAddress,
@@ -2458,7 +2475,7 @@ export const useWatchTestTokenTransferEvent =
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMaster = /*#__PURE__*/ createUseReadContract({
   abi: tokenMasterAbi,
@@ -2468,7 +2485,7 @@ export const useReadTokenMaster = /*#__PURE__*/ createUseReadContract({
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"DEFAULT_ADMIN_ROLE"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterDefaultAdminRole =
   /*#__PURE__*/ createUseReadContract({
@@ -2480,7 +2497,7 @@ export const useReadTokenMasterDefaultAdminRole =
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"authorizedSigner"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterAuthorizedSigner =
   /*#__PURE__*/ createUseReadContract({
@@ -2492,7 +2509,7 @@ export const useReadTokenMasterAuthorizedSigner =
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"claimed"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterClaimed = /*#__PURE__*/ createUseReadContract({
   abi: tokenMasterAbi,
@@ -2503,7 +2520,7 @@ export const useReadTokenMasterClaimed = /*#__PURE__*/ createUseReadContract({
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"getMessageHash"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterGetMessageHash =
   /*#__PURE__*/ createUseReadContract({
@@ -2515,7 +2532,7 @@ export const useReadTokenMasterGetMessageHash =
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"getRoleAdmin"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterGetRoleAdmin =
   /*#__PURE__*/ createUseReadContract({
@@ -2527,7 +2544,7 @@ export const useReadTokenMasterGetRoleAdmin =
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"hasRole"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterHasRole = /*#__PURE__*/ createUseReadContract({
   abi: tokenMasterAbi,
@@ -2538,7 +2555,7 @@ export const useReadTokenMasterHasRole = /*#__PURE__*/ createUseReadContract({
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"nonces"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterNonces = /*#__PURE__*/ createUseReadContract({
   abi: tokenMasterAbi,
@@ -2549,7 +2566,7 @@ export const useReadTokenMasterNonces = /*#__PURE__*/ createUseReadContract({
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"paused"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterPaused = /*#__PURE__*/ createUseReadContract({
   abi: tokenMasterAbi,
@@ -2560,7 +2577,7 @@ export const useReadTokenMasterPaused = /*#__PURE__*/ createUseReadContract({
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"supportsInterface"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterSupportsInterface =
   /*#__PURE__*/ createUseReadContract({
@@ -2572,7 +2589,7 @@ export const useReadTokenMasterSupportsInterface =
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"token"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterToken = /*#__PURE__*/ createUseReadContract({
   abi: tokenMasterAbi,
@@ -2583,7 +2600,7 @@ export const useReadTokenMasterToken = /*#__PURE__*/ createUseReadContract({
 /**
  * Wraps __{@link useReadContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"treasury"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useReadTokenMasterTreasury = /*#__PURE__*/ createUseReadContract({
   abi: tokenMasterAbi,
@@ -2594,7 +2611,7 @@ export const useReadTokenMasterTreasury = /*#__PURE__*/ createUseReadContract({
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenMasterAbi}__
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWriteTokenMaster = /*#__PURE__*/ createUseWriteContract({
   abi: tokenMasterAbi,
@@ -2604,7 +2621,7 @@ export const useWriteTokenMaster = /*#__PURE__*/ createUseWriteContract({
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"claimToken"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWriteTokenMasterClaimToken =
   /*#__PURE__*/ createUseWriteContract({
@@ -2616,7 +2633,7 @@ export const useWriteTokenMasterClaimToken =
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"grantRole"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWriteTokenMasterGrantRole =
   /*#__PURE__*/ createUseWriteContract({
@@ -2628,7 +2645,7 @@ export const useWriteTokenMasterGrantRole =
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"multicall"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWriteTokenMasterMulticall =
   /*#__PURE__*/ createUseWriteContract({
@@ -2640,7 +2657,7 @@ export const useWriteTokenMasterMulticall =
 /**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"renounceRole"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWriteTokenMasterRenounceRole =
   /*#__PURE__*/ createUseWriteContract({
@@ -2650,9 +2667,21 @@ export const useWriteTokenMasterRenounceRole =
   });
 
 /**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"resetClaimed"`
+ *
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
+ */
+export const useWriteTokenMasterResetClaimed =
+  /*#__PURE__*/ createUseWriteContract({
+    abi: tokenMasterAbi,
+    address: tokenMasterAddress,
+    functionName: 'resetClaimed',
+  });
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"revokeRole"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWriteTokenMasterRevokeRole =
   /*#__PURE__*/ createUseWriteContract({
@@ -2662,9 +2691,22 @@ export const useWriteTokenMasterRevokeRole =
   });
 
 /**
+ * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"setNonce"`
+ *
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
+ */
+export const useWriteTokenMasterSetNonce = /*#__PURE__*/ createUseWriteContract(
+  {
+    abi: tokenMasterAbi,
+    address: tokenMasterAddress,
+    functionName: 'setNonce',
+  },
+);
+
+/**
  * Wraps __{@link useWriteContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"setTreasury"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWriteTokenMasterSetTreasury =
   /*#__PURE__*/ createUseWriteContract({
@@ -2676,7 +2718,7 @@ export const useWriteTokenMasterSetTreasury =
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenMasterAbi}__
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useSimulateTokenMaster = /*#__PURE__*/ createUseSimulateContract({
   abi: tokenMasterAbi,
@@ -2686,7 +2728,7 @@ export const useSimulateTokenMaster = /*#__PURE__*/ createUseSimulateContract({
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"claimToken"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useSimulateTokenMasterClaimToken =
   /*#__PURE__*/ createUseSimulateContract({
@@ -2698,7 +2740,7 @@ export const useSimulateTokenMasterClaimToken =
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"grantRole"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useSimulateTokenMasterGrantRole =
   /*#__PURE__*/ createUseSimulateContract({
@@ -2710,7 +2752,7 @@ export const useSimulateTokenMasterGrantRole =
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"multicall"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useSimulateTokenMasterMulticall =
   /*#__PURE__*/ createUseSimulateContract({
@@ -2722,7 +2764,7 @@ export const useSimulateTokenMasterMulticall =
 /**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"renounceRole"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useSimulateTokenMasterRenounceRole =
   /*#__PURE__*/ createUseSimulateContract({
@@ -2732,9 +2774,21 @@ export const useSimulateTokenMasterRenounceRole =
   });
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"resetClaimed"`
+ *
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
+ */
+export const useSimulateTokenMasterResetClaimed =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: tokenMasterAbi,
+    address: tokenMasterAddress,
+    functionName: 'resetClaimed',
+  });
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"revokeRole"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useSimulateTokenMasterRevokeRole =
   /*#__PURE__*/ createUseSimulateContract({
@@ -2744,9 +2798,21 @@ export const useSimulateTokenMasterRevokeRole =
   });
 
 /**
+ * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"setNonce"`
+ *
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
+ */
+export const useSimulateTokenMasterSetNonce =
+  /*#__PURE__*/ createUseSimulateContract({
+    abi: tokenMasterAbi,
+    address: tokenMasterAddress,
+    functionName: 'setNonce',
+  });
+
+/**
  * Wraps __{@link useSimulateContract}__ with `abi` set to __{@link tokenMasterAbi}__ and `functionName` set to `"setTreasury"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useSimulateTokenMasterSetTreasury =
   /*#__PURE__*/ createUseSimulateContract({
@@ -2758,7 +2824,7 @@ export const useSimulateTokenMasterSetTreasury =
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link tokenMasterAbi}__
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWatchTokenMasterEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
@@ -2769,7 +2835,7 @@ export const useWatchTokenMasterEvent =
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link tokenMasterAbi}__ and `eventName` set to `"Paused"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWatchTokenMasterPausedEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
@@ -2781,7 +2847,7 @@ export const useWatchTokenMasterPausedEvent =
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link tokenMasterAbi}__ and `eventName` set to `"RoleAdminChanged"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWatchTokenMasterRoleAdminChangedEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
@@ -2793,7 +2859,7 @@ export const useWatchTokenMasterRoleAdminChangedEvent =
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link tokenMasterAbi}__ and `eventName` set to `"RoleGranted"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWatchTokenMasterRoleGrantedEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
@@ -2805,7 +2871,7 @@ export const useWatchTokenMasterRoleGrantedEvent =
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link tokenMasterAbi}__ and `eventName` set to `"RoleRevoked"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWatchTokenMasterRoleRevokedEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
@@ -2817,7 +2883,7 @@ export const useWatchTokenMasterRoleRevokedEvent =
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link tokenMasterAbi}__ and `eventName` set to `"TokenPayOut"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWatchTokenMasterTokenPayOutEvent =
   /*#__PURE__*/ createUseWatchContractEvent({
@@ -2829,7 +2895,7 @@ export const useWatchTokenMasterTokenPayOutEvent =
 /**
  * Wraps __{@link useWatchContractEvent}__ with `abi` set to __{@link tokenMasterAbi}__ and `eventName` set to `"Unpaused"`
  *
- * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e)
+ * [__View Contract on Sepolia Etherscan__](https://sepolia.etherscan.io/address/0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0)
  */
 export const useWatchTokenMasterUnpausedEvent =
   /*#__PURE__*/ createUseWatchContractEvent({

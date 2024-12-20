@@ -1,5 +1,6 @@
 {
   "TestRealToken#TestRealToken": "0x77b8aD2325dDCC403e167ac238b15ed194ceCF71",
   "TestTokenMaster#TokenMaster": "0xaa3f65b209e1bc6fb9ea1DD4054A3dAEAD0e007e",
-  "StakingVault#StakingVault": "0x274608045cD704A291bFF9d79453D98C4E78baA4"
+  "StakingVault#StakingVault": "0x274608045cD704A291bFF9d79453D98C4E78baA4",
+  "TestTokenMaster#TestTokenMaster": "0x0f04760A2aAa8786aE633291E3a0ED40673eBaA0"
 }

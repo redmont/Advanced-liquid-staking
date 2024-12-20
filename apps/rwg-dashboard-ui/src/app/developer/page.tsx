@@ -24,12 +24,17 @@ import {
   tokenMasterAddress,
   useReadTestTokenAllowance,
   useReadTestTokenBalanceOf,
+  useReadTokenMasterNonces,
   useReadTokenMasterTreasury,
   useWriteTestTokenTransfer,
+  useWriteTokenMasterResetClaimed,
+  useWriteTokenMasterSetNonce,
 } from '@/contracts/generated';
 import { formatBalance } from '@/utils';
 import { addToWhitelist } from '@/app/developer/addToWhitelist';
 import { clearWhitelist } from './clearWhitelist';
+import { getUserClaimIds } from './getClaimIds';
+import { toHex } from 'viem';
 
 type WaveUpdate = Pick<
   RewardWave,
@@ -50,7 +55,9 @@ const DeveloperPage = () => {
   const { primaryWallet } = useDynamicContext();
   const [mintAmount, setMintAmount] = useState(100);
   const [fundAmount, setFundAmount] = useState(100);
+  const [nonceResetAddress, setNonceResetAddress] = useState('');
   const [whitelistAddress, setWhitelistAddress] = useState('');
+  const [claimId, setClaimId] = useState('');
   const [addressOverride, setAddressOverride] = useAtom(
     primaryWalletAddressOverrideAtom,
   );
@@ -151,6 +158,18 @@ const DeveloperPage = () => {
       });
     },
   });
+
+  const setNonce = useWriteTokenMasterSetNonce();
+  const currentNonce = useReadTokenMasterNonces({
+    args: [primaryWallet?.address as `0x${string}`],
+  });
+
+  const claimIds = useAuthenticatedQuery({
+    queryKey: ['userClaimIds'],
+    queryFn: getUserClaimIds,
+  });
+
+  const resetClaimId = useWriteTokenMasterResetClaimed();
 
   return (
     <div className="p-5">
@@ -363,6 +382,77 @@ const DeveloperPage = () => {
           <p className="text-destructive empty:hidden">
             {fundTreasuryMutation.error?.message}
           </p>
+
+          <div>
+            <h3 className="mb-2 font-medium">
+              TokenMaster Nonce{' '}
+              {currentNonce.isSuccess && (
+                <span className="text-md font-normal text-muted">
+                  (Your nonce is {currentNonce.data.toString()})
+                </span>
+              )}
+            </h3>
+            <p className="text-destructive empty:hidden">
+              {setNonce.error?.message}
+            </p>
+            <p className="text-destructive empty:hidden">
+              {currentNonce.error?.message}
+            </p>
+            <Input
+              className="mb-3"
+              placeholder="0x..."
+              value={nonceResetAddress}
+              onChange={(e) => setNonceResetAddress(e.target.value)}
+              endAdornment={
+                <Button
+                  loading={
+                    currentWave.isLoading || addToWhitelistMutation.isPending
+                  }
+                  onClick={async () => {
+                    await setNonce.writeContractAsync({
+                      args: [nonceResetAddress as `0x${string}`, 0n],
+                    });
+                    await currentNonce.refetch();
+                  }}
+                >
+                  Reset Nonce
+                </Button>
+              }
+            />
+          </div>
+          <div>
+            <h3 className="mb-2 font-medium">
+              Claimed Status{' '}
+              {claimIds.isSuccess && (
+                <span className="text-md font-normal text-muted">
+                  (Your claim ids are{' '}
+                  {claimIds.data?.map((d) => d.id).join(', ')})
+                </span>
+              )}
+            </h3>
+            <p className="text-destructive empty:hidden">
+              {claimIds.error?.message}
+            </p>
+            <Input
+              className="mb-3"
+              placeholder="[Claim id]"
+              value={claimId}
+              onChange={(e) => setClaimId(e.target.value)}
+              endAdornment={
+                <Button
+                  loading={claimIds.isLoading || resetClaimId.isPending}
+                  onClick={async () => {
+                    await resetClaimId.writeContractAsync({
+                      args: [toHex(parseInt(claimId), { size: 16 })],
+                    });
+                    await claimIds.refetch();
+                  }}
+                >
+                  Reset Claim
+                </Button>
+              }
+            />
+          </div>
         </div>
         <div>
           <h3 className="mb-2 font-medium">Add to current wave whitelist</h3>

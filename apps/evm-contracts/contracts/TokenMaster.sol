@@ -9,8 +9,6 @@ import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Multicall } from "@openzeppelin/contracts/utils/Multicall.sol";
 
-import { console } from "hardhat/console.sol";
-
 contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
     using ECDSA for bytes32;
     using MessageHashUtils for bytes32;
@@ -62,8 +60,6 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
 
         require(_verifySignature(message, signature), "Invalid signature");
         require(!claimed[claimId], "Token already issued");
-        uint256 allowed = token.allowance(treasury, address(this));
-        console.log("Allowed", allowed);
         require(token.allowance(treasury, address(this)) >= amount, "Insufficient allowance");
 
         claimed[claimId] = true;

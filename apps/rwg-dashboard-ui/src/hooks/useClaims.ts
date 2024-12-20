@@ -63,6 +63,7 @@ export const useClaims = () => {
       await Promise.all(txs);
     },
     onError: () => claims.refetch(),
+    onSuccess: () => claims.refetch(),
   });
 
   const claimWatcher = useStateWatcher(claims.data?.claims);
