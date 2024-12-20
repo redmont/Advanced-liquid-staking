@@ -96,7 +96,7 @@ const ClaimPage = () => {
                 Claimed <Check className="inline" />
               </h3>
             ) : hasEnded ? (
-              <h3 className="flex items-center text-2xl text-destructive">
+              <h3 className="flex items-center text-xl text-destructive">
                 <CircleX className="mr-1 inline" />
                 Claim Period Ended
               </h3>
@@ -159,28 +159,29 @@ const ClaimPage = () => {
                   </div>
                 </>
               )}
-              {(!claims.data || claims.data.amounts.claimable > 0n) && (
-                <>
-                  <div className="flex items-center justify-between">
-                    <h3 className="mb-2 text-lg">Purchased Amount</h3>
-                    <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
-                      <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
-                        <RealIcon className="size-full" />
-                      </span>
-                      {formatBalance(claims.data?.amounts.claimable ?? 0n)}{' '}
-                    </h3>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <h3 className="mb-2 text-lg">Bonus Amount</h3>
-                    <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
-                      <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
-                        <RealIcon className="size-full" />
-                      </span>
-                      {formatBalance(claims.data?.amounts.bonus ?? 0n)}{' '}
-                    </h3>
-                  </div>
-                </>
-              )}
+              {!hasEnded &&
+                (!claims.data || claims.data.amounts.claimable > 0n) && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <h3 className="mb-2 text-lg">Purchased Amount</h3>
+                      <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
+                        <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                          <RealIcon className="size-full" />
+                        </span>
+                        {formatBalance(claims.data?.amounts.claimable ?? 0n)}{' '}
+                      </h3>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="mb-2 text-lg">Bonus Amount</h3>
+                      <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
+                        <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
+                          <RealIcon className="size-full" />
+                        </span>
+                        {formatBalance(claims.data?.amounts.bonus ?? 0n)}{' '}
+                      </h3>
+                    </div>
+                  </>
+                )}
               {}
             </div>
           )}
