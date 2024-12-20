@@ -85,7 +85,9 @@ export const getClaimableAmounts = async (
     0n,
   );
   const claimable = claims.filter(
-    (claim) => claim.status === 'Signed' || claim.status === 'Error',
+    (claim) =>
+      (claim.status === 'Signed' || claim.status === 'Error') &&
+      (period?.end.getTime() ?? 0) > new Date().getTime(),
   );
   const claimableAmount =
     claimable.reduce((sum, claim) => sum + claim.amount, BigInt(0)) +

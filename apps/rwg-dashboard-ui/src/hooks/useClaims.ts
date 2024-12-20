@@ -91,6 +91,9 @@ export const useClaims = () => {
       claims.data?.claims.every((claim) => claim.status === 'Claimed'),
     process: signClaims,
     claim: claimTokens,
+    hasEnded:
+      claims.isSuccess &&
+      new Date(claims.data?.period.end ?? 0).getTime() < new Date().getTime(),
     hasClaims,
     hasError,
     errors: claims.data?.claims

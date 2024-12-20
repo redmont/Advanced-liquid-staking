@@ -9,7 +9,7 @@ import { useAtom } from 'jotai';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { getAuthToken, useDynamicContext } from '@/lib/dynamic';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { issueVestingToken } from '@/server/actions/issueVestingToken';
 import { isDev } from '@/env';
 import assert from 'assert';
@@ -35,6 +35,9 @@ import { addToWhitelist } from '@/app/developer/addToWhitelist';
 import { clearWhitelist } from './clearWhitelist';
 import { getUserClaimIds } from './getClaimIds';
 import { toHex } from 'viem';
+import { getClaimPeriod } from './getClaimPeriod';
+import { Skeleton } from '@/components/ui/skeleton';
+import { resetClaimPeriod } from './resetClaim';
 
 type WaveUpdate = Pick<
   RewardWave,
@@ -170,6 +173,16 @@ const DeveloperPage = () => {
   });
 
   const resetClaimId = useWriteTokenMasterResetClaimed();
+
+  const claimPeriod = useQuery({
+    queryKey: ['claimPeriod'],
+    queryFn: () => getClaimPeriod(),
+  });
+
+  const resetClaimPeriodMutation = useMutation({
+    mutationFn: resetClaimPeriod,
+    onSuccess: () => claimPeriod.refetch(),
+  });
 
   return (
     <div className="p-5">
@@ -452,6 +465,56 @@ const DeveloperPage = () => {
                 </Button>
               }
             />
+          </div>
+          <div className="space-y-5">
+            <div>
+              <h2 className="mb-2 font-medium">Claim Period</h2>
+              <p className="text-destructive empty:hidden">
+                {claimPeriod.error?.message}
+              </p>
+              <p className="text-sm text-muted">
+                {claimPeriod.isLoading ? (
+                  <Skeleton className="inline-block h-4 w-24" />
+                ) : (
+                  <span className="text-2xl font-bold">
+                    {claimPeriod.data?.end.toLocaleString()}
+
+                    {(claimPeriod.data?.end.getTime() ?? 0) <
+                      new Date().getTime() && (
+                      <span className="font-normal text-destructive">
+                        {' '}
+                        (Ended)
+                      </span>
+                    )}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                loading={
+                  resetClaimPeriodMutation.isPending || claimPeriod.isPending
+                }
+                onClick={() => {
+                  resetClaimPeriodMutation.mutate(
+                    new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7),
+                  );
+                }}
+              >
+                Reset Period (7 days)
+              </Button>
+              <Button
+                variant={'outline'}
+                loading={
+                  resetClaimPeriodMutation.isPending || claimPeriod.isPending
+                }
+                onClick={() => {
+                  resetClaimPeriodMutation.mutate(new Date());
+                }}
+              >
+                End Claim Period
+              </Button>
+            </div>
           </div>
         </div>
         <div>

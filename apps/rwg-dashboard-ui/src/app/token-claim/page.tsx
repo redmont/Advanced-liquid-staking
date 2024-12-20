@@ -15,12 +15,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useClaims } from '@/hooks/useClaims';
 import { useToken } from '@/hooks/useToken';
 import { formatBalance } from '@/utils';
-import { Calendar, Check, HandCoins } from 'lucide-react';
+import { Calendar, Check, CircleX, HandCoins } from 'lucide-react';
 import { formatUnits, parseUnits } from 'viem';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import dayjs from '@/dayjs';
 import { Progress } from '@/components/ui/progress';
 import { isDev } from '@/env';
+import { cn } from '@/lib/cn';
 
 const nextUnlockDate = new Date('2023-01-01');
 const progress = 0;
@@ -28,7 +29,8 @@ const unvested = 0n;
 
 const ClaimPage = () => {
   const { sdkHasLoaded } = useDynamicContext();
-  const { claims, process, claim, hasError, errors, allClaimed } = useClaims();
+  const { claims, process, claim, hasError, errors, allClaimed, hasEnded } =
+    useClaims();
   const token = useToken();
   const showPeriod = claims.isLoading || claims.data?.period;
 
@@ -92,6 +94,11 @@ const ClaimPage = () => {
             {allClaimed ? (
               <h3 className="text-2xl font-medium text-primary">
                 Claimed <Check className="inline" />
+              </h3>
+            ) : hasEnded ? (
+              <h3 className="flex items-center text-2xl text-destructive">
+                <CircleX className="mr-1 inline" />
+                Claim Period Ended
               </h3>
             ) : (
               <ClaimWarningModal
@@ -184,17 +191,30 @@ const ClaimPage = () => {
             {hasError && isDev && errors}
           </p>
         </CardContent>
-        <CardFooter className="text-muted-foreground">
+        <CardFooter
+          className={cn('text-muted-foreground', {
+            'text-destructive': hasEnded,
+          })}
+        >
           {showPeriod && (
             <>
               <hr className="mb-3 w-full border-lighter" />
               <div className="flex items-center gap-1">
-                <Calendar className="inline" /> Claim period ends in{' '}
+                <Calendar className="inline" /> Claim period
                 {claims.isLoading && (
                   <Skeleton className="inline-block h-4 w-24" />
                 )}
                 {claims.isSuccess && (
-                  <Countdown endDate={claims.data?.period?.end} />
+                  <>
+                    {hasEnded ? (
+                      <> has ended.</>
+                    ) : (
+                      <>
+                        {' '}
+                        ends in <Countdown endDate={claims.data?.period?.end} />
+                      </>
+                    )}
+                  </>
                 )}
               </div>
             </>
