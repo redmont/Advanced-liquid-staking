@@ -11,7 +11,7 @@ export const saveWave = async (
   wave: Pick<
     RewardWave,
     'label' | 'live' | 'availableSeats' | 'ticketsPerMember' | 'id'
-  >,
+  > & { userTickets: number },
 ) => {
   assert(isDev, 'Not in dev mode');
   const userId = await getUserIdFromToken(authToken);
@@ -19,15 +19,45 @@ export const saveWave = async (
     throw new Error('No user id');
   }
 
+  const membership = await prisma.rewardWave.findFirst({
+    where: {
+      id: wave.id,
+    },
+    include: {
+      memberships: {
+        where: {
+          account: {
+            userId,
+          },
+        },
+      },
+    },
+  });
+
   return prisma.rewardWave.update({
     where: {
       id: wave.id,
+    },
+    include: {
+      memberships: true,
     },
     data: {
       label: wave.label,
       live: wave.live,
       availableSeats: wave.availableSeats,
       ticketsPerMember: wave.ticketsPerMember,
+      memberships: membership
+        ? {
+            update: {
+              where: {
+                id: membership.id,
+              },
+              data: {
+                reedeemableTickets: wave.userTickets,
+              },
+            },
+          }
+        : undefined,
     },
   });
 };

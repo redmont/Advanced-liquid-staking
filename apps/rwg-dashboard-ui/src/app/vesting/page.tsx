@@ -9,7 +9,7 @@ import dayjs from '@/dayjs';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToken } from '@/hooks/useToken';
-import { formatUnits, parseUnits } from 'viem';
+import { parseUnits } from 'viem';
 import { formatBalance } from '@/utils';
 import ErrorComponent from '@/components/error';
 
@@ -43,7 +43,7 @@ export default function Vesting() {
                     <Skeleton className="-mb-1 inline-block h-6 w-24 rounded-full" />
                   ) : (
                     <span className="text-2xl font-bold sm:text-5xl">
-                      {formatBalance(token.balance, token.decimals)}
+                      {formatBalance(token.balance)}
                     </span>
                   )}{' '}
                   <span className="text-lg font-bold text-primary sm:text-3xl">
@@ -93,7 +93,7 @@ export default function Vesting() {
                 {token.isLoading ? (
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
-                  <span className="">{formatUnits(0n, token.decimals)}</span>
+                  <span className="">{formatBalance(0n)}</span>
                 )}
               </span>
             </div>
@@ -107,7 +107,7 @@ export default function Vesting() {
                   {token.isLoading ? (
                     <Skeleton className="h-6 w-24 rounded-full" />
                   ) : (
-                    <span className="">{formatUnits(0n, token.decimals)}</span>
+                    <span className="">{formatBalance(0n)}</span>
                   )}
                 </span>
                 <Button
@@ -136,8 +136,7 @@ export default function Vesting() {
                 <>
                   <span>{progress.toFixed(0)}% vested</span>
                   <span className="text-sm text-muted">
-                    {formatUnits(0n, token.decimals)} /{' '}
-                    {formatUnits(0n, token.decimals)}
+                    {formatBalance(0n)} / {formatBalance(0n)}
                   </span>
                 </>
               )}

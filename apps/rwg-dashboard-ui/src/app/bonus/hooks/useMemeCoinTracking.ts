@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { flatten, uniq } from 'lodash';
 import { base, bsc, mainnet } from 'viem/chains';
 import limit from '@/limiter';
-import fetchSolanaTokenAccounts from '@/utils/fetchSolanaTokenAccounts';
+import fetchSolanaTokenAccounts from '@/server/actions/fetchSolanaTokenAccounts';
 import { useWalletAddresses } from '@/hooks/useWalletAddresses';
 import { getEVMMemeCoinInteractions } from '../utils/fetchEVMAccountsCoinInteractions';
 import { coinsByChainId } from '@/config/walletChecker';

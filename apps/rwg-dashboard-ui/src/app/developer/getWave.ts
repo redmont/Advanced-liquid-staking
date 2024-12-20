@@ -4,9 +4,11 @@ import prisma from '@/server/prisma/client';
 import assert from 'assert';
 import { isDev } from '@/env';
 import { WAVE_CONFIGURATIONS } from '@/config/linkToWin';
+import { decodeUser } from '@/server/actions/auth';
 
-export const getCurrentWave = async () => {
+export const getCurrentWave = async (authToken: string) => {
   assert(isDev, 'Not in dev mode');
+  const { id: userId } = await decodeUser(authToken);
 
   const wave = await prisma.rewardWave.findFirst({
     where: {
@@ -19,6 +21,14 @@ export const getCurrentWave = async () => {
     },
     include: {
       rewardPresets: true,
+      memberships: {
+        where: {
+          account: {
+            userId,
+          },
+        },
+        take: 1,
+      },
       _count: {
         select: {
           memberships: true,

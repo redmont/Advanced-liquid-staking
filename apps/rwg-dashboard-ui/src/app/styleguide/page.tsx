@@ -80,7 +80,7 @@ export default function Styleguide() {
         <h2 className="bg-muted p-2 text-muted-foreground">Muted</h2>
         <h2 className="bg-accent p-2 text-accent-foreground">Accent</h2>
         <h2 className="bg-accent-2 p-2 text-destructive-foreground">
-          accent-2
+          Accent-2
         </h2>
         <h2 className="bg-destructive p-2 text-destructive-foreground">
           Destructive
@@ -292,7 +292,7 @@ export default function Styleguide() {
           </div>
         </div>
       </div>
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Button loading={isLoading} disabled={isDisabled}>
           Default
         </Button>
@@ -301,6 +301,13 @@ export default function Styleguide() {
         </Button>
         <Button loading={isLoading} disabled={isDisabled} variant="outline">
           Outline
+        </Button>
+        <Button
+          loading={isLoading}
+          disabled={isDisabled}
+          variant="destructive-outline"
+        >
+          Destructive Outline
         </Button>
         <Button loading={isLoading} disabled={isDisabled} variant="borderless">
           Borderless

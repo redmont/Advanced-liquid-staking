@@ -26,7 +26,7 @@ interface VestingData {
 
 export default function VestingIndicator() {
   const { sdkHasLoaded } = useDynamicContext();
-  const { decimals, symbol } = useToken();
+  const { symbol } = useToken();
 
   const { vestingSchedulesWithAmounts } = useVesting();
 
@@ -83,8 +83,7 @@ export default function VestingIndicator() {
         >
           {
             <span className="max-w-full overflow-hidden text-ellipsis px-1 text-xs text-primary-foreground">
-              {formatBalanceTruncated(vestingData.vested.amount, decimals, 2)}{' '}
-              {symbol}
+              {formatBalanceTruncated(vestingData.vested.amount)} {symbol}
             </span>
           }
         </div>
@@ -96,8 +95,7 @@ export default function VestingIndicator() {
         >
           {
             <span className="max-w-full overflow-hidden text-ellipsis px-1 text-xs text-primary-foreground">
-              {formatBalanceTruncated(vestingData.vesting.amount, decimals, 2)}{' '}
-              {symbol}
+              {formatBalanceTruncated(vestingData.vesting.amount)} {symbol}
             </span>
           }
         </div>
@@ -109,12 +107,7 @@ export default function VestingIndicator() {
         >
           {
             <span className="max-w-full overflow-hidden text-ellipsis px-1 text-xs text-primary-foreground">
-              {formatBalanceTruncated(
-                vestingData.withdrawn.amount,
-                decimals,
-                2,
-              )}{' '}
-              {symbol}
+              {formatBalanceTruncated(vestingData.withdrawn.amount)} {symbol}
             </span>
           }
         </div>
@@ -128,8 +121,6 @@ export default function VestingIndicator() {
             />{' '}
             {formatBalanceTruncated(
               vestingData[key as keyof VestingData].amount,
-              decimals,
-              2,
             )}{' '}
             {key}
           </span>

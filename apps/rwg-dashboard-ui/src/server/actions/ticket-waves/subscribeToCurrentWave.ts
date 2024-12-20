@@ -24,18 +24,13 @@ export const subscribeToCurrentWave = async (authToken: string) => {
 
   return prisma.$transaction(
     async (tx) => {
-      const currentWave = await getCurrentWave(tx);
+      const currentWave = await getCurrentWave(tx, decodedUser.addresses);
 
       if (!currentWave) {
         throw new Error('No current wave');
       }
 
-      const isWhitelisted = decodedUser.addresses.some(
-        (address) =>
-          !currentWave.whitelist || currentWave.whitelist.includes(address),
-      );
-
-      if (!isWhitelisted) {
+      if (!currentWave.whitelisted) {
         throw new Error('Not whitelisted');
       }
 

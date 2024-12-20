@@ -25,6 +25,7 @@ import {
   Box,
   Code,
   Rocket,
+  HandCoins,
   // Trophy,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -193,15 +194,6 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
               <span>Link to Win</span>
             </NextLink>
           </li>
-          {/* <li>
-            <NextLink
-              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-              path="/vesting"
-            >
-              <Trophy />
-              <span>Vesting</span>
-            </NextLink>
-          </li> */}
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
@@ -209,6 +201,15 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
             >
               <Box />
               <span>Airdrop</span>
+            </NextLink>
+          </li>
+          <li>
+            <NextLink
+              className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
+              path="/token-claim"
+            >
+              <HandCoins />
+              <span>Token Claim</span>
             </NextLink>
           </li>
           {isDev && (

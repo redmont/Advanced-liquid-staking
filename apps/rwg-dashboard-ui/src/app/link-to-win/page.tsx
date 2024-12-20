@@ -13,10 +13,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrentTicketWave } from '@/hooks/useCurrentTicketWave';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import { useRewardsAccount } from '@/hooks/useRewardsAccount';
-import { getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
+import {
+  getAuthToken,
+  useDynamicContext,
+  useIsLoggedIn,
+} from '@dynamic-labs/sdk-react-core';
 import {
   Box,
-  Check,
   Diamond,
   Gift,
   Rocket,
@@ -25,9 +28,8 @@ import {
   Wallet2,
 } from 'lucide-react';
 import RealIcon from '@/assets/images/R.svg';
-import GiftBoxes from './components/GiftBoxes';
-import { subscribeToCurrentWave } from '@/server/actions/ticket-waves/subscribeToCurrentWave';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import GiftBoxes from '../../components/gift-boxes';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCasinoLink } from '@/hooks/useCasinoLink';
 import { Progress } from '@/components/ui/progress';
 import { useToken } from '@/hooks/useToken';
@@ -35,7 +37,6 @@ import { cn } from '@/lib/cn';
 import { useCurrentWaveMembership } from '@/hooks/useCurrentWaveMembership';
 import { awardTwitterBonus } from '@/server/actions/rewards/awardTwitterBonus';
 import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
-import { useCurrentWaveWhiteListed } from '@/hooks/useTicketWaveWhitelist';
 import { useLinkCasinoAccount } from '@/hooks/useLinkCasinoAccount';
 import {
   Popover,
@@ -48,51 +49,38 @@ export default function LinkToWinPage() {
   const queryClient = useQueryClient();
   const token = useToken();
   const casinoLink = useCasinoLink();
-  const accountLinked = !!casinoLink.data;
+  const { sdkHasLoaded } = useDynamicContext();
   const loggedIn = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
   const currentWave = useCurrentTicketWave();
   const rewardsAccount = useRewardsAccount();
   const { rewardTotals, postedToTwitterAlready } = rewardsAccount;
   const currentWaveMembership = useCurrentWaveMembership();
-  const hasMembership = !!currentWaveMembership.data;
-  const isWhitelisted = useCurrentWaveWhiteListed();
   const linkCasinoAccount = useLinkCasinoAccount();
-
-  const subscribeToWave = useMutation({
-    mutationFn: async () => {
-      const authToken = getAuthToken();
-      if (!authToken) {
-        throw new Error('No token');
-      }
-      return subscribeToCurrentWave(authToken);
-    },
-    onSuccess: () =>
-      Promise.all([rewardsAccount.refetch(), currentWave.refetch()]),
-  });
 
   const hasSeatsRemaining =
     currentWave.data && currentWave.data?.availableSeats > 0;
-  const showLinkPrompt = !loggedIn || (loggedIn && !accountLinked);
+  const showLinkPrompt =
+    (sdkHasLoaded && !loggedIn) ||
+    (loggedIn && !casinoLink.isLinked && casinoLink.isSuccess);
   const showMaxSeatsReachedMessage =
     currentWave.data &&
     loggedIn &&
-    accountLinked &&
-    !hasMembership &&
+    casinoLink.isLinked &&
+    !currentWaveMembership.hasMembership &&
     !hasSeatsRemaining;
-  const showFreeTicketsPrompt =
-    !loggedIn ||
-    (loggedIn && !accountLinked) ||
-    (accountLinked && !hasMembership);
   const showNotWhitelistedMessage =
     loggedIn &&
-    accountLinked &&
+    casinoLink.isLinked &&
     currentWave.data &&
-    !hasMembership &&
-    !isWhitelisted;
-  const showSeatData = loggedIn && accountLinked && hasMembership;
-  const showWaveSignupButton =
-    loggedIn && accountLinked && !hasMembership && isWhitelisted;
+    !currentWaveMembership.hasMembership &&
+    !currentWave.data.whitelisted;
+  const showSeatData =
+    loggedIn && casinoLink.isLinked && currentWaveMembership.hasMembership;
+  const showLinkButton =
+    loggedIn && casinoLink.isSuccess && !casinoLink.isLinked;
+  const showVIPSeatsAvailable = currentWave.isLoading || !!currentWave.data;
+  const showConnectButton = !loggedIn && sdkHasLoaded;
 
   return (
     <div className="space-y-5 p-3 sm:p-5">
@@ -108,29 +96,26 @@ export default function LinkToWinPage() {
                 status!
               </p>
             )}
-            {showFreeTicketsPrompt && (
-              <p className="text-lg md:max-w-[66%] xl:text-xl">
-                VIPs get 50 tickets to win. Prizes include {token.symbol} public
-                sale bonuses and free RealBet credits.
-              </p>
+            <p className="text-lg md:max-w-[66%] xl:text-xl">
+              VIPs get {currentWave.data?.ticketsPerMember} tickets to win.
+              Prizes include {token.symbol} public sale bonuses and free RealBet
+              credits.
+            </p>
+            {showLinkButton && (
+              <Button
+                size="lg"
+                onClick={() => linkCasinoAccount.mutateAsync()}
+                loading={
+                  linkCasinoAccount.isPending ||
+                  casinoLink.isLoading ||
+                  currentWaveMembership.isLoading
+                }
+              >
+                Link your account
+              </Button>
             )}
             <div>
-              {casinoLink.isLoading ? (
-                <Skeleton className="h-6 w-48 rounded-full" />
-              ) : casinoLink.data ? (
-                <Button disabled>
-                  Linked <Check className="inline size-6" />
-                </Button>
-              ) : loggedIn ? (
-                <Button
-                  size="lg"
-                  onClick={() => linkCasinoAccount.mutateAsync()}
-                  loading={linkCasinoAccount.isPending}
-                  disabled={linkCasinoAccount.isPending}
-                >
-                  Link your account
-                </Button>
-              ) : (
+              {showConnectButton && (
                 <Button
                   className="py-6"
                   size="lg"
@@ -142,35 +127,43 @@ export default function LinkToWinPage() {
               )}
             </div>
           </div>
-          <div className="flex w-full flex-col gap-2 md:items-center md:text-center">
-            <p className="text-2xl font-medium">
-              {currentWave.isLoading ? (
-                <Skeleton className="h-8 w-48 rounded-full" />
-              ) : (
-                (currentWave.data?.label ?? <>No current wave.</>)
-              )}
-            </p>
-            <p>
-              {currentWave.isLoading ? (
-                <Skeleton className="h-4 w-64 rounded-full" />
-              ) : (
-                (currentWave.data?.description ?? <>Please come again later.</>)
-              )}
-            </p>
-            <div className="mt-5 flex gap-2 text-3xl font-medium">
-              {currentWave.isLoading ? (
-                <Skeleton className="inline-block h-10 w-24 rounded-full" />
-              ) : (
-                <span>{currentWave.data?.availableSeats ?? 0}</span>
-              )}
-              /
-              {currentWave.isLoading ? (
-                <Skeleton className="inline-block h-10 w-24 rounded-full" />
-              ) : (
-                <span>{currentWave.data?.totalSeats ?? 0}</span>
-              )}
+          <div className="flex w-full flex-col items-center justify-center gap-5 self-stretch text-center">
+            <div>
+              <p className="text-2xl font-medium">
+                {currentWave.isLoading ? (
+                  <Skeleton className="mx-auto mb-3 h-8 w-48 rounded-full" />
+                ) : (
+                  (currentWave.data?.label ?? <>No current wave.</>)
+                )}
+              </p>
+              <p>
+                {currentWave.isLoading ? (
+                  <Skeleton className="mx-auto h-4 w-64 rounded-full" />
+                ) : (
+                  (currentWave.data?.description ?? (
+                    <>Please come again later.</>
+                  ))
+                )}
+              </p>
             </div>
-            <p className="font-medium text-muted">VIP spots remaining</p>
+            {showVIPSeatsAvailable && (
+              <div>
+                <div className="flex justify-center gap-2 text-3xl font-medium">
+                  {currentWave.isLoading ? (
+                    <Skeleton className="inline-block h-10 w-24 rounded-full" />
+                  ) : (
+                    <span>{currentWave.data?.availableSeats ?? 0}</span>
+                  )}
+                  /
+                  {currentWave.isLoading ? (
+                    <Skeleton className="inline-block h-10 w-24 rounded-full" />
+                  ) : (
+                    <span>{currentWave.data?.totalSeats ?? 0}</span>
+                  )}
+                </div>
+                <p className="font-medium text-muted">VIP spots remaining</p>
+              </div>
+            )}
             {showNotWhitelistedMessage && (
               <p className="mt-3">
                 <span className="bg-black/50 p-3 text-warning empty:hidden">
@@ -185,15 +178,14 @@ export default function LinkToWinPage() {
                 bonus tickets are not available. Please come back later.
               </p>
             )}
-            {showWaveSignupButton && (
+            {currentWaveMembership.canSubscribe && (
               <>
                 <p className="text-destructive empty:hidden">
-                  {subscribeToWave.error?.message}
+                  {currentWaveMembership.subscribe.error?.message}
                 </p>
                 <Button
-                  loading={subscribeToWave.isPending}
-                  onClick={() => subscribeToWave.mutate()}
-                  className="mt-5"
+                  loading={currentWaveMembership.subscribe.isPending}
+                  onClick={() => currentWaveMembership.subscribe.mutate()}
                   size="lg"
                 >
                   Wave Signup
@@ -253,11 +245,11 @@ export default function LinkToWinPage() {
               <div className="space-y-2">
                 <div className="flex w-full items-center justify-between">
                   <div>
-                    <h3 className="text-md font-medium sm:text-lg md:text-2xl">
+                    <h3 className="text-md font-medium sm:text-lg">
                       <Rocket className="mb-1 inline size-4 text-primary md:size-6" />{' '}
-                      Public Sale Boost
+                      Public Sale Boost<span className="text-muted">*</span>
                     </h3>
-                    <p className="text-sm">
+                    <p className="text-sm text-lightest">
                       Percentage bonus in upcoming {token.symbol} public sale.
                     </p>
                   </div>
@@ -275,15 +267,18 @@ export default function LinkToWinPage() {
                     100
                   }
                 />
+                <p className="!mt-0.5 text-right text-xs text-muted">
+                  *Claim up to a maximum of 16,666 {token.symbol}
+                </p>
               </div>
               <div className="space-y-2">
                 <div className="flex w-full items-center justify-between">
                   <div>
-                    <h3 className="text-md font-medium sm:text-lg md:text-2xl">
+                    <h3 className="text-md font-medium sm:text-lg">
                       <Diamond className="mb-1 inline size-4 text-primary md:size-6" />{' '}
                       Realbet Credits
                     </h3>
-                    <p className="text-sm">
+                    <p className="text-sm text-lightest">
                       Get free {token.symbol} credits for use in the Realbet
                       Casino.
                     </p>

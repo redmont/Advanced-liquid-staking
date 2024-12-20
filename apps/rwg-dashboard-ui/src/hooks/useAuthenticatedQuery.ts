@@ -15,7 +15,7 @@ type AuthQueryOptions<TData = unknown, TError = unknown> = Omit<
   queryFn: AuthQueryFunction<TData>;
 };
 
-export const useAuthenticatedQuery = <TData = unknown, TError = unknown>(
+export const useAuthenticatedQuery = <TData = unknown, TError = Error>(
   options: AuthQueryOptions<TData, TError>,
 ) => {
   const queryClient = useQueryClient();
@@ -23,7 +23,7 @@ export const useAuthenticatedQuery = <TData = unknown, TError = unknown>(
 
   const query = useQuery({
     ...options,
-    enabled: isLoggedIn || options.enabled,
+    enabled: isLoggedIn && options.enabled,
     queryFn: async () => {
       const token = getAuthToken();
       if (!token) {
@@ -39,10 +39,8 @@ export const useAuthenticatedQuery = <TData = unknown, TError = unknown>(
   });
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      void queryClient.cancelQueries({ queryKey: options.queryKey });
-      void queryClient.invalidateQueries({ queryKey: options.queryKey });
-    }
+    void queryClient.cancelQueries({ queryKey: options.queryKey });
+    void queryClient.invalidateQueries({ queryKey: options.queryKey });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoggedIn, JSON.stringify(options.queryKey), queryClient]);
 

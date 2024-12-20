@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { PrismaClient } from '@prisma/client';
 import { WAVE_CONFIGURATIONS } from '@/config/linkToWin';
+import { readClaims } from '../src/server/actions/claim/getClaimsData';
 
 const prisma = new PrismaClient({
   datasourceUrl: process.env.SUPABASE_DB_POSTGRES_URL_NON_POOLING,
@@ -18,6 +19,14 @@ async function main() {
       endTime: waveConfig.endTime,
       availableSeats: waveConfig.availableSeats,
       ticketsPerMember: waveConfig.ticketsPerMember,
+      whitelist: {
+        createMany: {
+          data: waveConfig.whitelist.map((address) => ({
+            address,
+          })),
+          skipDuplicates: true,
+        },
+      },
     },
     create: {
       id: 1,
@@ -35,6 +44,32 @@ async function main() {
       rewardPresets: {
         createMany: {
           data: WAVE_CONFIGURATIONS[1].rewardPresets.slice(),
+        },
+      },
+      whitelist: {
+        createMany: {
+          data: WAVE_CONFIGURATIONS[1].whitelist.map((address) => ({
+            address,
+          })),
+        },
+      },
+    },
+  });
+
+  await prisma.claimPeriod.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      end: new Date(new Date().getTime() + 1000 * 60 * 60 * 24 * 7),
+      claims: {
+        createMany: {
+          data: (await readClaims()).map(({ address, amount }) => ({
+            address,
+            amount: BigInt(amount).toString(),
+            status: 'Pending',
+          })),
+          skipDuplicates: true,
         },
       },
     },

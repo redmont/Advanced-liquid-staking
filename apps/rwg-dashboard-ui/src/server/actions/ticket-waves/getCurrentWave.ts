@@ -4,7 +4,10 @@ import { WAVE_CONFIGURATIONS } from '@/config/linkToWin';
 import prisma from '@/server/prisma/client';
 import { type RewardType, type Prisma } from '@prisma/client';
 
-export const getCurrentWave = async (tx?: Prisma.TransactionClient) => {
+export const getCurrentWave = async (
+  tx?: Prisma.TransactionClient,
+  addresses?: string[],
+) => {
   const currentWave = await (tx ?? prisma).rewardWave.findFirst({
     where: {
       endTime: {
@@ -19,6 +22,13 @@ export const getCurrentWave = async (tx?: Prisma.TransactionClient) => {
     },
     include: {
       rewardPresets: true,
+      whitelist: {
+        where: {
+          address: {
+            in: addresses,
+          },
+        },
+      },
       _count: {
         select: {
           memberships: true,
@@ -63,9 +73,7 @@ export const getCurrentWave = async (tx?: Prisma.TransactionClient) => {
     ...currentWave,
     rewardPresets,
     remainingRewards,
-    whitelist:
-      WAVE_CONFIGURATIONS[currentWave.id as keyof typeof WAVE_CONFIGURATIONS]
-        .whitelist,
+    whitelisted: currentWave.whitelist.length > 0,
     totalSeats:
       WAVE_CONFIGURATIONS[currentWave.id as keyof typeof WAVE_CONFIGURATIONS]
         .availableSeats,

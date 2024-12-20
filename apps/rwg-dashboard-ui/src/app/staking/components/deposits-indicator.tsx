@@ -100,7 +100,7 @@ export default function DepositsIndicator() {
         >
           {groupedDeposits[0] && (
             <span className="max-w-full overflow-hidden text-ellipsis px-1 text-xs text-primary-foreground">
-              {formatBalance(groupedDeposits[0].amount, decimals, 2)} {symbol}
+              {formatBalance(groupedDeposits[0].amount)} {symbol}
             </span>
           )}
         </div>
@@ -112,7 +112,7 @@ export default function DepositsIndicator() {
         >
           {groupedDeposits[1] && (
             <span className="max-w-full overflow-hidden text-ellipsis px-1 text-xs text-primary-foreground">
-              {formatBalance(groupedDeposits[1].amount, decimals, 2)} {symbol}
+              {formatBalance(groupedDeposits[1].amount)} {symbol}
             </span>
           )}
         </div>
@@ -124,7 +124,7 @@ export default function DepositsIndicator() {
         >
           {groupedDeposits[2] && (
             <span className="max-w-full overflow-hidden text-ellipsis px-1 text-xs text-primary-foreground">
-              {formatBalance(groupedDeposits[2].amount, decimals, 2)} {symbol}
+              {formatBalance(groupedDeposits[2].amount)} {symbol}
             </span>
           )}
         </div>
@@ -136,7 +136,7 @@ export default function DepositsIndicator() {
         >
           {groupedDeposits[3] && (
             <span className="max-w-full overflow-hidden text-ellipsis px-1 text-xs text-primary-foreground">
-              {formatBalance(groupedDeposits[3].amount, decimals, 2)} {symbol}
+              {formatBalance(groupedDeposits[3].amount)} {symbol}
             </span>
           )}
         </div>
@@ -148,7 +148,7 @@ export default function DepositsIndicator() {
         >
           {groupedDeposits[4] && (
             <span className="max-w-full overflow-hidden text-ellipsis px-1 text-xs text-primary-foreground">
-              {formatBalance(groupedDeposits[4].amount, decimals, 2)} {symbol}
+              {formatBalance(groupedDeposits[4].amount)} {symbol}
             </span>
           )}
         </div>

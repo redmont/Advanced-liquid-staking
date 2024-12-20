@@ -15,6 +15,7 @@ export const env = createEnv({
     HELIUS_API_KEY: z.string().optional(),
     ALCHEMY_API_KEY: z.string(),
     TESTNET_SIGNER_PRIVATE_KEY: z.string().optional(),
+    TOKEN_MASTER_SIGNER_PRIVATE_KEY: z.string().optional(),
     CASINO_API_SECRET_KEY: z.string(),
     SUPABASE_DB_POSTGRES_URL: z.string(),
   },
@@ -42,6 +43,8 @@ export const env = createEnv({
     ALCHEMY_API_KEY:
       process.env.ALCHEMY_API_KEY ?? 'vlIJU80HdfL61kafixpO45fFrvqVPJx9', // public Alchemy demo key
     TESTNET_SIGNER_PRIVATE_KEY: process.env.TESTNET_SIGNER_PRIVATE_KEY,
+    TOKEN_MASTER_SIGNER_PRIVATE_KEY:
+      process.env.TOKEN_MASTER_SIGNER_PRIVATE_KEY,
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID:
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??
       '21452bd4-902f-40be-9b8f-5bc817b00e0e',

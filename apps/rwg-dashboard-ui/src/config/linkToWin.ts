@@ -57,7 +57,7 @@ export const WAVE_CONFIGURATIONS = {
       },
       {
         prize: 1,
-        remaining: 5624,
+        remaining: 5000,
         type: RewardType.RealBetCredit,
       },
       {
