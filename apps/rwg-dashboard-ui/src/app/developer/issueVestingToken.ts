@@ -6,19 +6,15 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
 import { parseEther } from 'viem';
 import { waitForTransactionReceipt } from 'viem/actions';
-import { env } from '@/env';
+import { env, isDev } from '@/env';
 import { tokenVestingAbi, tokenVestingAddress } from '@/contracts/generated';
+import assert from 'assert';
 
 const contractAddress = tokenVestingAddress[sepolia.id];
 
 export const issueVestingToken = async (address: string) => {
-  if (env.NODE_ENV === 'production') {
-    throw new Error('Not available in this environment');
-  }
-
-  if (!env.TESTNET_SIGNER_PRIVATE_KEY) {
-    throw new Error('TESTNET_SIGNER_PRIVATE_KEY is not set');
-  }
+  assert(isDev, 'Not in dev mode');
+  assert(env.TESTNET_SIGNER_PRIVATE_KEY?.startsWith('0x'), 'No signer key');
 
   let account;
   try {

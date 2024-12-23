@@ -89,7 +89,7 @@ const ClaimPage = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl font-normal">
-              Claimable Public Sale Tokens
+              Public Sale Token Claim
             </CardTitle>
             {allClaimed ? (
               <h3 className="text-2xl font-medium text-primary">
@@ -163,7 +163,9 @@ const ClaimPage = () => {
                 (!claims.data || claims.data.amounts.claimable > 0n) && (
                   <>
                     <div className="flex items-center justify-between">
-                      <h3 className="mb-2 text-lg">Purchased Amount</h3>
+                      <h3 className="mb-2 text-lg">
+                        Claimable Purchased Amount
+                      </h3>
                       <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
                         <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                           <RealIcon className="size-full" />
@@ -172,7 +174,7 @@ const ClaimPage = () => {
                       </h3>
                     </div>
                     <div className="flex items-center justify-between">
-                      <h3 className="mb-2 text-lg">Bonus Amount</h3>
+                      <h3 className="mb-2 text-lg">Claimable Bonus</h3>
                       <h3 className="mb-2 flex items-center gap-1 text-right text-2xl font-medium">
                         <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                           <RealIcon className="size-full" />

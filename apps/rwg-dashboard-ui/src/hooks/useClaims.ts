@@ -8,6 +8,7 @@ import { toHex } from 'viem';
 import { usePublicClient } from 'wagmi';
 import { updateClaimStatus } from '@/server/actions/claim/updateClaimStatus';
 import useStateWatcher from './useStateWatcher';
+import { useToken } from './useToken';
 
 export const useClaims = () => {
   const publicClient = usePublicClient();
@@ -16,6 +17,9 @@ export const useClaims = () => {
     queryFn: getClaimableAmounts,
   });
 
+  const {
+    queries: { balance },
+  } = useToken();
   const writeTokenMaster = useWriteTokenMaster();
 
   const claimTokens = useAuthenticatedMutation({
@@ -63,7 +67,7 @@ export const useClaims = () => {
       await Promise.all(txs);
     },
     onError: () => claims.refetch(),
-    onSuccess: () => claims.refetch(),
+    onSuccess: () => Promise.all([claims.refetch(), balance.refetch()]),
   });
 
   const claimWatcher = useStateWatcher(claims.data?.claims);
