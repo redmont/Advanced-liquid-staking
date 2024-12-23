@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { getAuthToken, useDynamicContext } from '@/lib/dynamic';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { issueVestingToken } from '@/server/actions/issueVestingToken';
+import { issueVestingToken } from '@/app/developer/issueVestingToken';
 import { isDev } from '@/env';
 import assert from 'assert';
 import { Checkbox } from '@/components/ui/checkbox';
