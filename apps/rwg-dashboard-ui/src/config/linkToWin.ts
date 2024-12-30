@@ -16,77 +16,73 @@ export const WAVE_CONFIGURATIONS = {
       '0xb0a0D621DED63094F5da9045edc18c3e5d604120',
       'Ee5aiMJf7eM5fVt98r4kBoPHv49Zb5pMQbvCwUDZ62sH',
       '0x1693eEa1384E78c12f04D54D43053EbFf3dcA745',
+      '0x4F0Dd261f02620A391BF68a15C267257C1f557fE',
     ] as string[],
-    availableSeats: 500,
-    ticketsPerMember: 50,
+    availableSeats: 5000,
+    ticketsPerMember: 15,
     rewardPresets: [
       {
         prize: 0,
-        remaining: 8500,
+        remaining: 25000,
         type: RewardType.None,
       },
       {
+        prize: 10000,
+        remaining: 51,
+        type: RewardType.RealBetCredit,
+      },
+      {
         prize: 5000,
-        remaining: 1,
+        remaining: 949,
+        type: RewardType.RealBetCredit,
+      },
+      {
+        prize: 2500,
+        remaining: 3000,
         type: RewardType.RealBetCredit,
       },
       {
         prize: 1000,
-        remaining: 5,
+        remaining: 9000,
         type: RewardType.RealBetCredit,
       },
       {
-        prize: 250,
-        remaining: 20,
+        prize: 500,
+        remaining: 12000,
         type: RewardType.RealBetCredit,
+      },
+      {
+        prize: 250000,
+        remaining: 1,
+        type: RewardType.TokenBonus,
+      },
+      {
+        prize: 10000,
+        remaining: 50,
+        type: RewardType.TokenBonus,
+      },
+      {
+        prize: 2500,
+        remaining: 949,
+        type: RewardType.TokenBonus,
+      },
+      {
+        prize: 1000,
+        remaining: 3000,
+        type: RewardType.TokenBonus,
+      },
+      {
+        prize: 100,
+        remaining: 9000,
+        type: RewardType.TokenBonus,
       },
       {
         prize: 50,
-        remaining: 100,
-        type: RewardType.RealBetCredit,
-      },
-      {
-        prize: 10,
-        remaining: 500,
-        type: RewardType.RealBetCredit,
-      },
-      {
-        prize: 2.5,
-        remaining: 2000,
-        type: RewardType.RealBetCredit,
-      },
-      {
-        prize: 1,
-        remaining: 5000,
-        type: RewardType.RealBetCredit,
-      },
-      {
-        prize: 2,
-        remaining: 150,
-        type: RewardType.TokenBonus,
-      },
-      {
-        prize: 1.5,
-        remaining: 325,
-        type: RewardType.TokenBonus,
-      },
-      {
-        prize: 0.75,
-        remaining: 1050,
-        type: RewardType.TokenBonus,
-      },
-      {
-        prize: 0.5,
-        remaining: 3200,
-        type: RewardType.TokenBonus,
-      },
-      {
-        prize: 0.25,
-        remaining: 3525,
+        remaining: 12000,
         type: RewardType.TokenBonus,
       },
     ],
   },
 } as const;
 
-export const TWITTER_BONUS_TICKETS = 5;
+export const TWITTER_BONUS_TICKETS = 2;

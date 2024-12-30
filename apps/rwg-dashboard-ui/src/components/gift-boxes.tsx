@@ -51,25 +51,24 @@ const GiftBox = ({
                 <h3 className="text-md font-medium md:text-xl">You win!</h3>
               )}
               {reward.type === RewardType.RealBetCredit && (
-                <Rocket className="inline size-6 md:size-12 xl:size-6" />
+                <Diamond className="inline size-6 md:size-12 xl:size-6" />
               )}
               {reward.type === RewardType.TokenBonus && (
-                <Diamond className="inline size-6 md:size-12 xl:size-6" />
+                <Rocket className="inline size-6 md:size-12 xl:size-6" />
               )}
               {reward.type === RewardType.RealBetCredit && (
                 <>
                   <h3 className="text-sm md:text-xl">Realbet Credits</h3>{' '}
                   <p className={cn('text-sm font-bold md:text-xl')}>
-                    {reward.amount} {token.symbol}
+                    {reward.amount.toLocaleString()} {token.symbol}
                   </p>
                 </>
               )}
               {reward.type === RewardType.TokenBonus && (
                 <>
-                  <h3 className="text-sm md:text-xl">Public Sale Boost</h3>{' '}
+                  <h3 className="text-sm md:text-xl">Token Sale Bonus</h3>{' '}
                   <p className={cn('text-sm font-bold md:text-xl')}>
-                    {reward.amount}
-                    {'% '}
+                    {reward.amount.toLocaleString()} {token.symbol}
                   </p>
                 </>
               )}
