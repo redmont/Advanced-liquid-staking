@@ -243,18 +243,18 @@ export default function LinkToWinPage() {
           <CardContent>
             <div className="grid gap-3 md:grid-cols-2 md:gap-5 lg:gap-8">
               <div className="space-y-2">
-                <div className="flex w-full items-center justify-between">
+                <div className="flex w-full justify-between">
                   <div>
                     <h3 className="text-md font-medium sm:text-lg">
                       <Rocket className="mb-1 inline size-4 text-primary md:size-6" />{' '}
-                      Public Sale Boost<span className="text-muted">*</span>
+                      Token Sale Bonus<span className="text-muted">*</span>
                     </h3>
                     <p className="text-sm text-lightest">
-                      Percentage bonus in upcoming {token.symbol} public sale.
+                      Flat bonuses in upcoming {token.symbol} public sale.
                     </p>
                   </div>
 
-                  <div className="text-right">
+                  <div className="mt-1 text-right">
                     {currentWave.data?.prizePools.TokenBonus ?? '0'} /{' '}
                     {currentWave.data?.totals.TokenBonus ?? '0'}{' '}
                     <small>remaining</small>
@@ -268,11 +268,13 @@ export default function LinkToWinPage() {
                   }
                 />
                 <p className="!mt-0.5 text-right text-xs text-muted">
-                  *Claim up to a maximum of 16,666 {token.symbol}
+                  * must buy minimum public sale amount = total bonus amount
+                  <br />
+                  i.e. Win 500, spend 500 to unlock your 500
                 </p>
               </div>
               <div className="space-y-2">
-                <div className="flex w-full items-center justify-between">
+                <div className="flex w-full justify-between">
                   <div>
                     <h3 className="text-md font-medium sm:text-lg">
                       <Diamond className="mb-1 inline size-4 text-primary md:size-6" />{' '}
@@ -283,7 +285,7 @@ export default function LinkToWinPage() {
                       Casino.
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="mt-1 text-right">
                     {currentWave.data?.prizePools.RealBetCredit ?? '0'} /{' '}
                     {currentWave.data?.totals.RealBetCredit ?? '0'}{' '}
                     <small>remaining</small>
@@ -398,15 +400,20 @@ export default function LinkToWinPage() {
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-2">
                     <div>
                       <h3 className="text-md mb-2 flex items-center gap-2 font-medium md:text-xl">
-                        <Rocket className="inline size-6 text-primary" /> Public
-                        Sale Boost
+                        <Rocket className="inline size-6 text-primary" /> Token
+                        Sale Bonus
                       </h3>
                       {rewardsAccount.isLoading ? (
                         <Skeleton className="h-6 w-48 rounded-full" />
                       ) : (
                         <span className="text-2xl font-medium leading-none">
-                          {rewardTotals?.TokenBonus ?? 0}{' '}
-                          <span className="text-xl text-muted">%</span>
+                          <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
+                            <RealIcon className="inline size-5" />
+                          </span>{' '}
+                          {rewardTotals?.TokenBonus.toLocaleString() ?? 0}{' '}
+                          <span className="text-xl text-muted">
+                            {token.symbol}
+                          </span>
                         </span>
                       )}
                     </div>
@@ -422,7 +429,7 @@ export default function LinkToWinPage() {
                           <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
                             <RealIcon className="inline size-5" />
                           </span>{' '}
-                          {rewardTotals?.RealBetCredit ?? 0}{' '}
+                          {rewardTotals?.RealBetCredit.toLocaleString() ?? 0}{' '}
                           <span className="text-xl text-muted">
                             {token.symbol}
                           </span>

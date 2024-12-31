@@ -5,8 +5,10 @@ import { decodeUser } from '../auth';
 import type { Prisma } from '@prisma/client';
 import prisma from '../../prisma/client';
 
-const MAX_BONUS = 16666n * 10n ** 18n;
 const bigIntMin = (...args: bigint[]) => args.reduce((m, e) => (e < m ? e : m));
+
+const calculateBonus = (amount: bigint, bonus: bigint) =>
+  bigIntMin(amount, bonus);
 
 export const getClaimableAmounts = async (
   authToken: string,
@@ -49,11 +51,13 @@ export const getClaimableAmounts = async (
     }),
   ]);
 
-  const bonusPercent = bonuses.reduce(
-    (sum, bonus) => sum + (bonus.amount?.toNumber() ?? 0),
-    0,
-  );
-  const modifier = 100;
+  // TODO use real token decimals
+  const bonusAmount =
+    bonuses.reduce(
+      (sum, bonus) => sum + BigInt(bonus.amount?.toFixed(0) ?? 0n),
+      0n,
+    ) *
+    10n ** 18n;
 
   const claims =
     period?.claims.map((claim) => ({
@@ -66,12 +70,7 @@ export const getClaimableAmounts = async (
     .filter((claim) => claim.status === 'Pending')
     .map((claim) => ({
       ...claim,
-      bonus: bigIntMin(
-        MAX_BONUS,
-        (BigInt(bonusPercent * modifier) * claim.amount) /
-          100n /
-          BigInt(modifier),
-      ),
+      bonus: calculateBonus(claim.amount, bonusAmount),
     }));
 
   const totalSignable = signable.reduce(
