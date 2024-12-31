@@ -82,7 +82,8 @@ export const useClaims = () => {
     },
   });
 
-  const hasClaims = claims.isSuccess && claims.data!.claims.length > 0;
+  const hasClaims =
+    claims.isSuccess && claims.data && claims.data.claims.length > 0;
 
   const hasError =
     claims.isSuccess &&
