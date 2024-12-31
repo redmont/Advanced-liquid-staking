@@ -9,6 +9,8 @@ import { usePublicClient } from 'wagmi';
 import { updateClaimStatus } from '@/server/actions/claim/updateClaimStatus';
 import useStateWatcher from './useStateWatcher';
 import { useToken } from './useToken';
+import { useNetworkGuard } from '@/providers/network-guard';
+import { isDev } from '@/env';
 
 export const useClaims = () => {
   const publicClient = usePublicClient();
@@ -21,12 +23,15 @@ export const useClaims = () => {
     queries: { balance },
   } = useToken();
   const writeTokenMaster = useWriteTokenMaster();
+  const { networkGuard } = useNetworkGuard();
 
   const claimTokens = useAuthenticatedMutation({
     mutationFn: async (token) => {
       assert(publicClient, 'No public client');
       assert(claims.isSuccess && claims.data, 'Claims not loaded');
       assert(claims.data.claimable.length > 0, 'No claims to claim');
+
+      await networkGuard(isDev ? [11155111] : [1]);
 
       const txs = [];
       for (const claim of claims.data.claimable) {
@@ -70,13 +75,13 @@ export const useClaims = () => {
     onSuccess: () => Promise.all([claims.refetch(), balance.refetch()]),
   });
 
-  const claimWatcher = useStateWatcher(claims.data?.claims);
+  const awaitClaimChanges = useStateWatcher(claims.data?.claims);
 
   const signClaims = useAuthenticatedMutation({
     mutationFn: signPublicSaleClaims,
     onSuccess: async () => {
       await claims.refetch();
-      void claimWatcher().then(() => {
+      void awaitClaimChanges().then(() => {
         claimTokens.mutate();
       });
     },
