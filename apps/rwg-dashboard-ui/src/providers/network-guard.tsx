@@ -21,12 +21,11 @@ import { useSwitchChain } from 'wagmi';
 import * as chains from 'viem/chains';
 import { cn } from '@/lib/cn';
 
-type NetworkGuardContextType = {
-  networkGuard: (acceptedChains: (number | string)[]) => Promise<void>;
-};
-
-const DialogContext = createContext<NetworkGuardContextType | undefined>(
-  undefined,
+type NetworkGuardContextType = (
+  acceptedChains: (number | string)[],
+) => Promise<void>;
+const DialogContext = createContext<NetworkGuardContextType>(() =>
+  Promise.reject(new Error('No network guard context')),
 );
 
 export const NetworkGuard: React.FC<{ children: React.ReactNode }> = ({
@@ -41,9 +40,7 @@ export const NetworkGuard: React.FC<{ children: React.ReactNode }> = ({
     acceptedChains: (number | string)[];
   } | null>(null);
 
-  const networkGuard: NetworkGuardContextType['networkGuard'] = async (
-    acceptedChains,
-  ) => {
+  const networkGuard: NetworkGuardContextType = async (acceptedChains) => {
     const network = (await refetch()).data;
 
     return new Promise((resolve, reject) => {
@@ -78,7 +75,7 @@ export const NetworkGuard: React.FC<{ children: React.ReactNode }> = ({
     currentNetwork && state?.acceptedChains.includes(currentNetwork);
 
   return (
-    <DialogContext.Provider value={{ networkGuard }}>
+    <DialogContext.Provider value={networkGuard}>
       <Dialog
         open={state?.isOpen}
         onOpenChange={(isOpen) => {

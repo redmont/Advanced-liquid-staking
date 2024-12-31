@@ -23,7 +23,7 @@ export const useClaims = () => {
     queries: { balance },
   } = useToken();
   const writeTokenMaster = useWriteTokenMaster();
-  const { networkGuard } = useNetworkGuard();
+  const networkGuard = useNetworkGuard();
 
   const claimTokens = useAuthenticatedMutation({
     mutationFn: async (token) => {
