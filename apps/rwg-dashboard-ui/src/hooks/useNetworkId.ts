@@ -1,23 +1,23 @@
-import { networkIdExists } from '@/config/networks';
-import { isDev } from '@/env';
 import { networkOverrideAtom } from '@/store/developer';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useQuery } from '@tanstack/react-query';
 import { useAtomValue } from 'jotai';
-
-const defaultNetwork = isDev ? '11155111' : '1';
+import { useChainId } from 'wagmi';
 
 const useNetworkId = () => {
+  const chainId = useChainId();
   const override = useAtomValue(networkOverrideAtom);
   const { primaryWallet, sdkHasLoaded } = useDynamicContext();
 
   const networkId = useQuery({
-    queryKey: ['network', primaryWallet?.id],
+    queryKey: [
+      'network',
+      primaryWallet?.id,
+      primaryWallet?.connector?.key,
+      chainId,
+    ],
     enabled: sdkHasLoaded,
-    queryFn: async () => {
-      const network = await primaryWallet?.connector.getNetwork();
-      return networkIdExists(network) ? network : defaultNetwork;
-    },
+    queryFn: () => primaryWallet?.connector.getNetwork(),
   });
 
   return {
