@@ -30,7 +30,7 @@ const Banner: React.FC<
       <div className="relative z-20">{children}</div>
       {frog && (
         <motion.img
-          className="absolute -bottom-32 -right-32 z-10 w-80 md:w-96 xl:right-0"
+          className="pointer-events-none absolute -bottom-32 -right-32 z-10 w-80 md:w-96 xl:right-0"
           src={pepeAttack.src}
           alt="Pepe Attack"
           initial={{ opacity: 0, x: 100 }}

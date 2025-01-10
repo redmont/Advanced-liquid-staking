@@ -22,6 +22,7 @@ model RewardsAccount {
   id                  Int      @id @default(autoincrement())
   userId              String   @unique
   waveMemberships     WaveMembership[]
+  apiCalls            CasinoDepositApiCall[]
 }
 
 enum RewardType {
@@ -129,4 +130,31 @@ model Claim {
   claimedAt   DateTime?
 
   @@unique([address, periodId])
+}
+
+enum CallStatus {
+  Pending
+  Success
+  Error
+}
+
+model CasinoDepositApiCall {
+  id          Int           @id @default(autoincrement())
+  status      CallStatus    @default(Pending)
+  totals      CasinoDepositTotal[]
+  account     RewardsAccount @relation(fields: [accountId], references: [id])
+  accountId   Int
+  timestamp   DateTime      @default(now())
+}
+
+model CasinoDepositTotal {
+  id          Int           @id @default(autoincrement())
+  apiCallId   Int
+  apiCall     CasinoDepositApiCall @relation(fields: [apiCallId], references: [id], onDelete: Cascade)
+  casino      String
+  blockchain  String
+  address     String
+  symbol      String
+  amount      Decimal
+  claimed     Boolean       @default(false)
 }

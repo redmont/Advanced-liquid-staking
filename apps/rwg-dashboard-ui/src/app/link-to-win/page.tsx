@@ -104,7 +104,7 @@ export default function LinkToWinPage() {
             {showLinkButton && (
               <Button
                 size="lg"
-                onClick={() => linkCasinoAccount.mutateAsync()}
+                onClick={() => linkCasinoAccount.mutate()}
                 loading={
                   linkCasinoAccount.isPending ||
                   casinoLink.isLoading ||

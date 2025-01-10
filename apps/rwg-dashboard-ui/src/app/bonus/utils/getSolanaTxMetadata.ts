@@ -2,7 +2,7 @@
 
 import { env } from '@/env';
 import { z } from 'zod';
-import { toCamel } from '.';
+import { toCamel } from '../../../lib/utils';
 import assert from 'assert';
 
 const TokenSymbolSchema = z.object({

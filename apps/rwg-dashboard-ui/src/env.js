@@ -18,6 +18,7 @@ export const env = createEnv({
     TOKEN_MASTER_SIGNER_PRIVATE_KEY: z.string().optional(),
     CASINO_API_SECRET_KEY: z.string(),
     SUPABASE_DB_POSTGRES_URL: z.string(),
+    DUNE_API_KEY: z.string().optional(),
   },
 
   /**
@@ -57,6 +58,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_CASINO_URL ?? '/casino-test-linker',
     HELIUS_API_KEY: process.env.HELIUS_API_KEY,
     SUPABASE_DB_POSTGRES_URL: process.env.SUPABASE_DB_POSTGRES_URL,
+    DUNE_API_KEY: process.env.DUNE_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
