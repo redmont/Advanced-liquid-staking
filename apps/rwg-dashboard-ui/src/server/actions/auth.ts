@@ -22,10 +22,20 @@ const VerifiedCredentialSchema = z.object({
   address: z.string(),
 });
 
+type VerifiedCredential = z.infer<typeof VerifiedCredentialSchema>;
+
 const JwtPayloadSchema = z
   .object({
     sub: z.string(),
-    verified_credentials: z.array(VerifiedCredentialSchema),
+    verified_credentials: z.preprocess(
+      (val) =>
+        Array.isArray(val)
+          ? (val.filter(
+              (vc: { address: string }) => typeof vc.address === 'string',
+            ) as VerifiedCredential[])
+          : [],
+      z.array(VerifiedCredentialSchema),
+    ),
   })
   .transform((payload) => ({
     id: payload.sub,
