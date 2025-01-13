@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "src/server/api/actions/**/**": {
+      "maxDuration": 120
+    }
+  }
+}
