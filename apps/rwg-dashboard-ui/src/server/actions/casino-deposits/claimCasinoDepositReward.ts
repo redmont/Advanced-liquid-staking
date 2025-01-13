@@ -11,7 +11,6 @@ export const claimCasinoDepositReward = async (authToken: string) => {
 
   const previouslyClaimed = await prisma.casinoDepositTotal.findMany({
     where: {
-      claimed: true,
       apiCall: {
         account: {
           userId: user.id,

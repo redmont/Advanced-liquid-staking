@@ -40,7 +40,10 @@ export const useCasinoDeposits = () => {
   });
 
   const claimable = useMemo(
-    () => deposits.data?.totals.some((t) => !t.claimed),
+    () =>
+      deposits.data &&
+      deposits.data.totals.length > 0 &&
+      deposits.data?.totals.some((t) => !t.claimed),
     [deposits.data],
   );
 

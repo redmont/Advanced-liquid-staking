@@ -377,20 +377,26 @@ const BonusPage = () => {
                           <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full border border-primary bg-black p-1.5 text-primary">
                             <RealIcon className="inline size-full" />
                           </span>
-                          <Button
-                            size={'sm'}
-                            loading={
-                              bonus.claim.isPending ||
-                              calculateDeposits.isPending
-                            }
-                            onClick={() => bonus.claim.mutate()}
-                          >
-                            Claim
-                          </Button>
+                          {bonus.claimable && (
+                            <Button
+                              size={'sm'}
+                              disabled={!bonus.claimable}
+                              loading={
+                                bonus.claim.isPending ||
+                                calculateDeposits.isPending
+                              }
+                              onClick={() => bonus.claim.mutate()}
+                            >
+                              Claim
+                            </Button>
+                          )}
                         </span>
                       </span>
                     </h3>
                   </div>
+                  <p className="text-destructive empty:hidden">
+                    {bonus.claim.error?.message}
+                  </p>
                 </div>
                 <Table>
                   <TableHeader>
