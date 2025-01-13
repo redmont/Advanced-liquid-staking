@@ -190,6 +190,14 @@ const BonusPage = () => {
   const showResults =
     _showResults || calculateDeposits.isPending || casinoDeposits.data;
 
+  const retryInSeconds = casinoDeposits.data
+    ? Math.floor(
+        (casinoDeposits.data.timestamp.getTime() +
+          1000 * 60 -
+          new Date().getTime()) /
+          1000,
+      )
+    : null;
   const degenScoreTooltip = (
     <PopoverContent className="z-30" align="start">
       <ul className="max-w-80 list-disc space-y-3 rounded-xl bg-light p-2 pl-5 text-left text-sm">
@@ -320,20 +328,12 @@ const BonusPage = () => {
                   </Button>
                 )}
               </div>
-              {casinoDeposits.data?.status === 'Pending' &&
-                casinoDeposits.data.timestamp.getTime() - Date.now() <
-                  1000 * 60 && (
-                  <p className="w-full text-right text-warning">
-                    You can retry in{' '}
-                    {(
-                      (casinoDeposits.data.timestamp.getTime() +
-                        1000 * 60 -
-                        new Date().getTime()) /
-                      1000
-                    ).toFixed(0)}{' '}
-                    seconds.
-                  </p>
-                )}
+              {retryInSeconds && retryInSeconds > 0 && (
+                <p className="w-full text-right text-warning">
+                  You can retry in {retryInSeconds}
+                  seconds.
+                </p>
+              )}
             </div>
             {showResults && (
               <>
@@ -394,7 +394,7 @@ const BonusPage = () => {
                       </span>
                     </h3>
                   </div>
-                  <p className="text-destructive empty:hidden">
+                  <p className="w-full text-right text-destructive empty:hidden sm:col-span-2">
                     {bonus.claim.error?.message}
                   </p>
                 </div>
@@ -418,10 +418,7 @@ const BonusPage = () => {
                     {casinoDeposits.isSuccess &&
                       casinoDeposits.data?.totals.length === 0 && (
                         <TableRow>
-                          <TableCell
-                            colSpan={3}
-                            className="flex items-center gap-2 px-5 font-normal capitalize"
-                          >
+                          <TableCell className="flex items-center gap-2 px-5 font-normal capitalize">
                             No deposits were detected.
                           </TableCell>
                         </TableRow>
