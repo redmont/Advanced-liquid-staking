@@ -57,7 +57,10 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
     },
   });
 
-  if (existingCall?.status === 'Pending') {
+  if (
+    existingCall?.status === 'Pending' &&
+    new Date().getTime() - existingCall.timestamp.getTime() < 1000 * 60
+  ) {
     throw new Error('Pending call, cannot recalculate.');
   }
 

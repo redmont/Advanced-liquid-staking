@@ -320,6 +320,20 @@ const BonusPage = () => {
                   </Button>
                 )}
               </div>
+              {casinoDeposits.data?.status === 'Pending' &&
+                casinoDeposits.data.timestamp.getTime() - Date.now() <
+                  1000 * 60 && (
+                  <p className="w-full text-right text-warning">
+                    You can retry in{' '}
+                    {(
+                      (casinoDeposits.data.timestamp.getTime() +
+                        1000 * 60 -
+                        new Date().getTime()) /
+                      1000
+                    ).toFixed(0)}{' '}
+                    seconds.
+                  </p>
+                )}
             </div>
             {showResults && (
               <>
