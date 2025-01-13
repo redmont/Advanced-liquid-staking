@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Loader2, Wallet2 } from 'lucide-react';
+import { Check, Loader2, Wallet2 } from 'lucide-react';
 import Banner from '@/components/banner';
 import {
   useDynamicContext,
@@ -21,7 +21,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { shorten } from '@/utils';
-import { casinoNames } from '@/config/walletChecker';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 import {
   Popover,
@@ -36,6 +35,7 @@ import { useCasinoDeposits } from './hooks/useCasinoDeposits';
 import { useCasinoLink } from '@/hooks/useCasinoLink';
 import Link from 'next/link';
 import RealIcon from '@/assets/images/R.svg';
+import ClaimCasinoDepositBonusModal from '@/components/modals/ClaimCasinoDepositBonusModal';
 
 const logos: Record<string, JSX.Element> = {
   shuffle: (
@@ -168,7 +168,6 @@ const logos: Record<string, JSX.Element> = {
 
 const BonusPage = () => {
   const [_showResults, setShowResults] = useState(false);
-  const token = useToken();
   const {
     deposits: casinoDeposits,
     bonus,
@@ -176,6 +175,7 @@ const BonusPage = () => {
     totalDeposited,
     score,
   } = useCasinoDeposits();
+  const token = useToken();
   const isAuthenticated = useIsLoggedIn();
   const { sdkHasLoaded, setShowDynamicUserProfile } = useDynamicContext();
   const handleDynamicAuthClick = useDynamicAuthClickHandler();
@@ -223,33 +223,13 @@ const BonusPage = () => {
     <div className="flex flex-col gap-5 p-5">
       <Banner>
         <div className="space-y-4">
-          <p className="py-4 text-lg tracking-widest md:max-w-[50%]">
-            {casinoNames.map((n) => n.toUpperCase()).join(' | ')}
-          </p>
-          <h3 className="inline rounded-md bg-accent-2 px-2 font-monoline text-3xl text-white xl:text-4xl">
-            Check your {token.symbol} Bonus
+          <h3 className="inline rounded-md bg-accent-2 px-2 font-monoline text-2xl text-white xl:text-3xl">
+            EARN {token.symbol} REWARDS FROM CASINO PLAY
           </h3>
-          <ul
-            className="pl-5 text-lg md:max-w-[50%]"
-            style={{ listStyleType: 'disc' }}
-          >
-            <li>
-              Connect your wallet to see your available token sale bonus from
-              participating in {token.symbol} token sale here.
-            </li>
-            <li>Link multiple cross-chain wallets to boost your score.</li>
-          </ul>
-
-          <div className="flex items-center gap-3 md:max-w-2xl">
-            <Popover>
-              <PopoverTrigger className="hover:text-primary">
-                <span className="inline-flex items-center gap-1 hover:text-primary">
-                  How is my bonus calculated <QuestionMarkCircledIcon />
-                </span>
-              </PopoverTrigger>
-              {degenScoreTooltip}
-            </Popover>
-          </div>
+          <p className="max-w-lg text-lg">
+            Claim $REAL rewards from your past deposits on top casinos. Link
+            your wallets to scan for deposit rewards.
+          </p>
           <div className="flex items-center gap-5 md:max-w-2xl">
             {sdkHasLoaded && !isAuthenticated && (
               <div className="space-between no-wrap flex flex-row items-center justify-center gap-5">
@@ -290,32 +270,36 @@ const BonusPage = () => {
               <div className="flex items-center gap-3">
                 {casinoLink.isLinked ? (
                   <>
-                    <Button
-                      onClick={() => setShowLinkNewWalletModal(true)}
-                      variant="outline"
-                      className="place-self-end"
-                    >
-                      + Link new wallet
-                    </Button>
-                    <Button
-                      loading={calculateDeposits.isPending}
-                      disabled={
-                        bonus.claimed ||
-                        casinoDeposits.data?.status === 'Pending'
-                      }
-                      onClick={() => {
-                        setShowResults(true);
-                        calculateDeposits.mutate();
-                      }}
-                      className="place-self-end"
-                    >
-                      {casinoDeposits.data &&
-                      casinoDeposits.data.status === 'Success'
-                        ? 'Recalculate Rewards'
-                        : casinoDeposits.data?.status === 'Pending'
-                          ? 'In progress'
-                          : 'Calculate Rewards'}
-                    </Button>
+                    {!bonus.claimed && (
+                      <>
+                        <Button
+                          onClick={() => setShowLinkNewWalletModal(true)}
+                          variant="outline"
+                          className="place-self-end"
+                        >
+                          + Add new crypto wallet
+                        </Button>
+                        <Button
+                          loading={calculateDeposits.isPending}
+                          disabled={
+                            bonus.claimed ||
+                            casinoDeposits.data?.status === 'Pending'
+                          }
+                          onClick={() => {
+                            setShowResults(true);
+                            calculateDeposits.mutate();
+                          }}
+                          className="place-self-end"
+                        >
+                          {casinoDeposits.data &&
+                          casinoDeposits.data.status === 'Success'
+                            ? 'Rescan Rewards'
+                            : casinoDeposits.data?.status === 'Pending'
+                              ? 'In progress'
+                              : 'Scan Rewards'}
+                        </Button>
+                      </>
+                    )}
                   </>
                 ) : (
                   <Button asChild className="place-self-end">
@@ -330,8 +314,7 @@ const BonusPage = () => {
               </div>
               {retryInSeconds && retryInSeconds > 0 && (
                 <p className="w-full text-right text-warning">
-                  You can retry in {retryInSeconds}
-                  seconds.
+                  You can retry in {retryInSeconds} seconds.
                 </p>
               )}
             </div>
@@ -345,7 +328,7 @@ const BonusPage = () => {
                 )}
                 <div className="grid grid-cols-1 gap-3 rounded-xl bg-lighter/50 px-5 py-3 sm:grid-cols-2">
                   <div className="flex flex-col items-center gap-1 rounded-xl border border-orange-100/20 bg-red-500/5 px-2 py-4">
-                    <h3 className="text-md">Total Deposited</h3>
+                    <h3 className="text-md">Total Deposits</h3>
                     <h3 className="text-center text-lg">
                       <span className="flex items-center gap-2 text-xl text-primary">
                         {(casinoDeposits.isPending ||
@@ -362,36 +345,58 @@ const BonusPage = () => {
                   </div>
                   <div className="flex flex-col items-center justify-between gap-1 rounded-xl border border-orange-100/20 bg-red-500/5 px-2 py-4">
                     <h3 className="text-md text-center">
-                      <Popover>
-                        <PopoverTrigger className="hover:text-primary">
-                          Total {token.symbol} Rewards
-                          <QuestionMarkCircledIcon className="ml-1 inline" />
-                        </PopoverTrigger>
-                        {degenScoreTooltip}
-                      </Popover>
+                      {bonus.claimed ? (
+                        <Popover>
+                          <PopoverTrigger className="hover:text-primary">
+                            Claimed Rewards
+                            <QuestionMarkCircledIcon className="ml-1 inline" />
+                          </PopoverTrigger>
+                          {degenScoreTooltip}
+                        </Popover>
+                      ) : (
+                        <Popover>
+                          <PopoverTrigger className="hover:text-primary">
+                            Available Rewards
+                            <QuestionMarkCircledIcon className="ml-1 inline" />
+                          </PopoverTrigger>
+                          {degenScoreTooltip}
+                        </Popover>
+                      )}
                     </h3>
                     <h3 className="text-md text-center">
-                      <span className="text-xl text-primary">
-                        {score.toLocaleString()}
-                        <span className="inline-flex items-center gap-1 text-2xl">
-                          <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full border border-primary bg-black p-1.5 text-primary">
-                            <RealIcon className="inline size-full" />
+                      {bonus.claimed ? (
+                        <p className="text-lg text-green-500">
+                          {score.toLocaleString()}
+                          <Check className="ml-1 inline-block" />
+                        </p>
+                      ) : (
+                        <span className="text-xl text-primary">
+                          {score.toLocaleString()}
+                          <span className="inline-flex items-center gap-1 text-2xl">
+                            <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full border border-primary bg-black p-1.5 text-primary">
+                              <RealIcon className="inline size-full" />
+                            </span>
+                            {bonus.claimable && (
+                              <ClaimCasinoDepositBonusModal
+                                onConfirm={bonus.claim.mutate}
+                                amount={score}
+                              >
+                                <Button
+                                  size={'sm'}
+                                  disabled={!bonus.claimable}
+                                  loading={
+                                    bonus.claim.isPending ||
+                                    calculateDeposits.isPending
+                                  }
+                                  onClick={() => bonus.claim.mutate()}
+                                >
+                                  Claim
+                                </Button>
+                              </ClaimCasinoDepositBonusModal>
+                            )}
                           </span>
-                          {bonus.claimable && (
-                            <Button
-                              size={'sm'}
-                              disabled={!bonus.claimable}
-                              loading={
-                                bonus.claim.isPending ||
-                                calculateDeposits.isPending
-                              }
-                              onClick={() => bonus.claim.mutate()}
-                            >
-                              Claim
-                            </Button>
-                          )}
                         </span>
-                      </span>
+                      )}
                     </h3>
                   </div>
                   <p className="w-full text-right text-destructive empty:hidden sm:col-span-2">
@@ -403,11 +408,8 @@ const BonusPage = () => {
                     <TableRow>
                       <TableHead className="px-5 font-normal">Casino</TableHead>
                       <TableHead className="px-5 font-normal">Asset</TableHead>
-                      <TableHead className="px-5 font-normal">
-                        Total Deposited
-                      </TableHead>
                       <TableHead className="px-5 text-right font-normal">
-                        Score
+                        Eligible Deposits
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -423,57 +425,48 @@ const BonusPage = () => {
                           </TableCell>
                         </TableRow>
                       )}
-                    {casinoDeposits.data?.totals.map((deposit) => {
-                      const logo = logos[deposit.casino];
+                    {casinoDeposits.data?.totals
+                      .filter((deposit) => deposit.amount >= 100)
+                      .map((deposit) => {
+                        const logo = logos[deposit.casino];
 
-                      return (
-                        <TableRow
-                          key={`${deposit.casino}-${deposit.blockchain}-${deposit.symbol}`}
-                          className="odd:bg-lighter/1 even:bg-lighter/1 border-b-5 border border-lighter/50"
-                        >
-                          <TableCell className="gap-2 px-5 font-normal capitalize">
-                            <span className="flex items-center gap-2">
-                              <span className="relative size-8">{logo}</span>{' '}
-                              <span>{deposit.casino}</span>
-                            </span>
-                          </TableCell>
-                          <TableCell className="gap-2 px-5 font-normal">
-                            <img
-                              alt=""
-                              width={26}
-                              src={`/icons/${deposit.symbol.toLowerCase()}.png`}
-                            />{' '}
-                            {deposit.symbol}
-                          </TableCell>
-                          <TableCell className="px-5">
-                            {deposit.amount.toLocaleString('en-US', {
-                              maximumFractionDigits: 2,
-                            })}{' '}
-                            USD
-                          </TableCell>
-                          <TableCell className="px-5 text-right">
-                            {deposit.amount > 100 ? '+' : ''}
-                            {(
-                              Math.floor(deposit.amount / 100) * 100
-                            ).toLocaleString()}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                        return (
+                          <TableRow
+                            key={`${deposit.casino}-${deposit.blockchain}-${deposit.symbol}`}
+                            className="odd:bg-lighter/1 even:bg-lighter/1 border-b-5 border border-lighter/50"
+                          >
+                            <TableCell className="gap-2 px-5 font-normal capitalize">
+                              <span className="flex items-center gap-2">
+                                <span className="relative size-8">{logo}</span>{' '}
+                                <span>{deposit.casino}</span>
+                              </span>
+                            </TableCell>
+                            <TableCell className="gap-2 px-5 font-normal">
+                              <img
+                                alt=""
+                                width={26}
+                                src={`/icons/${deposit.symbol.toLowerCase()}.png`}
+                              />{' '}
+                              {deposit.symbol}
+                            </TableCell>
+                            <TableCell className="px-5 text-right">
+                              ${deposit.amount.toLocaleString()}
+                              USD
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                   </TableBody>
 
                   <TableFooter className="border-b-5 border border-lighter/50 bg-lighter/20">
                     <TableRow>
-                      <TableHead className="px-5 font-normal">Total</TableHead>
                       <TableHead className="px-5 font-normal"></TableHead>
-                      <TableHead className="px-5 font-normal text-primary">
-                        {totalDeposited.toLocaleString('en-US', {
-                          maximumFractionDigits: 2,
-                        })}{' '}
-                        USD
-                      </TableHead>
-                      <TableHead className="px-5 text-right font-normal text-primary">
-                        {score}
+                      <TableHead className="px-5 font-normal">Total</TableHead>
+                      <TableHead className="px-5 text-right text-lg font-normal text-primary">
+                        +{score.toLocaleString()}{' '}
+                        <span className="m-1 inline-flex size-6 flex-col items-center justify-center rounded-full border border-primary bg-black p-1 text-primary">
+                          <RealIcon className="inline size-full" />
+                        </span>
                       </TableHead>
                     </TableRow>
                   </TableFooter>

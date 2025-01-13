@@ -27,13 +27,6 @@ export const useCasinoDeposits = () => {
     [deposits.data?.totals],
   );
 
-  const casinoDepositScore = useMemo(
-    () =>
-      Math.floor(totalDeposited / 100) * 100 +
-      (deposits.data && deposits.data?.totals.length > 0 ? 100 : 0),
-    [deposits.data, totalDeposited],
-  );
-
   const claim = useAuthenticatedMutation({
     mutationFn: claimCasinoDepositReward,
     onSuccess: () => deposits.refetch(),
@@ -41,9 +34,9 @@ export const useCasinoDeposits = () => {
 
   const claimable = useMemo(
     () =>
-      deposits.data &&
+      !!deposits.data &&
       deposits.data.totals.length > 0 &&
-      deposits.data?.totals.some((t) => !t.claimed),
+      !deposits.data.totals.some((t) => t.claimed),
     [deposits.data],
   );
 
@@ -60,7 +53,7 @@ export const useCasinoDeposits = () => {
       claimable,
       claim,
     },
-    score: casinoDepositScore,
+    score: deposits.data?.score ?? 0,
     totalDeposited,
   };
 };

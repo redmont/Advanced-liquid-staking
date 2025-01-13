@@ -25,9 +25,18 @@ export const fetchCasinoDepositTotals = async (authToken: string) => {
     },
   });
 
+  const eligibleDeposits =
+    apiCall?.totals.filter((t) => Number(t.amount) >= 100) ?? [];
+
+  const score = apiCall?.totals.reduce(
+    (acc, t) => acc + Math.floor(Number(t.amount) / 100) * 100,
+    eligibleDeposits?.length > 0 ? 100 : 0,
+  );
+
   return apiCall
     ? {
         ...apiCall,
+        score,
         totals: apiCall?.totals.map((t) => ({
           ...t,
           amount: Number(t.amount),

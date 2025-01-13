@@ -23,6 +23,8 @@ export const claimCasinoDepositReward = async (authToken: string) => {
     throw new Error('Already claimed bonus on casino deposits');
   }
 
+  // CALL GMG API
+
   return prisma.casinoDepositTotal.updateMany({
     data: {
       claimed: true,

@@ -24,7 +24,7 @@ const CasinoDepositTotalRowsSchema = z
   .transform((o) => toCamel(o))
   .pipe(z.array(CasinoTotalSchema));
 
-const TEST_ADDRESS = null; // '0x3a56897e857731fd944c36a5f917d6f28dcdd2e5';
+const TEST_ADDRESS = '0x93D39b56FA20Dc8F0E153958D73F0F5dC88F013f';
 
 export const calculateCasinoDepositTotals = async (authToken: string) => {
   assert(!!env.DUNE_API_KEY, 'DUNE_API_KEY is required');
@@ -101,6 +101,7 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
 
     // eslint-disable-next-line no-console
     console.time(`Dune.com API call for user: ${user.id}`);
+
     const responses = await Promise.all(
       paramsList.map(
         async (params) =>
