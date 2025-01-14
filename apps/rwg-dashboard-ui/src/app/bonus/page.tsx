@@ -212,10 +212,6 @@ const BonusPage = () => {
           Then you get <b>100 points</b> for every <b>100$ deposited</b> on any
           supported casino on any supported chain.
         </li>
-        <li>
-          For each meme coins that you have ever interacted with in the meme
-          coin list you get <b>100 points</b>
-        </li>
       </ul>
     </PopoverContent>
   );
