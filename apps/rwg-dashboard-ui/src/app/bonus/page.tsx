@@ -268,49 +268,50 @@ const BonusPage = () => {
                 </div>
               </span>
               <div className="flex items-center gap-3">
-                {casinoLink.isLinked ? (
-                  <>
-                    {!bonus.claimed && (
-                      <>
-                        <Button
-                          onClick={() => setShowLinkNewWalletModal(true)}
-                          variant="outline"
-                          className="place-self-end"
-                        >
-                          + Add new crypto wallet
-                        </Button>
-                        <Button
-                          loading={calculateDeposits.isPending}
-                          disabled={
-                            bonus.claimed ||
-                            casinoDeposits.data?.status === 'Pending'
-                          }
-                          onClick={() => {
-                            setShowResults(true);
-                            calculateDeposits.mutate();
-                          }}
-                          className="place-self-end"
-                        >
-                          {casinoDeposits.data &&
-                          casinoDeposits.data.status === 'Success'
-                            ? 'Rescan Rewards'
-                            : casinoDeposits.data?.status === 'Pending'
-                              ? 'In progress'
-                              : 'Scan Rewards'}
-                        </Button>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <Button asChild className="place-self-end">
-                    <Link
-                      href="/link-to-win"
-                      className="font-bold text-primary"
-                    >
-                      Link Realbet Account
-                    </Link>
-                  </Button>
-                )}
+                {casinoLink.isSuccess &&
+                  (casinoLink.isLinked ? (
+                    <>
+                      {!bonus.claimed && (
+                        <>
+                          <Button
+                            onClick={() => setShowLinkNewWalletModal(true)}
+                            variant="outline"
+                            className="place-self-end"
+                          >
+                            + Add new crypto wallet
+                          </Button>
+                          <Button
+                            loading={calculateDeposits.isPending}
+                            disabled={
+                              bonus.claimed ||
+                              casinoDeposits.data?.status === 'Pending'
+                            }
+                            onClick={() => {
+                              setShowResults(true);
+                              calculateDeposits.mutate();
+                            }}
+                            className="place-self-end"
+                          >
+                            {casinoDeposits.data &&
+                            casinoDeposits.data.status === 'Success'
+                              ? 'Rescan Rewards'
+                              : casinoDeposits.data?.status === 'Pending'
+                                ? 'In progress'
+                                : 'Scan Rewards'}
+                          </Button>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <Button asChild className="place-self-end">
+                      <Link
+                        href="/link-to-win"
+                        className="font-bold text-primary"
+                      >
+                        Link Realbet Account
+                      </Link>
+                    </Button>
+                  ))}
               </div>
               {retryInSeconds && retryInSeconds > 0 && (
                 <p className="w-full text-right text-warning">

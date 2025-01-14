@@ -145,6 +145,8 @@ model CasinoDepositApiCall {
   account     RewardsAccount @relation(fields: [accountId], references: [id])
   accountId   Int
   timestamp   DateTime      @default(now())
+
+  @@unique([id, accountId])
 }
 
 model CasinoDepositTotal {
@@ -157,4 +159,6 @@ model CasinoDepositTotal {
   symbol      String
   amount      Decimal
   claimed     Boolean       @default(false)
+
+  @@unique([apiCallId, casino, blockchain, address, symbol])
 }
