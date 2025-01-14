@@ -36,6 +36,7 @@ import { useCasinoLink } from '@/hooks/useCasinoLink';
 import Link from 'next/link';
 import RealIcon from '@/assets/images/R.svg';
 import ClaimCasinoDepositBonusModal from '@/components/modals/ClaimCasinoDepositBonusModal';
+import CasinoDepositRescanWarningModal from '@/components/modals/CasinoDepositRescanWarningModal';
 
 const logos: Record<string, JSX.Element> = {
   shuffle: (
@@ -280,25 +281,48 @@ const BonusPage = () => {
                           >
                             + Add new crypto wallet
                           </Button>
-                          <Button
-                            loading={calculateDeposits.isPending}
-                            disabled={
-                              bonus.claimed ||
-                              casinoDeposits.data?.status === 'Pending'
-                            }
-                            onClick={() => {
-                              setShowResults(true);
-                              calculateDeposits.mutate();
-                            }}
-                            className="place-self-end"
-                          >
-                            {casinoDeposits.data &&
-                            casinoDeposits.data.status === 'Success'
-                              ? 'Rescan Rewards'
-                              : casinoDeposits.data?.status === 'Pending'
-                                ? 'In progress'
-                                : 'Scan Rewards'}
-                          </Button>
+                          {casinoDeposits.data?.status === 'Pending' &&
+                          new Date().getTime() -
+                            casinoDeposits.data.timestamp.getTime() >
+                            1000 * 60 ? (
+                            <CasinoDepositRescanWarningModal
+                              onConfirm={() => {
+                                setShowResults(true);
+                                calculateDeposits.mutate();
+                              }}
+                            >
+                              <Button
+                                loading={calculateDeposits.isPending}
+                                disabled={
+                                  bonus.claimed ||
+                                  casinoDeposits.data?.status === 'Pending'
+                                }
+                                className="place-self-end"
+                              >
+                                Rescan Rewards
+                              </Button>
+                            </CasinoDepositRescanWarningModal>
+                          ) : (
+                            <Button
+                              loading={calculateDeposits.isPending}
+                              disabled={
+                                bonus.claimed ||
+                                casinoDeposits.data?.status === 'Pending'
+                              }
+                              onClick={() => {
+                                setShowResults(true);
+                                calculateDeposits.mutate();
+                              }}
+                              className="place-self-end"
+                            >
+                              {casinoDeposits.data &&
+                              casinoDeposits.data.status === 'Success'
+                                ? 'Rescan Rewards'
+                                : casinoDeposits.data?.status === 'Pending'
+                                  ? 'In progress'
+                                  : 'Scan Rewards'}
+                            </Button>
+                          )}
                         </>
                       )}
                     </>

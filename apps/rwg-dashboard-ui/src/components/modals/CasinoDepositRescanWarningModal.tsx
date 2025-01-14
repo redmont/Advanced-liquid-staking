@@ -11,12 +11,11 @@ import { Button } from '../ui/button';
 import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
 
-const ClaimCasinoDepositBonusModal: FC<
+const CasinoDepositRescanWarningModal: FC<
   PropsWithChildren<{
     onConfirm: () => void;
-    amount: number;
   }>
-> = ({ onConfirm, amount, children }) => {
+> = ({ onConfirm, children }) => {
   const isLoggedIn = useIsLoggedIn();
   const auth = useDynamicAuthClickHandler();
   const [open, setOpen] = useState(false);
@@ -44,24 +43,23 @@ const ClaimCasinoDepositBonusModal: FC<
       <DialogContent className="border-transparent bg-card px-5 sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-normal">
-            Confirm Token Claim
+            Confirm Casino Deposits Rescan
           </DialogTitle>
         </DialogHeader>
         <p>
-          You are about to claim <strong>{amount}</strong> RealBet credits. This
-          action <strong>cannot be undone</strong>. Make sure you have all your
-          wallet addresses properly connected to the account. Are you sure you
-          want to claim now?
+          We&apos;re already scanning your casino deposits. Rescanning now will
+          reset your previous scan and start from the beginning. Are you sure
+          you want to rescan now?
         </p>
         <div className="mt-5 flex justify-end gap-3">
           <Button variant={'outline'} onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={_onConfirm}>Confirm Claim</Button>
+          <Button onClick={_onConfirm}>Confirm Rescan</Button>
         </div>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default ClaimCasinoDepositBonusModal;
+export default CasinoDepositRescanWarningModal;
