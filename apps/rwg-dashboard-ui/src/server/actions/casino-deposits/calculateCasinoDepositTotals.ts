@@ -48,13 +48,6 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
         userId: user.id,
       },
     },
-    include: {
-      totals: {
-        where: {
-          claimed: true,
-        },
-      },
-    },
   });
 
   if (
@@ -64,7 +57,7 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
     throw new Error('Pending call, cannot recalculate.');
   }
 
-  if (existingCall && existingCall?.totals.length > 0) {
+  if (existingCall && existingCall.status === 'Claimed') {
     throw new Error('Already claimed deposits, cannot recalculate.');
   }
 

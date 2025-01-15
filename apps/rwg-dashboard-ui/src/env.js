@@ -17,6 +17,7 @@ export const env = createEnv({
     TESTNET_SIGNER_PRIVATE_KEY: z.string().optional(),
     TOKEN_MASTER_SIGNER_PRIVATE_KEY: z.string().optional(),
     CASINO_API_SECRET_KEY: z.string(),
+    CASINO_API_URL: z.string(),
     SUPABASE_DB_POSTGRES_URL: z.string(),
     DUNE_API_KEY: z.string().optional(),
   },
@@ -54,6 +55,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS ??
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
     CASINO_API_SECRET_KEY: process.env.CASINO_API_SECRET_KEY ?? 'dummy',
+    CASINO_API_URL: process.env.CASINO_API_URL ?? 'http://localhost:3000/api',
     NEXT_PUBLIC_CASINO_URL:
       process.env.NEXT_PUBLIC_CASINO_URL ?? '/casino-test-linker',
     HELIUS_API_KEY: process.env.HELIUS_API_KEY,

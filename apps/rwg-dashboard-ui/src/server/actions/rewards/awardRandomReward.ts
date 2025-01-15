@@ -5,6 +5,7 @@ import { getUserIdFromToken } from '../auth';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import assert from 'assert';
 import { getRandomWeightedItem } from '@/utils';
+import { creditUserBonus } from '../updateRealbetCredits';
 
 export const awardRandomReward = async (
   authToken: string,
@@ -15,6 +16,7 @@ export const awardRandomReward = async (
     where: {
       userId,
     },
+    include: {},
   });
   if (!account) {
     throw new Error('No account');
@@ -52,6 +54,7 @@ export const awardRandomReward = async (
             type: preset.type,
             amount: preset.prize,
             membershipId: waveMembership.id,
+            redeemed: preset.type === 'RealBetCredit',
           },
         }),
         tx.waveMembership.update({
@@ -73,6 +76,26 @@ export const awardRandomReward = async (
           },
         }),
       ]);
+
+      if (reward.type === 'RealBetCredit') {
+        const casinoLink = await tx.casinoLink.findFirst({
+          where: {
+            userId,
+          },
+        });
+
+        assert(casinoLink, 'Casino link not found');
+
+        await creditUserBonus(casinoLink.realbetUserId, {
+          id: reward.id,
+          name: 'MysteryBoxWin',
+          amount: Number(reward.amount),
+          description: JSON.stringify({
+            rewardWaveId: rewardWave.id,
+            rewardId: reward.id,
+          }),
+        });
+      }
 
       return {
         reward: {

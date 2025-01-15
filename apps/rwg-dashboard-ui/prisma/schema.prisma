@@ -13,7 +13,7 @@ datasource db {
 model CasinoLink {
   id              Int      @id @default(autoincrement())
   userId          String   @unique 
-  realbetUserId   String
+  realbetUserId   Int      @unique
   realbetUsername String
   createdAt       DateTime @default(now())
 }
@@ -91,14 +91,15 @@ model RewardPresets {
 }
 
 model Reward {
-  id              Int      @id @default(autoincrement())
-  userId          String
-  type            RewardType
-  amount          Decimal?
-  redeemed        Boolean  @default(false)
-  membershipId    Int
-  membership      WaveMembership @relation(fields: [membershipId], references: [id])
-  createdAt       DateTime @default(now())
+  id                    Int      @id @default(autoincrement())
+  userId                String
+  type                  RewardType
+  amount                Decimal?
+  redeemed              Boolean  @default(false)
+  membershipId          Int?
+  membership            WaveMembership? @relation(fields: [membershipId], references: [id])
+  createdAt             DateTime @default(now())
+  CasinoDepositApiCall  CasinoDepositApiCall?
 }
 
 model ClaimPeriod {
@@ -133,6 +134,7 @@ model Claim {
 }
 
 enum CallStatus {
+  Claimed
   Pending
   Success
   Error
@@ -145,6 +147,8 @@ model CasinoDepositApiCall {
   account     RewardsAccount @relation(fields: [accountId], references: [id])
   accountId   Int
   timestamp   DateTime      @default(now())
+  reward      Reward?       @relation(fields: [rewardId], references: [id])
+  rewardId    Int?          @unique
 
   @@unique([id, accountId])
 }
@@ -158,7 +162,6 @@ model CasinoDepositTotal {
   address     String
   symbol      String
   amount      Decimal
-  claimed     Boolean       @default(false)
 
   @@unique([apiCallId, casino, blockchain, address, symbol])
 }

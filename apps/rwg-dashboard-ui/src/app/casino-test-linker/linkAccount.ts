@@ -2,18 +2,16 @@
 
 import { env, isDev } from '@/env';
 
-import { generateHash } from '../api/casino-link-callback/validateSignature';
+import { signMessage } from '@/lib/utils/crypto';
 import assert from 'assert';
 
-export const signMessage = async (
+export const signAccountLinkPayload = async (
   userId: string,
   ts: string,
   token: string,
 ) => {
   assert(isDev, 'Not in dev mode');
-  const realbetId = Math.floor(
-    Math.random() * Number.MAX_SAFE_INTEGER,
-  ).toString();
+  const realbetId = Math.floor(Math.random() * 0x7fffffff);
   const body = JSON.stringify({
     userId: realbetId,
     ts: parseInt(ts),
@@ -22,7 +20,7 @@ export const signMessage = async (
     extUserId: userId,
   });
 
-  const signature = generateHash(body, env.CASINO_API_SECRET_KEY ?? 'dummy');
+  const hash = signMessage(body, env.CASINO_API_SECRET_KEY ?? 'dummy');
 
-  return { body, signature };
+  return { body, signature: hash };
 };

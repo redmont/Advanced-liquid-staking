@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { validateSignature } from './validateSignature';
+import { validateSignature } from '@/lib/utils/crypto';
 import { env } from '@/env';
 import { createCasinoLink } from '@/server/actions/account/createCasinoLink';
 
@@ -7,7 +7,10 @@ const CasinoLinkCallbackSchema = z.object({
   ts: z.number(),
   extUserId: z.string(),
   token: z.string(),
-  userId: z.string(),
+  userId: z
+    .string()
+    .or(z.number())
+    .transform((v) => parseInt(v.toString())),
   username: z.string(),
 });
 

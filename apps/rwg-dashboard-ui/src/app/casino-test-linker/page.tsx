@@ -7,7 +7,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCasinoLink } from '@/server/actions/account/getCasinoLink';
 import Link from 'next/link';
-import { signMessage } from './linkAccount';
+import { signAccountLinkPayload } from './linkAccount';
 
 export default function CasinoTestLinkerPage() {
   const router = useRouter();
@@ -36,7 +36,11 @@ export default function CasinoTestLinkerPage() {
         throw new Error('Missing parameters');
       }
 
-      const { signature, body } = await signMessage(userId, ts, token);
+      const { signature, body } = await signAccountLinkPayload(
+        userId,
+        ts,
+        token,
+      );
 
       const response = await fetch('/api/casino-link-callback', {
         method: 'POST',

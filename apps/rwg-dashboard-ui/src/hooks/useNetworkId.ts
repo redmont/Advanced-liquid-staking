@@ -17,7 +17,7 @@ const useNetworkId = () => {
       chainId,
     ],
     enabled: sdkHasLoaded,
-    queryFn: () => primaryWallet?.connector.getNetwork(),
+    queryFn: () => primaryWallet?.connector.getNetwork() ?? null,
   });
 
   return {

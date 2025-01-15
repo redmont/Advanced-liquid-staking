@@ -36,12 +36,12 @@ export const useCasinoDeposits = () => {
     () =>
       !!deposits.data &&
       deposits.data.totals.length > 0 &&
-      !deposits.data.totals.some((t) => t.claimed),
+      deposits.data.status === 'Success',
     [deposits.data],
   );
 
   const claimed = useMemo(
-    () => !!deposits.data?.totals.some((t) => t.claimed),
+    () => deposits.data?.status === 'Claimed',
     [deposits.data],
   );
 

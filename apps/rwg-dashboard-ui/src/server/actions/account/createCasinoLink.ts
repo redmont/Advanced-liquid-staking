@@ -9,7 +9,7 @@ export const createCasinoLink = async ({
   realbetUsername,
 }: {
   userId: string;
-  realbetUserId: string;
+  realbetUserId: number;
   realbetUsername: string;
 }) =>
   prisma.$transaction(
@@ -18,7 +18,7 @@ export const createCasinoLink = async ({
         tx.casinoLink.create({
           data: {
             userId,
-            realbetUserId,
+            realbetUserId: realbetUserId,
             realbetUsername,
           },
         }),
