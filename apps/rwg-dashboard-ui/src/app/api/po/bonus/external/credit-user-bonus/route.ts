@@ -55,7 +55,7 @@ export async function POST(request: Request) {
   const signatureValid = await validateSignature(
     rawBody,
     processingSignature,
-    env.CASINO_API_SECRET_KEY,
+    env.REALBET_API_SECRET_KEY,
   );
 
   if (!signatureValid) {
