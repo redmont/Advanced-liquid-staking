@@ -18,7 +18,6 @@ export const creditUserBonus = async (
 ) =>
   Bonus.creditUserBonus(realbetApi, {
     userId: realbetUserId,
-    bonusId: bonus.id,
     bonusDetail: {
       amount: bonus.amount,
       name: bonus.name,
