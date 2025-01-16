@@ -109,8 +109,8 @@ importers:
   apps/rwg-dashboard-ui:
     dependencies:
       '@bltzr-gg/realbet-api':
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^1.1.1
+        version: 1.1.1
       '@bltzr-gg/realbet-evm-contracts':
         specifier: workspace:*
         version: link:../evm-contracts
@@ -1219,8 +1219,8 @@ packages:
     resolution: {integrity: sha512-Z/yiTPj+lDVnF7lWeKCIJzaIkI0vYO87dMpZ4bg4TDrFe4XXLFWL1TbXU27gBP3QccxV9mZICCrnjnYlJjXHOA==}
     engines: {node: '>=6.9.0'}
 
-  '@bltzr-gg/realbet-api@1.0.1':
-    resolution: {integrity: sha512-1RjE4qsP4ERHXU97BCUhfQI2x2LYQ+ISZFzyRsKFhpYNrjdyvrYgNohH7NE32fFevZBZsyiI5XDidva3V+VOvA==}
+  '@bltzr-gg/realbet-api@1.1.1':
+    resolution: {integrity: sha512-3jfEchoSz4CAYAE84yiHzO9gN5R/5IhWZ8ujSZbBGnanJajCBxLdfCwERYjeqx/FlX9RHeXo6pmOXV9JFy9fMg==}
 
   '@btckit/types@0.0.19':
     resolution: {integrity: sha512-APoOfYSg9SRR4CMXL606IDtpgh+ZD3kS/+iY0BkUALD6HvXo2pVw20L5YYIc+HrgMcF6WN0TH7TXdVs+Vu+kww==}
@@ -11755,7 +11755,7 @@ snapshots:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
 
-  '@bltzr-gg/realbet-api@1.0.1':
+  '@bltzr-gg/realbet-api@1.1.1':
     dependencies:
       zod: 3.23.8
 
