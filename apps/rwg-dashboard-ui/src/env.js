@@ -56,7 +56,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS ??
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
     CASINO_API_SECRET_KEY: process.env.CASINO_API_SECRET_KEY ?? 'dummy',
-    REALBET_API_URL: process.env.CASINO_API_URL ?? 'http://localhost:3000/api',
+    REALBET_API_URL: process.env.REALBET_API_URL ?? 'http://localhost:3000/api',
     NEXT_PUBLIC_CASINO_URL:
       process.env.NEXT_PUBLIC_CASINO_URL ?? '/casino-test-linker',
     HELIUS_API_KEY: process.env.HELIUS_API_KEY,
