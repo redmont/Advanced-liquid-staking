@@ -87,7 +87,6 @@ export const awardRandomReward = async (
         assert(casinoLink, 'Casino link not found');
 
         await creditUserBonus(casinoLink.realbetUserId, {
-          id: reward.id,
           name: 'MysteryBoxWin',
           amount: Number(reward.amount),
           description: JSON.stringify({

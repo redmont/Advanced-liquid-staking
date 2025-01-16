@@ -10,7 +10,6 @@ const realbetApi = new ApiClient({
 export const creditUserBonus = async (
   realbetUserId: number,
   bonus: {
-    id: number;
     name: string;
     amount: number;
     description: string;

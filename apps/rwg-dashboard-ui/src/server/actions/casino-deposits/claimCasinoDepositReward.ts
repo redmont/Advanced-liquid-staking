@@ -65,12 +65,12 @@ export const claimCasinoDepositReward = async (authToken: string) => {
       assert(updatedCall?.rewardId, 'Reward id not found');
 
       await creditUserBonus(casinoLink.realbetUserId, {
-        id: updatedCall.rewardId,
         name: 'CasinoDepositsBonusClaim',
         amount: Number(amount),
         description: JSON.stringify({
           totals: apiCall.totals,
           apiCallId: apiCall.id,
+          rewardId: updatedCall.rewardId,
         }),
       });
     },

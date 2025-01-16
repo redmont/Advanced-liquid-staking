@@ -74,6 +74,9 @@ export async function POST(request: Request) {
     );
   }
 
+  // eslint-disable-next-line no-console
+  console.log('Realbet user id: ', body.data.userId);
+
   const { extUserId, userId, username } = body.data;
 
   const { casinoLink, rewardsAccount } = await createCasinoLink({
