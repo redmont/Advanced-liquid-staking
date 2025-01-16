@@ -7,8 +7,6 @@ const realbetApi = new ApiClient({
   apiUrl: env.REALBET_API_URL,
 });
 
-type Params = Parameters<typeof Bonus.creditUserBonus>[1];
-
 export const creditUserBonus = async (
   realbetUserId: number,
   bonus: {
@@ -17,8 +15,8 @@ export const creditUserBonus = async (
     amount: number;
     description: string;
   },
-) => {
-  const allParams: Params = {
+) =>
+  Bonus.creditUserBonus(realbetApi, {
     userId: realbetUserId,
     bonusId: bonus.id,
     bonusDetail: {
@@ -27,7 +25,4 @@ export const creditUserBonus = async (
       description: bonus.description,
       maxClaim: MAX_CLAIM,
     },
-  };
-
-  return Bonus.creditUserBonus(realbetApi, allParams);
-};
+  });
