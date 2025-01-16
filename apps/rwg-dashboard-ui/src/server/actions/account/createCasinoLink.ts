@@ -18,7 +18,7 @@ export const createCasinoLink = async ({
         tx.casinoLink.create({
           data: {
             userId,
-            realbetUserId: realbetUserId,
+            realbetUserId,
             realbetUsername,
           },
         }),

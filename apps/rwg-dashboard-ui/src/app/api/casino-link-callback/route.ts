@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { validateSignature } from '@/lib/utils/crypto';
 import { env } from '@/env';
 import { createCasinoLink } from '@/server/actions/account/createCasinoLink';
+import assert from 'assert';
 
 const CasinoLinkCallbackSchema = z.object({
   ts: z.number(),
@@ -10,7 +11,10 @@ const CasinoLinkCallbackSchema = z.object({
   userId: z
     .string()
     .or(z.number())
-    .transform((v) => parseInt(v.toString())),
+    .transform((v) => {
+      assert(Number.isInteger(v), `User id: ${v} is not a number`);
+      return parseInt(v.toString());
+    }),
   username: z.string(),
 });
 
@@ -73,9 +77,6 @@ export async function POST(request: Request) {
       },
     );
   }
-
-  // eslint-disable-next-line no-console
-  console.log('Realbet user id: ', body.data.userId);
 
   const { extUserId, userId, username } = body.data;
 
