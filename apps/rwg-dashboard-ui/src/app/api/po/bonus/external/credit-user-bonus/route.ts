@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { validateSignature } from '@/lib/utils/crypto';
 import { env } from '@/env';
-import { omit } from 'lodash';
 
 const bonusDetailSchema = z.object({
   amount: z.number(),
@@ -106,7 +105,7 @@ export async function POST(request: Request) {
       bonusName: body.data.bonusDetail?.name,
       bonusId: body.data.bonusId,
       // currently Date is bugged. It's expecting native date through a JSON api.
-      ...omit(body.data.bonusDetail, ['expiredDate']),
+      ...body.data.bonusDetail,
     },
   });
 }

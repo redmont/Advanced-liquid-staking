@@ -2,7 +2,6 @@ import { z } from 'zod';
 import { validateSignature } from '@/lib/utils/crypto';
 import { env } from '@/env';
 import { createCasinoLink } from '@/server/actions/account/createCasinoLink';
-import assert from 'assert';
 
 const CasinoLinkCallbackSchema = z.object({
   ts: z.number(),
@@ -11,13 +10,10 @@ const CasinoLinkCallbackSchema = z.object({
   userId: z
     .string()
     .or(z.number())
-    .transform((v) => {
-      assert(
-        Number.isInteger(parseInt(v.toString())),
-        `User id: ${v} is not a number`,
-      );
-      return parseInt(v.toString());
-    }),
+    .refine((v) => Number.isInteger(parseInt(v.toString())), {
+      message: 'User id is not a valid integer.',
+    })
+    .transform((v) => parseInt(v.toString())),
   username: z.string(),
 });
 
