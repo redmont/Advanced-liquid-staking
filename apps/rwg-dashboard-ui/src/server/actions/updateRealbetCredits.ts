@@ -3,8 +3,8 @@ import { env } from '@/env';
 import { ApiClient, Bonus } from '@bltzr-gg/realbet-api';
 
 const realbetApi = new ApiClient({
-  secret: env.CASINO_API_SECRET_KEY,
-  apiUrl: env.CASINO_API_URL,
+  secret: env.REALBET_API_SECRET_KEY,
+  apiUrl: env.REALBET_API_URL,
 });
 
 type Params = Parameters<typeof Bonus.creditUserBonus>[1];
