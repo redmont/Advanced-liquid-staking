@@ -301,10 +301,7 @@ const BonusPage = () => {
                           ) : (
                             <Button
                               loading={calculateDeposits.isPending}
-                              disabled={
-                                bonus.claimed ||
-                                casinoDeposits.data?.status === 'Pending'
-                              }
+                              disabled={bonus.claimed}
                               onClick={() => {
                                 setShowResults(true);
                                 calculateDeposits.mutate();
