@@ -12,7 +12,10 @@ const CasinoLinkCallbackSchema = z.object({
     .string()
     .or(z.number())
     .transform((v) => {
-      assert(Number.isInteger(v), `User id: ${v} is not a number`);
+      assert(
+        Number.isInteger(parseInt(v.toString())),
+        `User id: ${v} is not a number`,
+      );
       return parseInt(v.toString());
     }),
   username: z.string(),
