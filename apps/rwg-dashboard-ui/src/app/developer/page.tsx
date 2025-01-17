@@ -38,6 +38,16 @@ import { toHex } from 'viem';
 import { getClaimPeriod } from './getClaimPeriod';
 import { Skeleton } from '@/components/ui/skeleton';
 import { resetClaimPeriod } from './resetClaim';
+import { useCasinoDeposits } from '../bonus/hooks/useCasinoDeposits';
+import { useAuthenticatedMutation } from '@/hooks/useAuthenticatedMutation';
+import { upsertCasinoTotalDeposit } from './upsertCasinoTotalDeposit';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type WaveUpdate = Pick<
   RewardWave,
@@ -182,6 +192,27 @@ const DeveloperPage = () => {
   const resetClaimPeriodMutation = useMutation({
     mutationFn: resetClaimPeriod,
     onSuccess: () => claimPeriod.refetch(),
+  });
+
+  const casinoDeposits = useCasinoDeposits();
+
+  const [blockchain, setBlockchain] = useState('ethereum');
+  const [casino, setCasino] = useState('shuffle');
+  const [casinoDepositsValue, setCasinoDepositsValue] = useState(0);
+  const [symbol, setSymbol] = useState('ETH');
+
+  const upsertCasinoTotalDepositMutation = useAuthenticatedMutation({
+    mutationFn: (authToken) => {
+      return upsertCasinoTotalDeposit(authToken, [
+        {
+          blockchain,
+          casino,
+          symbol,
+          amount: casinoDepositsValue,
+        },
+      ]);
+    },
+    onSuccess: () => casinoDeposits.deposits.refetch(),
   });
 
   return (
@@ -334,6 +365,98 @@ const DeveloperPage = () => {
             >
               Save
             </Button>
+
+            <div>
+              <h3 className="mb-2 font-medium">
+                Add to current wave whitelist
+              </h3>
+              <Input
+                className="mb-3"
+                placeholder="0x..."
+                value={whitelistAddress}
+                onChange={(e) => setWhitelistAddress(e.target.value)}
+                endAdornment={
+                  <Button
+                    loading={
+                      currentWave.isLoading || addToWhitelistMutation.isPending
+                    }
+                    onClick={() => {
+                      addToWhitelistMutation.mutate();
+                    }}
+                  >
+                    Add
+                  </Button>
+                }
+              />
+              <Button
+                variant="destructive-outline"
+                loading={clearWhitelistMutation.isPending}
+                onClick={() => {
+                  clearWhitelistMutation.mutate();
+                }}
+              >
+                Clear Whitelist
+              </Button>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-lg">
+                Upsert Casino Deposits (also resets claim status)
+              </h3>
+              <label className="mb-2 block">Blockchain</label>
+              <Select value={blockchain} onValueChange={setBlockchain}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Ethereum" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ethereum">Ethereum</SelectItem>
+                  <SelectItem value="bsc">BSC</SelectItem>
+                </SelectContent>
+              </Select>
+              <label className="mb-2 block">Casino</label>
+              <Select value={casino} onValueChange={setCasino}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Casino" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="shuffle">Shuffle</SelectItem>
+                  <SelectItem value="stake">Stake</SelectItem>
+                  <SelectItem value="rollbit">Rollbit</SelectItem>
+                  <SelectItem value="bc.game">BC.Game</SelectItem>
+                </SelectContent>
+              </Select>
+              <label className="mb-2 block">Symbol</label>
+              <Select value={symbol} onValueChange={setSymbol}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Symbol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ETH">ETH</SelectItem>
+                  <SelectItem value="USDT">USDT</SelectItem>
+                  <SelectItem value="USDC">USDC</SelectItem>
+                </SelectContent>
+              </Select>
+              <label className="mb-2 block">USD Value</label>
+              <Input
+                className="mb-3"
+                placeholder="0"
+                value={casinoDepositsValue.toString()}
+                onChange={(e) => {
+                  setCasinoDepositsValue(parseFloat(e.target.value));
+                }}
+              />
+              <Button
+                loading={upsertCasinoTotalDepositMutation.isPending}
+                onClick={() => {
+                  upsertCasinoTotalDepositMutation.mutate();
+                }}
+              >
+                Upsert
+              </Button>
+              <p className="text-destructive empty:hidden">
+                {upsertCasinoTotalDepositMutation.error?.message}
+              </p>
+            </div>
           </div>
         </div>
         <div>
@@ -516,36 +639,6 @@ const DeveloperPage = () => {
               </Button>
             </div>
           </div>
-        </div>
-        <div>
-          <h3 className="mb-2 font-medium">Add to current wave whitelist</h3>
-          <Input
-            className="mb-3"
-            placeholder="0x..."
-            value={whitelistAddress}
-            onChange={(e) => setWhitelistAddress(e.target.value)}
-            endAdornment={
-              <Button
-                loading={
-                  currentWave.isLoading || addToWhitelistMutation.isPending
-                }
-                onClick={() => {
-                  addToWhitelistMutation.mutate();
-                }}
-              >
-                Add
-              </Button>
-            }
-          />
-          <Button
-            variant="destructive-outline"
-            loading={clearWhitelistMutation.isPending}
-            onClick={() => {
-              clearWhitelistMutation.mutate();
-            }}
-          >
-            Clear Whitelist
-          </Button>
         </div>
       </div>
     </div>

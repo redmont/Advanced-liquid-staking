@@ -1,35 +1,7 @@
-import { z } from 'zod';
 import { validateSignature } from '@/lib/utils/crypto';
 import { env } from '@/env';
-
-const bonusDetailSchema = z.object({
-  amount: z.number(),
-  maxClaim: z.number(),
-  wageringRequired: z.number().optional(),
-  expiredDate: z
-    .string()
-    .optional()
-    .transform((v) => (v ? new Date(v) : undefined)),
-  expiredHours: z.number().optional(),
-  wageringHours: z.number().optional(),
-  claimableHours: z.number().optional(),
-  claimVipLimit: z.number().optional(),
-  claimKycLimit: z.number().optional(),
-  description: z.string().optional(),
-  img: z.string().optional(),
-  backgroundImg: z.string().optional(),
-});
-
-const requestSchema = z.object({
-  userId: z.number(),
-  bonusId: z.number().optional(),
-  bonusDetail: z
-    .object({
-      name: z.string(),
-      ...bonusDetailSchema.shape,
-    })
-    .optional(),
-});
+import { Bonus } from '@bltzr-gg/realbet-api';
+import { MAX_CLAIM } from '@/config/realbetApi';
 
 export async function POST(request: Request) {
   const processingSignature = request.headers.get('X-Processing-Signature');
@@ -73,7 +45,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = requestSchema.safeParse(JSON.parse(rawBody));
+  const body = Bonus.creditUserBonusRequestSchema.safeParse(
+    JSON.parse(rawBody),
+  );
 
   if (!body.success) {
     return Response.json(
@@ -91,9 +65,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // eslint-disable-next-line no-console
-  console.log('Faked credit user bonus: ', body.data);
-
   return Response.json({
     success: true,
     error: null,
@@ -103,10 +74,11 @@ export async function POST(request: Request) {
     requestPath: '/po/bonus/external/credit-user-bonus',
     userId: body.data.userId,
     data: {
-      bonusName: body.data.bonusDetail?.name,
-      bonusId: body.data.bonusId,
-      // currently Date is bugged. It's expecting native date through a JSON api.
       ...body.data.bonusDetail,
+      amount: body.data.bonusDetail?.amount.toString(),
+      bonusId: body.data.bonusId ?? 9999999,
+      bonusName: body.data.bonusDetail?.name ?? 'Unknown',
+      maxClaim: (body.data.bonusDetail?.maxClaim ?? MAX_CLAIM).toString(),
     },
   });
 }
