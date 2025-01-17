@@ -3,8 +3,8 @@
 import prisma from '@/server/prisma/client';
 import { decodeUser } from '../auth';
 import { creditUserBonus } from '../updateRealbetCredits';
-import { Decimal } from '@prisma/client/runtime/library';
 import assert from 'assert';
+import { calculateDepositsScore } from '@/server/utils';
 
 export const claimCasinoDepositReward = async (authToken: string) => {
   const user = await decodeUser(authToken);
@@ -12,39 +12,37 @@ export const claimCasinoDepositReward = async (authToken: string) => {
     throw new Error('Invalid token');
   }
 
-  const apiCall = await prisma.casinoDepositApiCall.findFirst({
-    where: {
-      account: {
-        userId: user.id,
-      },
-    },
-    include: {
-      totals: true,
-    },
-  });
-
-  if (!apiCall) {
-    throw new Error('Api call not found');
-  }
-
-  if (apiCall.status === 'Claimed') {
-    throw new Error('Casino deposits already claimed');
-  }
-
-  const casinoLink = await prisma.casinoLink.findFirst({
-    where: {
-      userId: user.id,
-    },
-  });
-
-  assert(casinoLink, 'Casino link not found');
-
   return prisma.$transaction(
     async (tx) => {
-      const amount = apiCall.totals.reduce(
-        (acc, t) => t.amount.plus(acc),
-        new Decimal(0),
-      );
+      const apiCall = await prisma.casinoDepositApiCall.findFirst({
+        where: {
+          account: {
+            userId: user.id,
+          },
+        },
+        include: {
+          totals: true,
+        },
+      });
+
+      if (!apiCall) {
+        throw new Error('Api call not found');
+      }
+
+      if (apiCall.status === 'Claimed') {
+        throw new Error('Casino deposits already claimed');
+      }
+
+      const casinoLink = await prisma.casinoLink.findFirst({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      assert(casinoLink, 'Casino link not found');
+
+      const amount = calculateDepositsScore(apiCall.totals);
+
       const updatedCall = await tx.casinoDepositApiCall.update({
         where: {
           id: apiCall.id,

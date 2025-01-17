@@ -406,7 +406,6 @@ const BonusPage = () => {
                                     bonus.claim.isPending ||
                                     calculateDeposits.isPending
                                   }
-                                  onClick={() => bonus.claim.mutate()}
                                 >
                                   Claim
                                 </Button>

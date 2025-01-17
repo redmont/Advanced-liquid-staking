@@ -2,6 +2,7 @@
 
 import { decodeUser } from '../auth';
 import prisma from '../../prisma/client';
+import { calculateDepositsScore } from '@/server/utils';
 
 export const fetchCasinoDepositTotals = async (authToken: string) => {
   const user = await decodeUser(authToken);
@@ -25,13 +26,7 @@ export const fetchCasinoDepositTotals = async (authToken: string) => {
     },
   });
 
-  const eligibleDeposits =
-    apiCall?.totals.filter((t) => Number(t.amount) >= 100) ?? [];
-
-  const score = apiCall?.totals.reduce(
-    (acc, t) => acc + Math.floor(Number(t.amount) / 100) * 100,
-    eligibleDeposits?.length > 0 ? 100 : 0,
-  );
+  const score = calculateDepositsScore(apiCall?.totals ?? []);
 
   return apiCall
     ? {
