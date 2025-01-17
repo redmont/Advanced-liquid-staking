@@ -64,15 +64,16 @@ export const claimCasinoDepositReward = async (authToken: string) => {
 
       assert(updatedCall?.rewardId, 'Reward id not found');
 
-      await creditUserBonus(casinoLink.realbetUserId, {
-        name: 'CasinoDepositsBonusClaim',
-        amount: Number(amount),
-        description: JSON.stringify({
-          totals: apiCall.totals,
-          apiCallId: apiCall.id,
-          rewardId: updatedCall.rewardId,
-        }),
-      });
+      try {
+        await creditUserBonus(casinoLink.realbetUserId, {
+          name: 'Casino Deposits Bonus Claim',
+          amount: Number(amount),
+          description:
+            'You got this bonus because you deposited to eligible casinos.',
+        });
+      } catch {
+        throw new Error('Error crediting user bonus');
+      }
     },
     {
       isolationLevel: 'RepeatableRead',

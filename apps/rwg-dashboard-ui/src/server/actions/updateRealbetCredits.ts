@@ -1,4 +1,4 @@
-import { MAX_CLAIM } from '@/config/realbetApi';
+import { EXPIRED_HOURS, MAX_CLAIM, WAGERING_HOURS } from '@/config/realbetApi';
 import { env } from '@/env';
 import { ApiClient, Bonus } from '@bltzr-gg/realbet-api';
 
@@ -40,6 +40,8 @@ export const creditUserBonus = async (
         name: bonus.name,
         description: bonus.description,
         maxClaim: MAX_CLAIM,
+        wageringHours: WAGERING_HOURS,
+        expiredHours: EXPIRED_HOURS,
       },
     });
   }
