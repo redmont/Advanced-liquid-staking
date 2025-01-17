@@ -90,6 +90,7 @@ export async function POST(request: Request) {
       },
     );
   }
+
   // eslint-disable-next-line no-console
   console.log('Faked credit user bonus: ', body.data);
 

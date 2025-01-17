@@ -5,7 +5,7 @@ import { getUserIdFromToken } from '../auth';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import assert from 'assert';
 import { getRandomWeightedItem } from '@/utils';
-import { creditUserBonus } from '../updateRealbetCredits';
+import { creditUserBonus, rewardToBonusId } from '../updateRealbetCredits';
 
 export const awardRandomReward = async (
   authToken: string,
@@ -84,15 +84,13 @@ export const awardRandomReward = async (
           },
         });
 
+        const bonusId = rewardToBonusId[Number(reward.amount)];
+
         assert(casinoLink, 'Casino link not found');
+        assert(bonusId, 'Invalid reward');
 
         await creditUserBonus(casinoLink.realbetUserId, {
-          name: 'MysteryBoxWin',
-          amount: Number(reward.amount),
-          description: JSON.stringify({
-            rewardWaveId: rewardWave.id,
-            rewardId: reward.id,
-          }),
+          id: bonusId,
         });
       }
 
