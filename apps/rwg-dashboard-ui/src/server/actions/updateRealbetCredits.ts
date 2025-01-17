@@ -12,6 +12,7 @@ export const rewardToBonusId: Record<number, number> = {
   5_000: 168,
   2_500: 169,
   1_000: 170,
+  500: 171,
 };
 
 export const creditUserBonus = async (
