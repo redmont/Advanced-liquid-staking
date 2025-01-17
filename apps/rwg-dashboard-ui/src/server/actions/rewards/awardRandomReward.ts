@@ -87,7 +87,7 @@ export const awardRandomReward = async (
         const bonusId = rewardToBonusId[Number(reward.amount)];
 
         assert(casinoLink, 'Casino link not found');
-        assert(bonusId, 'Invalid reward');
+        assert(bonusId, `Invalid reward: ${Number(reward.amount)}`);
 
         await creditUserBonus(casinoLink.realbetUserId, {
           id: bonusId,
