@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/server/prisma/client';
 import { decodeUser } from '../auth';
+import { AuthenticationError } from '@/server/errors';
 
 export const getCurrentWaveMembership = async (
   authToken: string,
@@ -8,7 +9,7 @@ export const getCurrentWaveMembership = async (
 ) => {
   const { id: userId } = await decodeUser(authToken);
   if (!userId) {
-    throw new Error('Invalid token');
+    throw new AuthenticationError('Invalid token');
   }
 
   const currentWave = await (tx ?? prisma).rewardWave.findFirst({

@@ -5,6 +5,7 @@ import { decodeUser } from '../auth';
 import { creditUserBonus } from '../updateRealbetCredits';
 import assert from 'assert';
 import { calculateDepositsScore } from '@/server/utils';
+import { BadRequestError, RealbetApiError } from '@/server/errors';
 
 export const claimCasinoDepositReward = async (authToken: string) => {
   const user = await decodeUser(authToken);
@@ -26,11 +27,11 @@ export const claimCasinoDepositReward = async (authToken: string) => {
       });
 
       if (!apiCall) {
-        throw new Error('Api call not found');
+        throw new BadRequestError('Api call not found');
       }
 
       if (apiCall.status === 'Claimed') {
-        throw new Error('Casino deposits already claimed');
+        throw new BadRequestError('Casino deposits already claimed');
       }
 
       const casinoLink = await prisma.casinoLink.findFirst({
@@ -70,7 +71,7 @@ export const claimCasinoDepositReward = async (authToken: string) => {
             'You got this bonus because you deposited to eligible casinos.',
         });
       } catch {
-        throw new Error('Error crediting user bonus');
+        throw new RealbetApiError('Realbet API failed to credit user bonus');
       }
     },
     {

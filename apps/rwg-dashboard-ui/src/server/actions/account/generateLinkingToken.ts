@@ -5,11 +5,12 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { decodeUser } from '../auth';
 import { env } from '@/env';
 import assert from 'assert';
+import { InternalServerError } from '@/server/errors';
 
 export const generateLinkingToken = async (authToken: string) => {
   assert(
     env.TESTNET_SIGNER_PRIVATE_KEY?.startsWith('0x'),
-    'TESTNET_SIGNER_PRIVATE_KEY is required',
+    new InternalServerError('TESTNET_SIGNER_PRIVATE_KEY is required'),
   );
 
   const { id: userId } = await decodeUser(authToken);

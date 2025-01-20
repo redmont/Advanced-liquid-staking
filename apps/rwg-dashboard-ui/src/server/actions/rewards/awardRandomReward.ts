@@ -6,6 +6,11 @@ import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import assert from 'assert';
 import { getRandomWeightedItem } from '@/utils';
 import { creditUserBonus, rewardToBonusId } from '../updateRealbetCredits';
+import {
+  BadRequestError,
+  NotFoundError,
+  RealbetApiError,
+} from '@/server/errors';
 
 export const awardRandomReward = async (
   authToken: string,
@@ -19,14 +24,14 @@ export const awardRandomReward = async (
     include: {},
   });
   if (!account) {
-    throw new Error('No account');
+    throw new NotFoundError('No account');
   }
 
   return await prisma.$transaction(
     async (tx) => {
       const rewardWave = await getCurrentWave(tx);
       if (!rewardWave) {
-        throw new Error('No active ticket wave');
+        throw new NotFoundError('No active ticket wave');
       }
 
       const waveMembership = await tx.waveMembership.findFirst({
@@ -37,7 +42,7 @@ export const awardRandomReward = async (
       });
 
       if (!waveMembership || waveMembership.reedeemableTickets <= 0) {
-        throw new Error('No tickets remaining');
+        throw new BadRequestError('No tickets remaining');
       }
 
       const preset = getRandomWeightedItem(
@@ -45,7 +50,7 @@ export const awardRandomReward = async (
         rewardWave.rewardPresets.map((p) => p.remaining),
       );
 
-      assert(preset?.remaining, 'Limit reached');
+      assert(preset?.remaining, new BadRequestError('Limit reached'));
 
       const [reward] = await Promise.all([
         tx.reward.create({
@@ -86,12 +91,19 @@ export const awardRandomReward = async (
 
         const bonusId = rewardToBonusId[Number(reward.amount)];
 
-        assert(casinoLink, 'Casino link not found');
-        assert(bonusId, `Invalid reward: ${Number(reward.amount)}`);
+        assert(casinoLink, new NotFoundError('Casino link not found'));
+        assert(
+          bonusId,
+          new NotFoundError(`Invalid reward: ${Number(reward.amount)}`),
+        );
 
-        await creditUserBonus(casinoLink.realbetUserId, {
-          id: bonusId,
-        });
+        try {
+          await creditUserBonus(casinoLink.realbetUserId, {
+            id: bonusId,
+          });
+        } catch {
+          throw new RealbetApiError('Realbet API failed to credit user bonus');
+        }
       }
 
       return {

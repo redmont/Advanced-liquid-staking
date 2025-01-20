@@ -4,6 +4,7 @@ import assert from 'assert';
 import { decodeUser } from '../auth';
 import prisma from '@/server/prisma/client';
 import { ClaimStatus } from '@prisma/client';
+import { AuthenticationError, BadRequestError } from '@/server/errors';
 
 export const updateClaimStatus = async (
   authToken: string,
@@ -12,8 +13,11 @@ export const updateClaimStatus = async (
   reasonOrTx?: string,
 ) => {
   const { id: userId } = await decodeUser(authToken);
-  assert(userId, 'Invalid token');
-  assert(status === 'Error' || status === 'Claimed', 'Invalid status');
+  assert(userId, new AuthenticationError('Invalid token'));
+  assert(
+    status === 'Error' || status === 'Claimed',
+    new BadRequestError('Invalid status'),
+  );
   const claim = await prisma.claim.findUnique({
     where: {
       id: claimId,
@@ -21,7 +25,7 @@ export const updateClaimStatus = async (
   });
   assert(
     claim?.status === 'Signed' || claim?.status === 'Error',
-    'Invalid claim status',
+    new BadRequestError('Invalid claim status'),
   );
 
   await prisma.claim.update({

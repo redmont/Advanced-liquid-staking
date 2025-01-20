@@ -4,11 +4,16 @@ import prisma from '@/server/prisma/client';
 import { getUserIdFromToken } from '../auth';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
+import {
+  AuthenticationError,
+  BadRequestError,
+  NotFoundError,
+} from '@/server/errors';
 
 export const awardTwitterBonus = async (authToken: string) => {
   const userId = await getUserIdFromToken(authToken);
   if (!userId) {
-    throw new Error('Invalid token');
+    throw new AuthenticationError('Invalid token');
   }
 
   return prisma.$transaction(async (tx) => {
@@ -37,12 +42,12 @@ export const awardTwitterBonus = async (authToken: string) => {
     );
 
     if (previouslyAwardedTwitterShare) {
-      throw new Error('Already redeemed twitter share');
+      throw new BadRequestError('Already redeemed twitter share');
     }
 
     const currentWave = await getCurrentWave(tx);
     if (!currentWave) {
-      throw new Error('No active ticket wave');
+      throw new NotFoundError('No active ticket wave');
     }
 
     const currentWaveMembership = account?.waveMemberships.find(
@@ -50,7 +55,7 @@ export const awardTwitterBonus = async (authToken: string) => {
     );
 
     if (!currentWaveMembership) {
-      throw new Error('Not a member of the current wave');
+      throw new NotFoundError('Not a member of the current wave');
     }
 
     await Promise.all([

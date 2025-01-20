@@ -1,6 +1,7 @@
 import { EXPIRED_HOURS, MAX_CLAIM, WAGERING_HOURS } from '@/config/realbetApi';
 import { env } from '@/env';
 import { ApiClient, Bonus } from '@bltzr-gg/realbet-api';
+import { BadRequestError } from '../errors';
 
 const realbetApi = new ApiClient({
   secret: env.REALBET_API_SECRET_KEY,
@@ -46,5 +47,5 @@ export const creditUserBonus = async (
     });
   }
 
-  throw new Error('Invalid bonus object provided');
+  throw new BadRequestError('Invalid bonus object provided');
 };

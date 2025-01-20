@@ -7,6 +7,7 @@ import jwksClient from 'jwks-rsa';
 import { cache } from 'react';
 import 'server-only';
 import { z } from 'zod';
+import { AuthenticationError } from '../errors';
 
 export const getDynamicPublicKey = cache(async () => {
   const client = jwksClient({
@@ -56,7 +57,7 @@ export const decodeUser = async (token: string) => {
           if (typeof decoded === 'object' && decoded !== null) {
             resolve(JwtPayloadSchema.parse(decoded));
           } else {
-            reject(new Error('Invalid token'));
+            reject(new AuthenticationError('Invalid token'));
           }
         }
       },

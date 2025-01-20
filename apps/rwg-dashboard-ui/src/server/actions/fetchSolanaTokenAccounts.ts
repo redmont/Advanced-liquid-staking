@@ -3,6 +3,7 @@
 
 import { z } from 'zod';
 import { env } from '@/env';
+import { GenericError } from '../errors';
 
 const AccountSchema = z.object({
   owner: z.string(),
@@ -51,13 +52,13 @@ async function fetchSolanaTokenAccounts(address: string) {
 
     if (result.error || !response.ok) {
       console.error('Failed to fetch Solana token accounts:', result.error);
-      throw new Error('Something failed with the request.');
+      throw new GenericError('Something failed with the request.');
     }
 
     return result.result?.value?.map((v) => v.account.data.parsed.info.mint); // Validated data
   } catch (error) {
     console.error('Failed to fetch Solana token accounts:', error);
-    throw error;
+    throw new GenericError('Something failed with the request.');
   }
 }
 

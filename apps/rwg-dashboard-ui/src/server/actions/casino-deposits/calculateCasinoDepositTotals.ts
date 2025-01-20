@@ -8,6 +8,7 @@ import { decodeUser } from '../auth';
 import { env } from '@/env';
 import { toCamel } from '@/lib/utils';
 import prisma from '../../prisma/client';
+import { BadRequestError, GenericError } from '@/server/errors';
 
 const QUERY_ID = 4537410;
 
@@ -54,11 +55,11 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
     existingCall?.status === 'Pending' &&
     new Date().getTime() - existingCall.timestamp.getTime() < 1000 * 60
   ) {
-    throw new Error('Pending call, cannot recalculate.');
+    throw new BadRequestError('Pending call, cannot recalculate.');
   }
 
   if (existingCall && existingCall.status === 'Claimed') {
-    throw new Error('Already claimed deposits, cannot recalculate.');
+    throw new BadRequestError('Already claimed deposits, cannot recalculate.');
   }
 
   await prisma.casinoDepositApiCall.deleteMany({
@@ -136,10 +137,8 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
         },
       },
     });
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(error);
-    return await prisma.casinoDepositApiCall.update({
+  } catch {
+    await prisma.casinoDepositApiCall.update({
       where: {
         id: pendingCall.id,
       },
@@ -147,5 +146,7 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
         status: 'Error',
       },
     });
+
+    throw new GenericError('Error calculating deposits.');
   }
 };

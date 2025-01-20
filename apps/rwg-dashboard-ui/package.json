@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "next build",
+    "build:prod": "rm -rf ./src/app/developer && next build",
     "dev": "next dev",
     "lint": "next lint",
     "lint:fix": "next lint --fix",

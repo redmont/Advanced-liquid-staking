@@ -10,17 +10,18 @@ import assert from 'assert';
 import { privateKeyToAccount } from 'viem/accounts';
 import { env, isDev } from '@/env';
 import { toHex } from 'viem';
+import { AuthenticationError, InternalServerError } from '@/server/errors';
 
 export const signPublicSaleClaims = async (authToken: string) => {
   assert(
     env.TOKEN_MASTER_SIGNER_PRIVATE_KEY?.startsWith('0x'),
-    'No signer key',
+    new InternalServerError('No signer key'),
   );
-  assert(isDev, 'token master not deployed to prod');
+  assert(isDev, new InternalServerError('token master not deployed to prod'));
   const { id: userId } = await decodeUser(authToken);
 
   if (!userId) {
-    throw new Error('Invalid token');
+    throw new AuthenticationError('Invalid token');
   }
 
   return prisma.$transaction(async (tx) => {
@@ -44,11 +45,13 @@ export const signPublicSaleClaims = async (authToken: string) => {
 
     assert(
       hashedMessages.length === signable.length,
-      'Found different amount of hashes than expected.',
+      new InternalServerError(
+        'Found different amount of hashes than expected.',
+      ),
     );
     assert(
       hashedMessages.every((result) => typeof result === 'string'),
-      'Something went wrong while signing the claims.',
+      new InternalServerError('Something went wrong while signing the claims.'),
     );
 
     const account = privateKeyToAccount(
