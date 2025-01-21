@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToken } from '@/hooks/useToken';
 import { Button } from '@/components/ui/button';
-import brinkoPoster from '@/assets/images/brinko-poster.png';
+import stakingPoster from '@/assets/images/staking-poster.png';
 import linkToWinPoster from '@/assets/images/link-to-win-poster.png';
 import bonusChecker from '@/assets/images/bonus-checker-poster.png';
 import { formatBalance } from '@/utils';
@@ -110,7 +110,7 @@ export default function HomePage() {
         <Card
           className="relative aspect-[6/7] overflow-hidden bg-cover"
           style={{
-            backgroundImage: sdkHasLoaded ? `url(${bonusChecker.src})` : '',
+            backgroundImage: sdkHasLoaded ? `url(${stakingPoster.src})` : '',
           }}
         >
           <div className="absolute inset-0 z-10 flex size-full items-center justify-center bg-black/40 transition-all hover:bg-black/60">
@@ -120,7 +120,7 @@ export default function HomePage() {
         <Card
           className="relative aspect-[6/7] overflow-hidden bg-cover"
           style={{
-            backgroundImage: sdkHasLoaded ? `url(${brinkoPoster.src})` : '',
+            backgroundImage: sdkHasLoaded ? `url(${bonusChecker.src})` : '',
           }}
         >
           <div className="absolute inset-0 z-10 flex size-full items-center justify-center bg-black/40 transition-all hover:bg-black/60">
