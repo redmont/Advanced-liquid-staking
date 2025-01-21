@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Check, Loader2, Wallet2 } from 'lucide-react';
 import Banner from '@/components/banner';
 import {
@@ -169,6 +169,7 @@ const logos: Record<string, JSX.Element> = {
 
 const BonusPage = () => {
   const [_showResults, setShowResults] = useState(false);
+  const [retryInSeconds, setRetryInSeconds] = useState<number | null>(null);
   const {
     deposits: casinoDeposits,
     bonus,
@@ -184,6 +185,24 @@ const BonusPage = () => {
   const { setShowLinkNewWalletModal } = useDynamicModals();
   const casinoLink = useCasinoLink();
 
+  const scanRewards = useCallback(() => {
+    const retryInSeconds = casinoDeposits.data
+      ? Math.floor(
+          (casinoDeposits.data.timestamp.getTime() +
+            1000 * 60 -
+            new Date().getTime()) /
+            1000,
+        )
+      : null;
+
+    setRetryInSeconds(retryInSeconds);
+    if (retryInSeconds && retryInSeconds > 0) {
+      return;
+    }
+    setShowResults(true);
+    calculateDeposits.mutate();
+  }, [calculateDeposits, casinoDeposits.data]);
+
   if (casinoDeposits.error) {
     return <ErrorComponent />;
   }
@@ -191,14 +210,6 @@ const BonusPage = () => {
   const showResults =
     _showResults || calculateDeposits.isPending || casinoDeposits.data;
 
-  const retryInSeconds = casinoDeposits.data
-    ? Math.floor(
-        (casinoDeposits.data.timestamp.getTime() +
-          1000 * 60 -
-          new Date().getTime()) /
-          1000,
-      )
-    : null;
   const degenScoreTooltip = (
     <PopoverContent className="z-30" align="start">
       <ul className="max-w-80 list-disc space-y-3 rounded-xl bg-light p-2 pl-5 text-left text-sm">
@@ -302,10 +313,7 @@ const BonusPage = () => {
                             <Button
                               loading={calculateDeposits.isPending}
                               disabled={bonus.claimed}
-                              onClick={() => {
-                                setShowResults(true);
-                                calculateDeposits.mutate();
-                              }}
+                              onClick={scanRewards}
                               className="place-self-end"
                             >
                               {casinoDeposits.data &&
