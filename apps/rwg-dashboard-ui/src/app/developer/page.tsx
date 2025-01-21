@@ -48,6 +48,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useCasinoLink } from '@/hooks/useCasinoLink';
+import { X } from 'lucide-react';
+import { useRewardsAccount } from '@/hooks/useRewardsAccount';
 
 type WaveUpdate = Pick<
   RewardWave,
@@ -63,9 +66,11 @@ const useDevWave = () =>
 const DeveloperPage = () => {
   assert(isDev, 'Not in dev mode');
   const token = useToken();
+  const rewardsAccount = useRewardsAccount();
   const queryClient = useQueryClient();
   const currentWave = useDevWave();
   const { primaryWallet } = useDynamicContext();
+  const casinoLink = useCasinoLink();
   const [mintAmount, setMintAmount] = useState(100);
   const [fundAmount, setFundAmount] = useState(100);
   const [nonceResetAddress, setNonceResetAddress] = useState('');
@@ -218,7 +223,30 @@ const DeveloperPage = () => {
   return (
     <div className="p-5">
       <h2 className="mb-3 text-[2rem] font-medium">Developer Tools</h2>
-      <div className="grid grid-cols-2 gap-5">
+      <div className="flex gap-5">
+        <div className="">
+          <h3>Casino Link:</h3>
+          <pre className="grow">
+            {casinoLink.data ? (
+              JSON.stringify(casinoLink.data, null, 2)
+            ) : (
+              <X className="text-destructive" />
+            )}
+          </pre>
+        </div>
+        <div className="">
+          <h3>Wave Memberships:</h3>
+          <pre className="grow">
+            {rewardsAccount.data ? (
+              JSON.stringify(rewardsAccount.data.waveMemberships, null, 2)
+            ) : (
+              <X className="text-destructive" />
+            )}
+          </pre>
+        </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-2 gap-5">
         <div className="max-w-lg space-y-5">
           <div>
             <label className="mb-2 block">

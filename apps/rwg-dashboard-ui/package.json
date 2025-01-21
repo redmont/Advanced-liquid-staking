@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "build": "next build",
-    "build:prod": "rm -rf ./src/app/developer && next build",
     "dev": "next dev",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "vercel-build": "npx prisma db push && npx prisma migrate deploy && npx prisma generate && pnpm run db:seed && next build",
+    "vercel-build:prod": "rm -rf ./src/app/developer && pnpm run vercel-build",
     "start": "next start",
     "prepare": "husky && husky install",
     "scrape-icons": "npx tsx ./scripts/scrapeCoinIcons.ts",
