@@ -164,7 +164,7 @@ export default function Token() {
                 {token.isLoading ? (
                   <Skeleton className="inline-block h-4 w-24" />
                 ) : (
-                  <span className="">{formatUnits(0n, token.decimals)}</span>
+                  <span>{formatUnits(0n, token.decimals)}</span>
                 )}
               </span>
             </div>
@@ -178,7 +178,7 @@ export default function Token() {
                   {token.isLoading ? (
                     <Skeleton className="inline-block h-4 w-24" />
                   ) : (
-                    <span className="">{formatUnits(0n, token.decimals)}</span>
+                    <span>{formatUnits(0n, token.decimals)}</span>
                   )}
                 </span>
                 <Button
@@ -222,9 +222,7 @@ export default function Token() {
                 {token.isLoading ? (
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
-                  <span className="">
-                    {formatBalanceTruncated(vestingAmount)}
-                  </span>
+                  <span>{formatBalanceTruncated(vestingAmount)}</span>
                 )}
               </span>
             </div>

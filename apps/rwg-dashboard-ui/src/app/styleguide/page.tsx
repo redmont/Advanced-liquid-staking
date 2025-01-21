@@ -34,6 +34,7 @@ import { Progress, Indicator } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Paintbrush } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import RealIcon from '@/components/real-icon';
 
 export default function Styleguide() {
   const [isLoading, setIsLoading] = useState(false);
@@ -85,6 +86,20 @@ export default function Styleguide() {
         <h2 className="bg-destructive p-2 text-destructive-foreground">
           Destructive
         </h2>
+      </div>
+      <div className="flex items-center bg-lighter/50">
+        <div>
+          <RealIcon size="lg" /> Lg
+        </div>
+        <div>
+          <RealIcon /> Md
+        </div>
+        <div>
+          <RealIcon border={false} size="lg" /> Lg Borderless
+        </div>
+        <div>
+          <RealIcon border={false} /> Borderless
+        </div>
       </div>
       <div>
         <Progress className="mt-2" variant="primary" value={progress} />

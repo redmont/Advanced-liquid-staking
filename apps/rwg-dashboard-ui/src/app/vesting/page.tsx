@@ -93,7 +93,7 @@ export default function Vesting() {
                 {token.isLoading ? (
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
-                  <span className="">{formatBalance(0n)}</span>
+                  <span>{formatBalance(0n)}</span>
                 )}
               </span>
             </div>
@@ -107,7 +107,7 @@ export default function Vesting() {
                   {token.isLoading ? (
                     <Skeleton className="h-6 w-24 rounded-full" />
                   ) : (
-                    <span className="">{formatBalance(0n)}</span>
+                    <span>{formatBalance(0n)}</span>
                   )}
                 </span>
                 <Button

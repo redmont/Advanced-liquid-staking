@@ -251,7 +251,7 @@ const ClaimPage = () => {
                 {token.isLoading ? (
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
-                  <span className="">{formatUnits(0n, token.decimals)}</span>
+                  <span>{formatUnits(0n, token.decimals)}</span>
                 )}
               </span>
             </div>
@@ -265,7 +265,7 @@ const ClaimPage = () => {
                   {token.isLoading ? (
                     <Skeleton className="h-6 w-24 rounded-full" />
                   ) : (
-                    <span className="">{formatUnits(0n, token.decimals)}</span>
+                    <span>{formatUnits(0n, token.decimals)}</span>
                   )}
                 </span>
                 <Button

@@ -49,7 +49,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useCasinoLink } from '@/hooks/useCasinoLink';
-import { X } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { useRewardsAccount } from '@/hooks/useRewardsAccount';
 
 type WaveUpdate = Pick<
@@ -224,28 +224,31 @@ const DeveloperPage = () => {
     <div className="p-5">
       <h2 className="mb-3 text-[2rem] font-medium">Developer Tools</h2>
       <div className="flex gap-5">
-        <div className="">
+        <div>
           <h3>Casino Link:</h3>
           <pre className="grow">
             {casinoLink.data ? (
               JSON.stringify(casinoLink.data, null, 2)
+            ) : casinoLink.isLoading ? (
+              <Loader2 className="animate-spin" />
             ) : (
-              <X className="text-destructive" />
+              casinoLink.isSuccess && <X className="text-destructive" />
             )}
           </pre>
         </div>
-        <div className="">
+        <div>
           <h3>Wave Memberships:</h3>
           <pre className="grow">
             {rewardsAccount.data ? (
               JSON.stringify(rewardsAccount.data.waveMemberships, null, 2)
+            ) : rewardsAccount.isLoading ? (
+              <Loader2 className="animate-spin" />
             ) : (
-              <X className="text-destructive" />
+              rewardsAccount.isSuccess && <X className="text-destructive" />
             )}
           </pre>
         </div>
       </div>
-
       <div className="mt-5 grid grid-cols-2 gap-5">
         <div className="max-w-lg space-y-5">
           <div>
