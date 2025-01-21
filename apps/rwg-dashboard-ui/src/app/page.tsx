@@ -92,7 +92,7 @@ export default function HomePage() {
           }}
         >
           <div className="absolute inset-0 z-10 flex size-full items-center justify-center bg-black/40 transition-all hover:bg-black/60">
-            <p className="text-2xl font-semibold">Coming soon</p>
+            <p className="font-tusker text-5xl font-semibold">Coming soon</p>
           </div>
         </Card>
         <Card
@@ -114,7 +114,7 @@ export default function HomePage() {
           }}
         >
           <div className="absolute inset-0 z-10 flex size-full items-center justify-center bg-black/40 transition-all hover:bg-black/60">
-            <p className="text-2xl font-semibold">Coming soon</p>
+            <p className="font-tusker text-5xl font-semibold">Coming soon</p>
           </div>
         </Card>
         <Card
@@ -124,7 +124,7 @@ export default function HomePage() {
           }}
         >
           <div className="absolute inset-0 z-10 flex size-full items-center justify-center bg-black/40 transition-all hover:bg-black/60">
-            <p className="text-2xl font-semibold">Coming soon</p>
+            <p className="font-tusker text-5xl font-semibold">Coming soon</p>
           </div>
         </Card>
       </div>
