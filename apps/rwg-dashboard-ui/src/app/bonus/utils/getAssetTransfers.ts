@@ -16,7 +16,7 @@ export async function getAssetTransfers(
 ) {
   const alchemy = new Alchemy({
     network,
-    apiKey: env.ALCHEMY_API_KEY,
+    apiKey: env.NEXT_PUBLIC_ALCHEMY_API_KEY,
     connectionInfoOverrides: {
       skipFetchSetup: true,
     },

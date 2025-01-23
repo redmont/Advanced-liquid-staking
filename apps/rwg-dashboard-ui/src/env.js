@@ -13,7 +13,6 @@ export const env = createEnv({
     SENTRY_AUTH_TOKEN: z.string().optional(),
     COINMARKETCAP_API_KEY: z.string().optional(),
     HELIUS_API_KEY: z.string().optional(),
-    ALCHEMY_API_KEY: z.string(),
     TESTNET_SIGNER_PRIVATE_KEY: z.string().optional(),
     TOKEN_MASTER_SIGNER_PRIVATE_KEY: z.string().optional(),
     CASINO_API_SECRET_KEY: z.string(),
@@ -31,8 +30,11 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID: z.string(),
     NEXT_PUBLIC_VERCEL_ENV: z.enum(['production', 'preview', 'development']),
+    NEXT_PUBLIC_ALCHEMY_API_KEY: z.string(),
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS: z.string(),
     NEXT_PUBLIC_CASINO_URL: z.string(),
+    NEXT_PUBLIC_SNAPSHOT_SPACE: z.string(),
+    NEXT_PUBLIC_REAL_TOKEN_ADDRESS: z.string(),
   },
 
   /**
@@ -43,8 +45,6 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
     COINMARKETCAP_API_KEY: process.env.COINMARKETCAP_API_KEY,
-    ALCHEMY_API_KEY:
-      process.env.ALCHEMY_API_KEY ?? 'vlIJU80HdfL61kafixpO45fFrvqVPJx9', // public Alchemy demo key
     TESTNET_SIGNER_PRIVATE_KEY: process.env.TESTNET_SIGNER_PRIVATE_KEY,
     TOKEN_MASTER_SIGNER_PRIVATE_KEY:
       process.env.TOKEN_MASTER_SIGNER_PRIVATE_KEY,
@@ -52,6 +52,9 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID ??
       '21452bd4-902f-40be-9b8f-5bc817b00e0e',
     NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV ?? 'development',
+    NEXT_PUBLIC_ALCHEMY_API_KEY:
+      process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ??
+      'vlIJU80HdfL61kafixpO45fFrvqVPJx9', // public Alchemy demo key
     NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS:
       process.env.NEXT_PUBLIC_RAW_PASS_CONTRACT_ADDRESS ??
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
@@ -61,6 +64,10 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_CASINO_URL ?? '/casino-test-linker',
     HELIUS_API_KEY: process.env.HELIUS_API_KEY,
     SUPABASE_DB_POSTGRES_URL: process.env.SUPABASE_DB_POSTGRES_URL,
+    NEXT_PUBLIC_SNAPSHOT_SPACE:
+      process.env.NEXT_PUBLIC_SNAPSHOT_SPACE ?? 'fakeworldgaming.eth',
+    NEXT_PUBLIC_REAL_TOKEN_ADDRESS:
+      process.env.NEXT_PUBLIC_REAL_TOKEN_ADDRESS ?? 'dummy',
     DUNE_API_KEY: process.env.DUNE_API_KEY,
     REALBET_API_SECRET_KEY: process.env.REALBET_API_SECRET_KEY,
   },

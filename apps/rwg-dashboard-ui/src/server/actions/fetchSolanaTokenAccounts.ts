@@ -29,7 +29,7 @@ const ResultSchema = z.object({
 async function fetchSolanaTokenAccounts(address: string) {
   try {
     const response = await fetch(
-      `https://solana-mainnet.g.alchemy.com/v2/${env.ALCHEMY_API_KEY}/`,
+      `https://solana-mainnet.g.alchemy.com/v2/${env.NEXT_PUBLIC_ALCHEMY_API_KEY}/`,
       {
         method: 'POST',
         headers: {

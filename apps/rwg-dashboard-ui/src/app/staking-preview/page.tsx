@@ -6,10 +6,8 @@ import { Button } from '@/components/ui/button';
 import backgroundImage from '@/assets/images/vr-guy.png';
 import { useMemo, useRef, useState } from 'react';
 import useParallaxEffect from '@/hooks/useParallax';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { useToken } from '@/hooks/useToken';
-import { useVault } from '@/hooks/useVault';
 import React from 'react';
 import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
 import { CalculatorIcon } from 'lucide-react';
@@ -82,9 +80,41 @@ const calculateAPY = (rate: number, periods: number) => {
   return ((1 + rate / periods) ** periods - 1) * 100;
 };
 
+const tiers = [
+  {
+    lockupTime: 90 * 24 * 60 * 60,
+    multiplier: 100,
+    multiplierDecimals: 3,
+    decimalMult: 0.1,
+  },
+  {
+    lockupTime: 180 * 24 * 60 * 60,
+    multiplier: 500,
+    multiplierDecimals: 3,
+    decimalMult: 0.5,
+  },
+  {
+    lockupTime: 365 * 24 * 60 * 60,
+    multiplier: 1100,
+    multiplierDecimals: 3,
+    decimalMult: 1.1,
+  },
+  {
+    lockupTime: 730 * 24 * 60 * 60,
+    multiplier: 1500,
+    multiplierDecimals: 3,
+    decimalMult: 1.5,
+  },
+  {
+    lockupTime: 1460 * 24 * 60 * 60,
+    multiplier: 2100,
+    multiplierDecimals: 3,
+    decimalMult: 2.1,
+  },
+];
+
 export default function StakePreview() {
   const token = useToken();
-  const vault = useVault();
   const parallaxRef = useRef<HTMLDivElement>(null);
   const parallax = useParallaxEffect(parallaxRef);
   const [durationIndex, setDurationIndex] = useState(2);
@@ -92,10 +122,7 @@ export default function StakePreview() {
   const [totalStaked, setTotalStaked] = useState(DEFAULT_GLOBAL_STAKE);
   const [rewards, setRewards] = useState(DEFAULT_MONTHLY_REWARDS);
 
-  const selectedTier = useMemo(
-    () => vault.tiers.data?.[durationIndex],
-    [durationIndex, vault.tiers.data],
-  );
+  const selectedTier = useMemo(() => tiers[durationIndex], [durationIndex]);
 
   const anticipatedMonthlyReward = useMemo(() => {
     if (!selectedTier) {
@@ -275,32 +302,19 @@ export default function StakePreview() {
           <div>
             <h2 className="mb-3 text-xl">Step 3: Choose Your Lock Duration</h2>
             <div className="mb-3 flex flex-wrap gap-2">
-              <p className="text-destructive empty:hidden">
-                {vault.tiers.error?.message}
-              </p>
-              {vault.tiers.isLoading ? (
-                <>
-                  <Skeleton className="h-8 w-24 rounded-lg bg-primary" />
-                  <Skeleton className="h-8 w-24 rounded-lg bg-primary-intermediate-1" />
-                  <Skeleton className="h-8 w-24 rounded-lg bg-primary-intermediate-2" />
-                  <Skeleton className="h-8 w-24 rounded-lg bg-primary-intermediate-3" />
-                  <Skeleton className="h-8 w-24 rounded-lg bg-accent" />
-                </>
-              ) : (
-                vault.tiers.data?.map((tier, index) => (
-                  <Button
-                    type="button"
-                    key={index}
-                    size="sm"
-                    onClick={() => setDurationIndex(index)}
-                    {...gradientTierButtonClasses[index]?.(
-                      durationIndex === index,
-                    )}
-                  >
-                    {convertToReadableTime(tier.lockupTime)}
-                  </Button>
-                ))
-              )}
+              {tiers.map((tier, index) => (
+                <Button
+                  type="button"
+                  key={index}
+                  size="sm"
+                  onClick={() => setDurationIndex(index)}
+                  {...gradientTierButtonClasses[index]?.(
+                    durationIndex === index,
+                  )}
+                >
+                  {convertToReadableTime(Number(tier.lockupTime))}
+                </Button>
+              ))}
             </div>
             <p className="text-sm">
               Locking your tokens for a longer period of time will give you

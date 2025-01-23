@@ -12,6 +12,7 @@
     "flatten": "pnpm dlx hardhat flatten",
     "check:format": "solhint contracts/*.sol --fix",
     "compile": "hardhat compile",
+    "build": "pnpm run compile",
     "deploy:sepolia": "pnpm run test && hardhat ignition deploy ignition/modules/TestStaking.ts --network sepolia --parameters ./ignition/parameters/sepolia.json"
   },
   "files": [

@@ -30,7 +30,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { env, isDev } from '@/env';
 import useClickOutside from '@/hooks/useClickOutside';
-import { useVault } from '@/hooks/useVault';
+import { useStakingVault } from '@/hooks/useStakingVault';
 import {
   connectedAddressesOverrideAtom,
   primaryWalletAddressOverrideAtom,
@@ -74,7 +74,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
   const [isNavOpen, setNavOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
   useClickOutside(navRef, () => setNavOpen(false));
-  const vault = useVault();
+  const vault = useStakingVault();
 
   // address override is in localstorage which the backend is not aware of,
   // so we need to set this variable on mount to avoid hydration issues
@@ -196,7 +196,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
           <li>
             <NextLink
               className="flex items-center gap-3 leading-none hover:text-primary hover:drop-shadow-primary"
-              path="/staking-preview"
+              path="/staking"
             >
               <PackagePlus />
               <span>Staking</span>

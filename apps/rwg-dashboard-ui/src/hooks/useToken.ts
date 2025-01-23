@@ -4,14 +4,11 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { readContract, waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
 import { useWriteContract } from 'wagmi';
-import {
-  testTokenAbi,
-  testTokenAddress,
-  testTokenConfig,
-} from '@/contracts/generated';
 import useNetworkId from './useNetworkId';
 import usePrimaryAddress from './usePrimaryAddress';
-const contractAddress = testTokenAddress['11155111'];
+import { erc20Abi } from 'viem';
+import { testTokenAbi } from '@/contracts/generated';
+import { tokenAddress } from '@/config/realToken';
 
 export const useToken = () => {
   const { primaryWallet, setShowAuthFlow } = useDynamicContext();
@@ -20,13 +17,13 @@ export const useToken = () => {
   const primaryAddress = usePrimaryAddress();
 
   const balance = useQuery({
-    queryKey: ['balance', contractAddress, primaryAddress],
+    queryKey: ['balance', tokenAddress, primaryAddress],
     enabled: !!primaryWallet && isSuccess,
     queryFn: () =>
       primaryAddress
         ? readContract(config, {
-            abi: testTokenAbi,
-            address: contractAddress,
+            abi: erc20Abi,
+            address: tokenAddress,
             functionName: 'balanceOf',
             args: [primaryAddress as `0x${string}`],
           })
@@ -34,30 +31,30 @@ export const useToken = () => {
   });
 
   const symbol = useQuery({
-    queryKey: ['symbol', contractAddress],
+    queryKey: ['symbol', tokenAddress],
     enabled: isSuccess,
     queryFn: () =>
       // readContract(config, {
-      //   abi: testTokenAbi,
-      //   address: contractAddress,
+      //   abi: erc20Abi,
+      //   address: tokenAddress,
       //   functionName: 'symbol',
       // }) as Promise<string>,
       'REAL',
   });
 
   const decimals = useQuery({
-    queryKey: ['decimals', contractAddress],
+    queryKey: ['decimals', tokenAddress],
     enabled: !!primaryWallet && isSuccess,
     queryFn: () =>
       readContract(config, {
-        abi: testTokenAbi,
-        address: contractAddress,
+        abi: erc20Abi,
+        address: tokenAddress,
         functionName: 'decimals',
       }),
   });
 
   const mint = useMutation({
-    mutationKey: ['mint', contractAddress],
+    mutationKey: ['mint', tokenAddress],
     mutationFn: async (amount: bigint) => {
       if (!primaryWallet) {
         setShowAuthFlow(true);
@@ -68,7 +65,7 @@ export const useToken = () => {
       }
 
       const tx = await writeContractAsync({
-        address: contractAddress,
+        address: tokenAddress,
         abi: testTokenAbi,
         functionName: 'mint',
         args: [amount],
@@ -90,9 +87,7 @@ export const useToken = () => {
     symbol: `$${symbol.data ?? ''}`,
     balance: balance.data ?? 0n,
     decimals: decimals.data ?? 18,
-    contract: testTokenConfig,
+    contract: erc20Abi,
     mint,
   };
 };
-
-export const address = testTokenAddress['11155111'];

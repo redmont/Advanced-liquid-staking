@@ -329,6 +329,7 @@ export const chainIdToAlchemyNetworkMap = {
   [mainnet.id]: Network.ETH_MAINNET,
   [bsc.id]: Network.BNB_MAINNET,
   [base.id]: Network.BASE_MAINNET,
+  mainnet: null,
 } as const;
 
 export const alchemyIdToChainIdMap = {

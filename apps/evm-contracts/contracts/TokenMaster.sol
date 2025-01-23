@@ -16,15 +16,31 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
     address public authorizedSigner;
     ERC20 public token;
     address public treasury;
-    mapping(bytes16 => bool) public claimed;
-    mapping(address => uint256) public nonces;
+    mapping(bytes16 claimId => bool claimed) public claimed;
+    mapping(address addr => uint256 nonce) public nonces;
 
     event TokenPayOut(address indexed walletAddress, bytes16 indexed claimId, uint256 amount);
 
+    error InvalidSignerAddress();
+    error InvalidTreasuryAddress();
+    error InvalidTokenAddress();
+    error InvalidSignature();
+    error TokenAlreadyIssued();
+    error InsufficientAllowance();
+    error FailedToSendToken();
+
     constructor(address _authorizedSigner, address _treasury, ERC20 _token) {
-        require(_authorizedSigner != address(0), "Invalid signer address");
-        require(address(_treasury) != address(0), "Invalid treasury address");
-        require(address(_token) != address(0), "Invalid token address");
+        if (_authorizedSigner != address(0)) {
+            revert InvalidSignerAddress();
+        }
+
+        if (address(_treasury) == address(0)) {
+            revert InvalidTreasuryAddress();
+        }
+
+        if (address(_token) == address(0)) {
+            revert InvalidTokenAddress();
+        }
 
         authorizedSigner = _authorizedSigner;
         token = _token;
@@ -33,7 +49,10 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
     }
 
     function setTreasury(address _treasury) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(address(_treasury) != address(0), "Invalid treasury address");
+        if (address(_treasury) == address(0)) {
+            revert InvalidTreasuryAddress();
+        }
+
         treasury = _treasury;
     }
 
@@ -58,15 +77,25 @@ contract TokenMaster is AccessControl, ReentrancyGuard, Pausable, Multicall {
         address receiver = msg.sender;
         bytes32 message = getMessageHash(claimId, receiver, amount, nonces[receiver]);
 
-        require(_verifySignature(message, signature), "Invalid signature");
-        require(!claimed[claimId], "Token already issued");
-        require(token.allowance(treasury, address(this)) >= amount, "Insufficient allowance");
+        if (!_verifySignature(message, signature)) {
+            revert InvalidSignature();
+        }
+
+        if (claimed[claimId]) {
+            revert TokenAlreadyIssued();
+        }
+
+        if (token.allowance(treasury, address(this)) < amount) {
+            revert InsufficientAllowance();
+        }
 
         claimed[claimId] = true;
         nonces[receiver]++;
 
         bool success = token.transferFrom(treasury, receiver, amount);
-        require(success, "Failed to send Token");
+        if (!success) {
+            revert FailedToSendToken();
+        }
 
         emit TokenPayOut(receiver, claimId, amount);
     }

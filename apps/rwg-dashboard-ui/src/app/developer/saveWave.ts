@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/server/prisma/client';
-import { getUserIdFromToken } from '@/server/actions/auth';
+import { getUserFromToken } from '@/server/actions/auth';
 import { type RewardWave } from '@prisma/client';
 import { isDev } from '@/env';
 import assert from 'assert';
@@ -14,7 +14,7 @@ export const saveWave = async (
   > & { userTickets: number },
 ) => {
   assert(isDev, 'Not in dev mode');
-  const userId = await getUserIdFromToken(authToken);
+  const { userId } = await getUserFromToken(authToken);
   if (!userId) {
     throw new Error('No user id');
   }

@@ -1,8 +1,8 @@
 import { getCasinoLink } from './getCasinoLink';
-import { getUserIdFromToken } from '../auth';
+import { getUserFromToken } from '../auth';
 
 export const getLinkingDetails = async (authToken: string) => {
-  const userId = await getUserIdFromToken(authToken);
+  const { userId } = await getUserFromToken(authToken);
 
   if (!userId) {
     return null;

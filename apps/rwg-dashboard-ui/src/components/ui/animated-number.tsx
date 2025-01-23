@@ -13,7 +13,11 @@ const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
   className,
   decimals = 0,
 }) => {
-  const animatedNumber = useAnimatedNumber(value, { duration, decimals });
+  const animatedNumber = useAnimatedNumber(value, {
+    duration,
+    decimals,
+    locale: 'en-US',
+  });
 
   return <span className={className}>{animatedNumber}</span>;
 };

@@ -10,7 +10,7 @@ import { env } from '@/env.js';
 
 const alchemy = new Alchemy({
   network: Network.ETH_MAINNET,
-  apiKey: env.ALCHEMY_API_KEY,
+  apiKey: env.NEXT_PUBLIC_ALCHEMY_API_KEY,
 });
 
 export const fetchNFTs = async (

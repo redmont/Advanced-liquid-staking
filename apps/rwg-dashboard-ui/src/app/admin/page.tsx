@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { type Tier, useVault } from '@/hooks/useVault';
+import { type Tier, useStakingVault } from '@/hooks/useStakingVault';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import Loading from '@/components/loading';
 import youGotMe from '@/assets/images/you-got-me.webp';
@@ -10,18 +10,14 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 
 const TierRow = ({ tier, index }: { tier: Tier; index: number }) => {
-  const vault = useVault();
-  const [lockup, setLockup] = useState(tier.lockupTime);
+  const vault = useStakingVault();
+  const [lockup, setLockup] = useState(Number(tier.lockPeriod));
   const handleLockupChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setLockup(parseFloat(e.target.value));
   };
-  const [mult, setMult] = useState(tier.multiplier);
+  const [mult, setMult] = useState(Number(tier.multiplier));
   const handleMultChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMult(parseInt(e.target.value));
-  };
-  const [decimals, setDecimals] = useState(tier.multiplierDecimals);
-  const handleDecimalsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDecimals(parseInt(e.target.value));
   };
 
   return (
@@ -38,20 +34,13 @@ const TierRow = ({ tier, index }: { tier: Tier; index: number }) => {
         onChange={handleMultChange}
         className="w-full"
       />
-      <Input
-        type="number"
-        value={decimals}
-        onChange={handleDecimalsChange}
-        className="w-full"
-      />
       <Button
         type="submit"
         onClick={() =>
           vault.setTier.mutateAsync({
             tier: {
-              lockupTime: lockup,
-              multiplier: tier.multiplier,
-              multiplierDecimals: tier.multiplierDecimals,
+              lockPeriod: BigInt(lockup),
+              multiplier: BigInt(mult),
             },
             index,
           })
@@ -66,7 +55,7 @@ const TierRow = ({ tier, index }: { tier: Tier; index: number }) => {
 
 const AdminPage: React.FC = () => {
   const { sdkHasLoaded } = useDynamicContext();
-  const vault = useVault();
+  const vault = useStakingVault();
 
   if (!sdkHasLoaded || !vault.isAdmin.isSuccess) {
     return <Loading />;
@@ -95,13 +84,12 @@ const AdminPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-5 p-5">
+    <div className="max-w-3xl space-y-5 p-5">
       <h1 className="text-3xl font-semibold">Admin Page</h1>
       <h2 className="text-2xl">Tiers</h2>
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         <div>Lockup time</div>
         <div>Multiplier</div>
-        <div>Mult Decimals</div>
         <div></div>
         {vault.tiers.data?.map((tier, index) => (
           <TierRow key={index} tier={tier} index={index} />
