@@ -146,7 +146,7 @@ export default function Stake() {
             </span>
             <span className="mb-1 text-3xl font-medium leading-none">
               <AnimatedNumber
-                value={formatBalance(stakedBalance ?? 0n)}
+                value={formatBalance(stakedBalance)}
                 decimals={2}
               />
             </span>
