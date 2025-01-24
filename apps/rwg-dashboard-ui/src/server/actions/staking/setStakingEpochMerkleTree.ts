@@ -20,7 +20,12 @@ export const setStakingEpochMerkleTree = async (
     votes.push(...nextVotes);
   }
 
-  const voterAddresses = votes.map((vote) => [vote.voter]);
+  const voterAddresses =
+    votes.length === 1
+      ? // We have to supply the sole voter address twice
+        // to get the tree to work
+        [[votes[0]!.voter], [votes[0]!.voter]]
+      : votes.map((vote) => [vote.voter]);
 
   const tree = StandardMerkleTree.of(voterAddresses, ['address']);
 

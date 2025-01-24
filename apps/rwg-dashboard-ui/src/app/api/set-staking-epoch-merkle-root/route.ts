@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  if (epochProposal.votes < 2) {
+  if (epochProposal.votes === 0) {
     return NextResponse.json({
       success: false,
       outcome: 'Proposal has insufficient votes',
