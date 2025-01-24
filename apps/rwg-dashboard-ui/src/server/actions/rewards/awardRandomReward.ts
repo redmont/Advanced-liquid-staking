@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/server/prisma/client';
-import { getUserIdFromToken } from '../../auth';
+import { getUserFromToken } from '../../auth';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import assert from 'assert';
 import { getRandomWeightedItem } from '@/utils';
@@ -16,7 +16,7 @@ export const awardRandomReward = async (
   authToken: string,
   nearWins: number,
 ) => {
-  const userId = await getUserIdFromToken(authToken);
+  const { userId } = await getUserFromToken(authToken);
   const account = await prisma.rewardsAccount.findFirst({
     where: {
       userId,

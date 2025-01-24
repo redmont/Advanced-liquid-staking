@@ -5,10 +5,13 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { TokenStakingRoles } from "./TokenStakingRoles.sol";
 import { Voting } from "./Voting.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
+import { TokenStakingRoles } from "./TokenStakingRoles.sol";
 
-contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
+contract TokenStaking is ERC20, ReentrancyGuard, TokenStakingRoles, Voting, Pausable {
     using SafeERC20 for IERC20;
     IERC20 public immutable TOKEN;
 
@@ -46,7 +49,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     event RewardClaimed(address indexed user, uint256 amount);
     event RewardSet(uint256 indexed epoch, uint256 amount);
     event TierAdded(uint256 lockPeriod, uint256 multiplier);
-    event TierUpdated(uint256 index, uint256 lockPeriod, uint256 multiplier);
+    event DefaultEpochRewardsSet(uint256 defaultEpochRewards);
 
     error MultiplierMustBeGreaterThanZero();
     error CannotSetRewardForPastEpochs();
@@ -60,6 +63,8 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     error RewardTransferFailed();
     error TransferNotAllowed();
     error InvalidEpoch();
+    error UnclaimedRewardsRemain();
+    error NotEnoughBalance();
 
     constructor(
         address token,
@@ -67,8 +72,10 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         uint256 _epochDuration,
         uint256 _epochStartTime,
         Tier[] memory _tiers
-    ) ERC20("Staked REAL", "sREAL") Voting(msg.sender) {
+    ) ERC20("Staked REAL", "sREAL") AccessControl() Voting(msg.sender) {
         TOKEN = IERC20(token);
+
+        _grantRole(EPOCH_MANAGER_ROLE, msg.sender);
 
         unchecked {
             for (uint256 i = 0; i < _tiers.length; i++) {
@@ -84,28 +91,24 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         lastTotalEffectiveSupplyChangedAtEpoch = currentEpoch;
     }
 
-    function setEpochDuration(uint256 _epochDuration) external onlyOwner {
-        epochDuration = _epochDuration;
-    }
-
-    function setDefaultEpochRewards(uint256 _defaultEpochRewards) external onlyOwner {
+    function setDefaultEpochRewards(uint256 _defaultEpochRewards) external onlyRole(DEFAULT_ADMIN_ROLE) {
         defaultEpochRewards = _defaultEpochRewards;
+
+        emit DefaultEpochRewardsSet(_defaultEpochRewards);
     }
 
-    function setTier(uint256 index, uint256 lockPeriod, uint256 multiplier) external onlyOwner {
+    // Can only add tiers, not update
+    function setTier(uint256 index, uint256 lockPeriod, uint256 multiplier) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (multiplier == 0) {
             revert MultiplierMustBeGreaterThanZero();
         }
-        if (index < tiers.length) {
-            tiers[index] = Tier(lockPeriod, multiplier);
-            emit TierUpdated(index, lockPeriod, multiplier);
-        } else {
+        if (index >= tiers.length) {
             tiers.push(Tier(lockPeriod, multiplier));
             emit TierAdded(lockPeriod, multiplier);
         }
     }
 
-    function setRewardForEpoch(uint256 epoch, uint256 reward) external onlyOwner {
+    function setRewardForEpoch(uint256 epoch, uint256 reward) external onlyRole(EPOCH_MANAGER_ROLE) {
         if (epoch < getCurrentEpoch()) {
             revert CannotSetRewardForPastEpochs();
         }
@@ -113,7 +116,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         emit RewardSet(epoch, reward);
     }
 
-    function stake(uint256 amount, uint32 tierIndex) external nonReentrant {
+    function stake(uint256 amount, uint32 tierIndex) external nonReentrant whenNotPaused {
         if (amount == 0) {
             revert CannotStakeZeroAmount();
         }
@@ -148,13 +151,21 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     }
 
     // This function is for unstaking only. It does not claim rewards.
-    function unstake(uint256 stakeIndex) external nonReentrant {
+    function unstake(uint256 stakeIndex) external nonReentrant whenNotPaused {
         if (stakeIndex >= userStakes[msg.sender].length) {
             revert InvalidStakeIndex();
         }
         Stake storage userStake = userStakes[msg.sender][stakeIndex];
-        if (block.timestamp < userStake.startTime + tiers[userStake.tierIndex].lockPeriod) {
+        if (isLocked(stakeIndex)) {
             revert LockPeriodNotEnded();
+        }
+        uint256 currentEpoch = getCurrentEpoch();
+
+        // Check if there are any unclaimed rewards
+        // If current epoch is 5, and user stake last claimed epoch is 3, then there are unclaimed rewards for epochs 4.
+        // We ignore the current epoch 5, because we don't have the voting data for it yet.
+        if (userStake.lastClaimEpoch < currentEpoch - 1) {
+            revert UnclaimedRewardsRemain();
         }
 
         uint256 amount = userStake.amount;
@@ -190,9 +201,10 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         Stake storage userStake = userStakes[msg.sender][stakeIndex];
         uint256 reward = calculateRewards(stakeIndex, epochs, merkleProofs);
 
+        // Update last claimed epoch to the last epoch in the list
+        userStake.lastClaimEpoch = epochs[epochs.length - 1];
+
         if (reward > 0) {
-            // Update last claimed epoch to the last epoch in the list
-            userStake.lastClaimEpoch = epochs[epochs.length - 1];
             TOKEN.safeTransfer(msg.sender, reward);
             emit RewardClaimed(msg.sender, reward);
         }
@@ -202,7 +214,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         uint256 stakeIndex,
         uint32[] calldata epochs,
         bytes32[][] calldata merkleProofs
-    ) external nonReentrant {
+    ) external nonReentrant whenNotPaused {
         _claimRewards(stakeIndex, epochs, merkleProofs);
     }
 
@@ -240,7 +252,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     }
 
     function getCurrentEpoch() public view returns (uint256) {
-        return (block.timestamp - epochStartTime) / epochDuration;
+        return ((block.timestamp - epochStartTime) / epochDuration) + 1;
     }
 
     function getUserStakes(address user) external view returns (Stake[] memory) {
@@ -256,6 +268,10 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
             reward = defaultEpochRewards;
         }
         return reward;
+    }
+
+    function getTiers() external view returns (Tier[] memory) {
+        return tiers;
     }
 
     function updateTotalEffectiveSupply(uint256 newSupply) private {
@@ -290,8 +306,16 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
     }
 
     function _update(address from, address to, uint256 value) internal override {
-        // End-users cannot transfer or burn their tokens
-        if (from != address(0) && to != address(0)) {
+        if (
+            // Mint
+            from != address(0) &&
+            // Transfer from this contract
+            from != address(this) &&
+            // Transfer to this contract
+            to != address(this) &&
+            // Burn
+            to != address(0)
+        ) {
             revert TransferNotAllowed();
         }
 
@@ -306,12 +330,13 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
         if (stakeIndex >= userStakes[msg.sender].length) {
             revert InvalidStakeIndex();
         }
+
         Stake memory userStake = userStakes[msg.sender][stakeIndex];
 
         uint256 reward = 0;
         uint256 lastEpoch = getCurrentEpoch();
 
-        for (uint256 epoch = userStake.lastClaimEpoch; epoch < lastEpoch; epoch++) {
+        for (uint256 epoch = userStake.lastClaimEpoch + 1; epoch < lastEpoch; epoch++) {
             bool hasVotedInEpoch = false;
             for (uint256 i = 0; i < votedEpochs.length; i++) {
                 if (votedEpochs[i] == epoch) {
@@ -323,10 +348,28 @@ contract TokenStaking is ERC20, ReentrancyGuard, Ownable, Voting {
             if (hasVotedInEpoch) {
                 uint256 epochReward = getRewardsForEpoch(epoch);
                 uint256 epochTotalEffectiveSupply = getTotalEffectiveSupplyAtEpoch(epoch);
-                reward += (epochReward * userStake.effectiveAmount) / epochTotalEffectiveSupply;
+                if (epochTotalEffectiveSupply > 0) {
+                    reward += (epochReward * userStake.effectiveAmount) / epochTotalEffectiveSupply;
+                }
             }
         }
 
         return reward;
+    }
+
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+
+    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
+    }
+
+    function withdraw(uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        uint256 balance = TOKEN.balanceOf(address(this));
+        if (balance < amount) {
+            revert NotEnoughBalance();
+        }
+        TOKEN.safeTransfer(msg.sender, amount);
     }
 }

@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/server/prisma/client';
-import { getUserIdFromToken } from '../../auth';
+import { getUserFromToken } from '../../auth';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
 import {
@@ -11,7 +11,7 @@ import {
 } from '@/server/errors';
 
 export const awardTwitterBonus = async (authToken: string) => {
-  const userId = await getUserIdFromToken(authToken);
+  const { userId } = await getUserFromToken(authToken);
   if (!userId) {
     throw new AuthenticationError('Invalid token');
   }

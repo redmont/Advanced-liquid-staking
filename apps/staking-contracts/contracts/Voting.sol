@@ -2,16 +2,19 @@
 pragma solidity ^0.8.20;
 
 import { MerkleProof } from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { TokenStakingRoles } from "./TokenStakingRoles.sol";
 
-contract Voting is Ownable {
+contract Voting is TokenStakingRoles {
     mapping(uint256 epoch => bytes32 root) public epochMerkleRoots;
 
     event MerkleRootSet(uint256 indexed epoch, bytes32 merkleRoot);
 
-    constructor(address initialOwner) Ownable(initialOwner) {}
+    constructor(address initialOwner) AccessControl() {
+        _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
+    }
 
-    function setMerkleRoot(uint256 epoch, bytes32 merkleRoot) external onlyOwner {
+    function setMerkleRoot(uint256 epoch, bytes32 merkleRoot) external onlyRole(EPOCH_MANAGER_ROLE) {
         epochMerkleRoots[epoch] = merkleRoot;
         emit MerkleRootSet(epoch, merkleRoot);
     }

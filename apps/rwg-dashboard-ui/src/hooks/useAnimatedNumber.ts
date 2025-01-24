@@ -6,6 +6,9 @@ interface UseAnimatedNumberOptions {
   locale?: string;
 }
 
+const parseNumber = (value: string | number | bigint) =>
+  typeof value === 'string' ? Number(value.replace(/,/g, '')) : Number(value);
+
 export const useAnimatedNumber = (
   value: number | bigint | string,
   options: UseAnimatedNumberOptions = {},
@@ -27,7 +30,7 @@ export const useAnimatedNumber = (
       const progressPercentage = Math.min(progress / duration, 1);
 
       let currentNumber =
-        startValue + progressPercentage * (Number(value) - startValue);
+        startValue + progressPercentage * (parseNumber(value) - startValue);
 
       if (isNaN(currentNumber)) {
         currentNumber = 0;
@@ -43,7 +46,8 @@ export const useAnimatedNumber = (
     rAF = requestAnimationFrame(animate);
 
     // Update the previous value reference
-    previousValueRef.current = isNaN(Number(value)) ? 0 : Number(value);
+    const parsedValue = parseNumber(value);
+    previousValueRef.current = isNaN(parsedValue) ? 0 : parsedValue;
 
     return () => {
       cancelAnimationFrame(rAF);

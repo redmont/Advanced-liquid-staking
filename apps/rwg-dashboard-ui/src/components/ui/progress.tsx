@@ -21,6 +21,7 @@ const progressVariants = cva(
         lightest: 'bg-lightest/20',
         foreground: 'bg-foreground/20',
         accent: 'bg-accent/20',
+        teal: 'foreground',
         'accent-2': 'bg-accent-2/2',
       },
     },
@@ -40,6 +41,7 @@ const indicatorVariants = cva('size-full flex-1 transition-all', {
       lightest: 'bg-lightest',
       foreground: 'bg-foreground',
       accent: 'bg-accent',
+      teal: 'bg-teal-500',
       'accent-2': 'bg-accent-2',
     },
   },
@@ -65,7 +67,7 @@ const Indicator = React.forwardRef<
       indicatorVariants({ variant }),
       className,
     )}
-    style={value ? { transform: `translateX(-${100 - (value ?? 0)}%)` } : {}}
+    style={{ transform: `translateX(-${100 - (value ?? 0)}%)` }}
     {...props}
   />
 ));

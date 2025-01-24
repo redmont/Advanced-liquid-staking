@@ -12,12 +12,12 @@ import stakingPoster from '@/assets/images/staking-poster.png';
 import linkToWinPoster from '@/assets/images/link-to-win-poster.png';
 import bonusChecker from '@/assets/images/bonus-checker-poster.png';
 import { formatBalance } from '@/utils';
-import { useVault } from '@/hooks/useVault';
+import { useStakingVault } from '@/hooks/useStakingVault';
 import RealIcon from '@/components/real-icon';
 
 export default function HomePage() {
   const token = useToken();
-  const vault = useVault();
+  const vault = useStakingVault();
   const { sdkHasLoaded } = useDynamicContext();
 
   return (
@@ -71,11 +71,11 @@ export default function HomePage() {
             <div className="space-y-3">
               <h3 className="text-md mb-2">Staked</h3>
               <div className="text-3xl font-medium">
-                {vault.deposits.isLoading ? (
+                {vault.totalStaked.isLoading ? (
                   <Skeleton className="inline-block h-6 w-24 rounded-full" />
                 ) : (
                   <>
-                    {formatBalance(vault.deposited)}
+                    {formatBalance(vault.stakedBalance)}
                     <RealIcon />
                   </>
                 )}

@@ -68,6 +68,9 @@ export const toDurationSeconds = (datetime: number) =>
 export const formatWithSeparators = (num: number) =>
   new Intl.NumberFormat('en-US').format(num);
 
+export const formatBigIntWithSeparators = (num: bigint, decimals: number) =>
+  formatWithSeparators(parseFloat(formatUnits(num, decimals)));
+
 export function toBase26(num: number): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz';
 
@@ -113,6 +116,9 @@ export const convertToReadableTime = (seconds: number) => {
 
 export const shorten = (address: string, size = 6) =>
   address.slice(0, size) + '...' + address.slice(-size);
+
+export const pluralize = (count: number, singular: string, plural: string) =>
+  count === 1 ? singular : plural;
 
 export const isSolanaAddress = (address: string) => {
   try {

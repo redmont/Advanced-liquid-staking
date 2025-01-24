@@ -3,7 +3,6 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { ignition, viem } from "hardhat";
 import { getAddress } from "viem";
 import testVoting from "../ignition/modules/TestVoting";
-import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import { generateEpochMerkleTree, type Proof } from "@rwg-dashboard/voting";
 
 const votingModuleFixture = async () => ignition.deploy(testVoting);
@@ -13,15 +12,20 @@ describe("Voting", function () {
     it("should set the correct owner", async function () {
       const [admin] = await viem.getWalletClients();
       const { voting } = await loadFixture(votingModuleFixture);
-      expect(await voting.read.owner()).to.equal(getAddress(admin.account.address));
+
+      const address = getAddress(admin.account.address);
+
+      expect(await voting.read.hasRole([await voting.read.DEFAULT_ADMIN_ROLE(), address])).to.be.true;
     });
   });
 
   describe("setMerkleRoot", function () {
-    it("should allow owner to set merkle root", async function () {
+    it("should allow epoch manager to set merkle root", async function () {
       const client = await viem.getPublicClient();
       const [admin] = await viem.getWalletClients();
       const { voting } = await loadFixture(votingModuleFixture);
+
+      await voting.write.grantRole([await voting.read.EPOCH_MANAGER_ROLE(), getAddress(admin.account.address)]);
 
       const epoch = 1n;
       const merkleRoot = "0x1234567890123456789012345678901234567890123456789012345678901234";
@@ -42,7 +46,7 @@ describe("Voting", function () {
       expect(storedRoot).to.equal(merkleRoot);
     });
 
-    it("should not allow non-owner to set merkle root", async function () {
+    it("should not allow non-epoch manager to set merkle root", async function () {
       const [, addr1] = await viem.getWalletClients();
       const { voting } = await loadFixture(votingModuleFixture);
 
@@ -51,7 +55,7 @@ describe("Voting", function () {
 
       await expect(
         voting.write.setMerkleRoot([epoch, merkleRoot], { account: addr1.account }),
-      ).to.be.revertedWithCustomError(voting, "OwnableUnauthorizedAccount");
+      ).to.be.revertedWithCustomError(voting, "AccessControlUnauthorizedAccount");
     });
   });
 
@@ -59,6 +63,8 @@ describe("Voting", function () {
     it("should return true for valid proof", async function () {
       const [admin, addr1, addr2] = await viem.getWalletClients();
       const { voting } = await loadFixture(votingModuleFixture);
+
+      await voting.write.grantRole([await voting.read.EPOCH_MANAGER_ROLE(), getAddress(admin.account.address)]);
 
       const epoch = 1n;
 
@@ -75,6 +81,8 @@ describe("Voting", function () {
     it("should return false for invalid proof", async function () {
       const [admin, addr1, addr2, addr3] = await viem.getWalletClients();
       const { voting } = await loadFixture(votingModuleFixture);
+
+      await voting.write.grantRole([await voting.read.EPOCH_MANAGER_ROLE(), getAddress(admin.account.address)]);
 
       const epoch = 1n;
 

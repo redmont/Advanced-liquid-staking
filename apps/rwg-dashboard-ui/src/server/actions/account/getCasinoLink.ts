@@ -1,10 +1,10 @@
 'use server';
 
 import prisma from '@/server/prisma/client';
-import { getUserIdFromToken } from '../../auth';
+import { getUserFromToken } from '../../auth';
 
 export const getCasinoLink = async (token: string) => {
-  const userId = await getUserIdFromToken(token);
+  const { userId } = await getUserFromToken(token);
 
   if (!userId) {
     return null;

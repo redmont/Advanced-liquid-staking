@@ -7,8 +7,7 @@ const testTokenStaking = buildModule("TestTokenStaking", (m) => {
   const realToken = m.contract("TestToken", ["Real Token", "REAL"], { id: "REAL" });
   const defaultEpochRewards = BigInt(100e18);
   const epochDuration = 7n * 24n * 60n * 60n; // 7 days
-
-  const epochStartTime = getTwoMondaysAgoTimestamp();
+  const epochStartTime = m.getParameter("epochStartTime", getTwoMondaysAgoTimestamp());
 
   const tiers = [
     [90n * 24n * 60n * 60n, BigInt(1e17)], // 90 days, 0.1x

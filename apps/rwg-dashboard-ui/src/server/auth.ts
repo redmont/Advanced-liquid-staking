@@ -65,9 +65,9 @@ export const decodeUser = async (token: string) => {
   );
 };
 
-export const getUserIdFromToken = async (token: string) => {
-  const decoded = await decodeUser(token);
-  return decoded.id;
+export const getUserFromToken = async (token: string) => {
+  const { id: userId, addresses } = await decodeUser(token);
+  return { userId, addresses };
 };
 
 export type User = Awaited<ReturnType<typeof decodeUser>>;

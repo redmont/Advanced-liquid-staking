@@ -165,3 +165,19 @@ model CasinoDepositTotal {
 
   @@unique([apiCallId, casino, blockchain, address, symbol])
 }
+
+model StakingVoteMerkleTree {
+  id              Int      @id @default(autoincrement())
+  epoch           Int      @unique
+  proposalId      String
+  root            String
+  proofs          StakingVoteMerkleProof[]
+}
+
+model StakingVoteMerkleProof {
+  id              Int      @id @default(autoincrement())
+  treeId          Int
+  tree            StakingVoteMerkleTree @relation(fields: [treeId], references: [id])
+  walletAddress   String
+  proof           String
+}

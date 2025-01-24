@@ -1,5 +1,5 @@
 import { useToken } from '@/hooks/useToken';
-import { type Deposit, useVault } from '@/hooks/useVault';
+import { useStakingVault } from '@/hooks/useStakingVault';
 import { cn } from '@/lib/cn';
 import { balanceToFloat, formatBalance, toDurationSeconds } from '@/utils';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
@@ -16,71 +16,73 @@ const colors = [
   'bg-lighter',
 ];
 
-const isPast = (unlockTimeSeconds: number) =>
-  new Date().getTime() > unlockTimeSeconds * 1000;
+const isPast = (unlockTimeSeconds: number | bigint) =>
+  new Date().getTime() > Number(unlockTimeSeconds) * 1000;
 
 export default function DepositsIndicator() {
   const { sdkHasLoaded } = useDynamicContext();
   const { decimals, symbol } = useToken();
-  const { deposits, deposited } = useVault();
+  const { deposits: depositsResult, stakedBalance } = useStakingVault();
 
-  const sortedDeposits = useMemo(
-    () =>
-      deposits.data
-        ?.slice()
-        .filter((dep) => dep.amount > 0n)
-        .sort((a, b) => a.unlockTime - b.unlockTime) ?? [],
-    [deposits],
+  const deposits = useMemo(
+    () => depositsResult.data ?? [],
+    [depositsResult.data],
   );
 
+  type Deposit = (typeof deposits)[number];
+  type SimpleDeposit = Omit<
+    Deposit,
+    | 'timestamp'
+    | 'tier'
+    | 'tierIndex'
+    | 'effectiveAmount'
+    | 'startTime'
+    | 'lastClaimEpoch'
+  >;
+
   const combineDeposit = useCallback(
-    (
-      a: Omit<Deposit, 'timestamp' | 'tier'>,
-      b: Omit<Deposit, 'timestamp' | 'tier'>,
-    ) => ({
+    (a: SimpleDeposit, b: SimpleDeposit) => ({
       amount: a.amount + b.amount,
       unlockTime: Math.min(a.unlockTime, b.unlockTime),
       percentage:
         (balanceToFloat(a.amount + b.amount, decimals) /
-          balanceToFloat(deposited, decimals)) *
+          balanceToFloat(stakedBalance, decimals)) *
         100,
       combined: true,
     }),
-    [decimals, deposited],
+    [decimals, stakedBalance],
   );
 
-  const groupedDeposits = useMemo(
-    () =>
-      sortedDeposits.reduce(
-        (acc, cur) => {
-          if (acc.length < MAX_SHOWN_DEPOSITS) {
-            if (
-              acc.length > 1 &&
-              isPast(cur.unlockTime) &&
-              isPast(acc[acc.length - 1]!.unlockTime)
-            ) {
-              acc.push(combineDeposit(acc.pop()!, cur));
-            } else {
-              acc.push({
-                ...cur,
-                percentage:
-                  (balanceToFloat(cur.amount, decimals) /
-                    balanceToFloat(deposited, decimals)) *
-                  100,
-              });
-            }
-          } else {
+  const groupedDeposits = useMemo(() => {
+    return deposits.reduce(
+      (acc, cur) => {
+        if (acc.length < MAX_SHOWN_DEPOSITS) {
+          if (
+            acc.length > 1 &&
+            isPast(cur.unlockTime) &&
+            isPast(acc[acc.length - 1]!.unlockTime)
+          ) {
             acc.push(combineDeposit(acc.pop()!, cur));
+          } else {
+            acc.push({
+              ...cur,
+              percentage:
+                (balanceToFloat(cur.amount, decimals) /
+                  balanceToFloat(stakedBalance, decimals)) *
+                100,
+            });
           }
-          return acc;
-        },
-        [] as (Omit<Deposit, 'timestamp' | 'tier'> & {
-          percentage: number;
-          combined?: boolean;
-        })[],
-      ),
-    [combineDeposit, decimals, deposited, sortedDeposits],
-  );
+        } else {
+          acc.push(combineDeposit(acc.pop()!, cur));
+        }
+        return acc;
+      },
+      [] as (SimpleDeposit & {
+        percentage: number;
+        combined?: boolean;
+      })[],
+    );
+  }, [combineDeposit, decimals, stakedBalance, deposits]);
 
   return (
     <div>
@@ -88,7 +90,7 @@ export default function DepositsIndicator() {
         className={cn(
           'flex h-4 w-full overflow-hidden rounded-full bg-lighter',
           {
-            'animate-pulse': !sdkHasLoaded || deposits.isLoading,
+            'animate-pulse': !sdkHasLoaded || depositsResult.isLoading,
           },
         )}
       >
@@ -168,5 +170,3 @@ export default function DepositsIndicator() {
     </div>
   );
 }
-
-// Color mapping based on index for different categories
