@@ -21,6 +21,8 @@ import wagmiConfig, {
 } from '@/config/wagmi';
 import { createWalletClient } from 'viem';
 import { snapshotApiUrl } from '@/config/snapshot';
+import type { NextRequest } from 'next/server';
+import { checkCronJobAuth } from '@/utils/checkCronJobAuth';
 
 const chain = isDev ? sepolia : mainnet;
 const transport = isDev
@@ -31,7 +33,11 @@ const contractAddress = tokenStakingConfig.address[chain.id];
 const snapshotSpace = env.NEXT_PUBLIC_SNAPSHOT_SPACE;
 const client = new snapshot.Client712(snapshotApiUrl);
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (!checkCronJobAuth(request)) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const account = privateKeyToAccount(
     env.TESTNET_SIGNER_PRIVATE_KEY! as `0x${string}`,
   );

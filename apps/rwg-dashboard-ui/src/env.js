@@ -21,6 +21,7 @@ export const env = createEnv({
     REALBET_API_URL: z.string(),
     REALBET_API_SECRET_KEY: z.string(),
     DYNAMIC_API_KEY: z.string(),
+    CRON_SECRET: z.string(),
   },
 
   /**
@@ -61,6 +62,7 @@ export const env = createEnv({
       '0x18b9db07cf194aac853daaa076d421b1dd0c75b0',
     CASINO_API_SECRET_KEY: process.env.CASINO_API_SECRET_KEY ?? 'dummy',
     REALBET_API_URL: process.env.REALBET_API_URL ?? 'http://localhost:3000/api',
+    CRON_SECRET: process.env.CRON_SECRET ?? 'dummy',
     NEXT_PUBLIC_CASINO_URL:
       process.env.NEXT_PUBLIC_CASINO_URL ?? '/casino-test-linker',
     HELIUS_API_KEY: process.env.HELIUS_API_KEY,

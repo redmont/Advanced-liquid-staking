@@ -18,6 +18,7 @@ import wagmiConfig, {
   mainnetTransports,
   testnetTransports,
 } from '@/config/wagmi';
+import { checkCronJobAuth } from '@/utils/checkCronJobAuth';
 
 const voidEpochMerkleRoot =
   '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -30,6 +31,10 @@ const snapshotSpace = env.NEXT_PUBLIC_SNAPSHOT_SPACE;
 const contractAddress = tokenStakingConfig.address[chain.id];
 
 export async function GET(request: NextRequest) {
+  if (!checkCronJobAuth(request)) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   // Get epoch from query string
   const epoch = Number(new URL(request.url).searchParams.get('epoch'));
 
