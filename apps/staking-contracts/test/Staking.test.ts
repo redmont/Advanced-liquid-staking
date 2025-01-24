@@ -191,7 +191,7 @@ describe("TokenStaking", function () {
       );
     });
 
-    it("should allow unstaking if rewards are not claimed, but user has not voted in the unclaimed epochs", async function () {
+    it("should not allow unstaking if rewards are not claimed, but user has not voted in the unclaimed epochs", async function () {
       const client = await viem.getPublicClient();
       const [, addr1, addr2, addr3] = await viem.getWalletClients();
       const { staking, realToken } = await loadFixture(stakingModuleFixture);
@@ -215,8 +215,10 @@ describe("TokenStaking", function () {
       const merkleTree = generateEpochMerkleTree([addr2.account.address, addr3.account.address]);
       await staking.write.setMerkleRoot([previousEpoch, merkleTree.root]);
 
-      const tx = await staking.write.unstake([0n], { account: addr1.account });
-      await client.waitForTransactionReceipt({ hash: tx });
+      await expect(staking.write.unstake([0n], { account: addr1.account })).to.be.revertedWithCustomError(
+        staking,
+        "UnclaimedRewardsRemain",
+      );
     });
 
     it("should allow unstaking after lock period", async function () {
@@ -464,6 +466,84 @@ describe("TokenStaking", function () {
 
       const rewardForEpoch = await staking.read.getRewardsForEpoch([currentEpoch + 1n]);
       expect(rewardForEpoch).to.equal(parseEther("10"));
+    });
+  });
+  describe("complex staking and unstaking scenarios", () => {
+    it("should handle inconsistent voting, claiming, and unstaking across multiple epochs correctly", async () => {
+      const client = await viem.getPublicClient();
+      const [admin, addr1] = await viem.getWalletClients();
+      const { staking, realToken } = await loadFixture(stakingModuleFixture);
+
+      await realToken.write.mint([staking.address, parseEther("1000000000")]);
+
+      await realToken.write.mint([addr1.account.address, parseEther("100")]);
+      await realToken.write.approve([staking.address, parseEther("100")], {
+        account: addr1.account,
+      });
+
+      // Stake tokens
+      await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
+
+      // Fast forward time
+      await time.increase(90n * 24n * 60n * 60n + 1n); // 90 days + 1 second
+
+      const currentEpoch = await staking.read.getCurrentEpoch();
+      const previousEpoch = currentEpoch - 1n;
+
+      const userStakes = await staking.read.getUserStakes([addr1.account.address]);
+
+      // Set Merkle root for epochs
+      const merkleTree = generateEpochMerkleTree([addr1.account.address]);
+
+      const epochs = [];
+      const merkleProofs = [];
+      const thisEpoch = userStakes[0].lastClaimEpoch + 1;
+
+      for (var i = thisEpoch; i <= thisEpoch + 2; i++) {
+        await staking.write.setMerkleRoot([BigInt(i), merkleTree.root], { account: admin.account });
+        epochs.push(i);
+        merkleProofs.push(merkleTree.proofs.find((x: Proof) => x.address === addr1.account.address)?.proof ?? []);
+      }
+
+      // add remaining epochs with empty proofs
+      for (var i = thisEpoch + 3; i <= previousEpoch; i++) {
+        epochs.push(i);
+        merkleProofs.push([]);
+      }
+
+      // epochs are [12, 13, 14, 15, .... 24]
+      // user has only voted for epochs 12, 13, 14
+
+      // const hasVoted = await staking.read.hasVoted([15n, addr1.account.address, merkleProofs[0]]);
+      // false
+      const tx = await staking.write.claimRewards([0n, epochs, merkleProofs], { account: addr1.account });
+      await client.waitForTransactionReceipt({ hash: tx });
+
+      // Check rewards claimed
+      const rewardClaimedLogs = await client.getContractEvents({
+        address: staking.address,
+        abi: staking.abi,
+        eventName: "RewardClaimed",
+      });
+      expect(rewardClaimedLogs.length).to.be.greaterThan(0);
+
+      // Try to unstake
+      const unstakeTx = await staking.write.unstake([0n], { account: addr1.account });
+      await client.waitForTransactionReceipt({ hash: unstakeTx });
+
+      // Check unstake event
+      const unstakedLogs = await client.getContractEvents({
+        address: staking.address,
+        abi: staking.abi,
+        eventName: "Unstaked",
+      });
+      expect(unstakedLogs.length).to.equal(1);
+      expect(unstakedLogs[0].args.user).to.equal(getAddress(addr1.account.address));
+      expect(unstakedLogs[0].args.amount).to.equal(parseEther("100"));
+
+      // Verify user's stake is removed
+      const allUserStakes = await staking.read.getUserStakes([addr1.account.address]);
+      expect(allUserStakes.length).to.equal(0);
     });
   });
 });
