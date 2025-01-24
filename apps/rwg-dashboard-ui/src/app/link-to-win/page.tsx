@@ -20,6 +20,7 @@ import {
 } from '@dynamic-labs/sdk-react-core';
 import {
   Box,
+  Check,
   Diamond,
   Gift,
   Rocket,
@@ -113,6 +114,12 @@ export default function LinkToWinPage() {
               >
                 Link your account
               </Button>
+            )}
+            {sdkHasLoaded && loggedIn && casinoLink.isLinked && (
+              <div className="flex items-center text-xl">
+                Linked to {casinoLink.data?.realbetUsername}.{' '}
+                <Check className="ml-2 inline size-8 text-primary" />
+              </div>
             )}
             <div>
               {showConnectButton && (
