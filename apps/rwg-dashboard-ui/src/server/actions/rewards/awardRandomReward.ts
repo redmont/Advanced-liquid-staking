@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/server/prisma/client';
-import { getUserIdFromToken } from '../auth';
+import { getUserIdFromToken } from '../../auth';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import assert from 'assert';
 import { getRandomWeightedItem } from '@/utils';

@@ -4,7 +4,7 @@ import prisma from '@/server/prisma/client';
 import assert from 'assert';
 import { isDev } from '@/env';
 import { WAVE_CONFIGURATIONS } from '@/config/linkToWin';
-import { decodeUser } from '@/server/actions/auth';
+import { decodeUser } from '@/server/auth';
 
 export const getCurrentWave = async (authToken: string) => {
   assert(isDev, 'Not in dev mode');

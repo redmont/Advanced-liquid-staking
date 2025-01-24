@@ -1,7 +1,7 @@
 'use server';
 
 import { isDev } from '@/env';
-import { decodeUser } from '@/server/actions/auth';
+import { decodeUser } from '@/server/auth';
 import prisma from '@/server/prisma/client';
 import assert from 'assert';
 

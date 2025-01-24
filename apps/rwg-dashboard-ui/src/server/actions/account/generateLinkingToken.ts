@@ -2,7 +2,7 @@
 
 import { keccak256 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { decodeUser } from '../auth';
+import { decodeUser } from '../../auth';
 import { env } from '@/env';
 import assert from 'assert';
 import { InternalServerError } from '@/server/errors';

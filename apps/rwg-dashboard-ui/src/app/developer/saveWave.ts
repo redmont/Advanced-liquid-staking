@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/server/prisma/client';
-import { getUserIdFromToken } from '@/server/actions/auth';
+import { getUserIdFromToken } from '@/server/auth';
 import { type RewardWave } from '@prisma/client';
 import { isDev } from '@/env';
 import assert from 'assert';

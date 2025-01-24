@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/server/prisma/client';
-import { decodeUser } from '../auth';
+import { decodeUser } from '../../auth';
 import { creditUserBonus } from '../updateRealbetCredits';
 import assert from 'assert';
 import { calculateDepositsScore } from '@/server/utils';

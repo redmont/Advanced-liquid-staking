@@ -1,6 +1,6 @@
 'use server';
 
-import { decodeUser } from '../auth';
+import { decodeUser } from '../../auth';
 import prisma from '../../prisma/client';
 import { calculateDepositsScore } from '@/server/utils';
 import { AuthenticationError } from '@/server/errors';

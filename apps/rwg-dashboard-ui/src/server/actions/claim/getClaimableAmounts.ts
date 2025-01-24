@@ -1,7 +1,7 @@
 'use server';
 
 import { omit } from 'lodash';
-import { decodeUser } from '../auth';
+import { decodeUser } from '../../auth';
 import type { Prisma } from '@prisma/client';
 import prisma from '../../prisma/client';
 

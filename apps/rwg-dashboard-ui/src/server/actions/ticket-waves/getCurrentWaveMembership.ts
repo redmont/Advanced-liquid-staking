@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import prisma from '@/server/prisma/client';
-import { decodeUser } from '../auth';
+import { decodeUser } from '../../auth';
 import { AuthenticationError } from '@/server/errors';
 
 export const getCurrentWaveMembership = async (

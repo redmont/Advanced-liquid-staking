@@ -1,7 +1,7 @@
 'use server';
 
 import assert from 'assert';
-import { decodeUser } from '../auth';
+import { decodeUser } from '../../auth';
 import prisma from '@/server/prisma/client';
 import { ClaimStatus } from '@prisma/client';
 import { AuthenticationError, BadRequestError } from '@/server/errors';

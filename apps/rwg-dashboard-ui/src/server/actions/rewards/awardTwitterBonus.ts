@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/server/prisma/client';
-import { getUserIdFromToken } from '../auth';
+import { getUserIdFromToken } from '../../auth';
 import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
 import {

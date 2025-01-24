@@ -7,7 +7,7 @@ import jwksClient from 'jwks-rsa';
 import { cache } from 'react';
 import 'server-only';
 import { z } from 'zod';
-import { AuthenticationError } from '../errors';
+import { AuthenticationError } from './errors';
 
 export const getDynamicPublicKey = cache(async () => {
   const client = jwksClient({
@@ -69,3 +69,5 @@ export const getUserIdFromToken = async (token: string) => {
   const decoded = await decodeUser(token);
   return decoded.id;
 };
+
+export type User = Awaited<ReturnType<typeof decodeUser>>;

@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '../../prisma/client';
-import { decodeUser } from '../auth';
+import { decodeUser } from '../../auth';
 import { getClaimableAmounts } from './getClaimableAmounts';
 import { readContracts } from '@wagmi/core';
 import { tokenMasterAddress, tokenMasterAbi } from '@/contracts/generated';

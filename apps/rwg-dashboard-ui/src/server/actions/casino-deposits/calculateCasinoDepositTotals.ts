@@ -3,7 +3,7 @@
 import assert from 'assert';
 import { QueryParameter, DuneClient } from '@duneanalytics/client-sdk';
 import { z } from 'zod';
-import { decodeUser } from '../auth';
+import { decodeUser } from '../../auth';
 
 import { env } from '@/env';
 import { toCamel } from '@/lib/utils';
