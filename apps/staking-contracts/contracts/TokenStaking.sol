@@ -8,8 +8,10 @@ import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.s
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import { TokenStakingRoles } from "./TokenStakingRoles.sol";
 import { Voting } from "./Voting.sol";
+import { Pausable } from "@openzeppelin/contracts/utils/Pausable.sol";
+import { TokenStakingRoles } from "./TokenStakingRoles.sol";
 
-contract TokenStaking is ERC20, ReentrancyGuard, TokenStakingRoles, Voting {
+contract TokenStaking is ERC20, ReentrancyGuard, TokenStakingRoles, Voting, Pausable {
     using SafeERC20 for IERC20;
     IERC20 public immutable TOKEN;
 
@@ -62,6 +64,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, TokenStakingRoles, Voting {
     error TransferNotAllowed();
     error InvalidEpoch();
     error UnclaimedRewardsRemain();
+    error NotEnoughBalance();
 
     constructor(
         address token,
@@ -113,7 +116,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, TokenStakingRoles, Voting {
         emit RewardSet(epoch, reward);
     }
 
-    function stake(uint256 amount, uint32 tierIndex) external nonReentrant {
+    function stake(uint256 amount, uint32 tierIndex) external nonReentrant whenNotPaused {
         if (amount == 0) {
             revert CannotStakeZeroAmount();
         }
@@ -148,7 +151,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, TokenStakingRoles, Voting {
     }
 
     // This function is for unstaking only. It does not claim rewards.
-    function unstake(uint256 stakeIndex) external nonReentrant {
+    function unstake(uint256 stakeIndex) external nonReentrant whenNotPaused {
         if (stakeIndex >= userStakes[msg.sender].length) {
             revert InvalidStakeIndex();
         }
@@ -211,7 +214,7 @@ contract TokenStaking is ERC20, ReentrancyGuard, TokenStakingRoles, Voting {
         uint256 stakeIndex,
         uint32[] calldata epochs,
         bytes32[][] calldata merkleProofs
-    ) external nonReentrant {
+    ) external nonReentrant whenNotPaused {
         _claimRewards(stakeIndex, epochs, merkleProofs);
     }
 
@@ -352,5 +355,21 @@ contract TokenStaking is ERC20, ReentrancyGuard, TokenStakingRoles, Voting {
         }
 
         return reward;
+    }
+
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+
+    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
+    }
+
+    function withdraw(uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        uint256 balance = TOKEN.balanceOf(address(this));
+        if (balance < amount) {
+            revert NotEnoughBalance();
+        }
+        TOKEN.safeTransfer(msg.sender, amount);
     }
 }

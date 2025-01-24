@@ -546,4 +546,107 @@ describe("TokenStaking", function () {
       expect(allUserStakes.length).to.equal(0);
     });
   });
+  describe("withdraw", function () {
+    it("should allow admin to withdraw tokens", async function () {
+      const [admin, addr1] = await viem.getWalletClients();
+      const { staking, realToken } = await loadFixture(stakingModuleFixture);
+
+      await realToken.write.mint([staking.address, parseEther("1000")]);
+
+      const initialBalance = await realToken.read.balanceOf([admin.account.address]);
+      const withdrawAmount = parseEther("500");
+
+      await staking.write.withdraw([withdrawAmount], { account: admin.account });
+
+      const finalBalance = await realToken.read.balanceOf([admin.account.address]);
+      expect(finalBalance - initialBalance).to.equal(withdrawAmount);
+    });
+
+    it("should not allow non-admin to withdraw tokens", async function () {
+      const [, addr1] = await viem.getWalletClients();
+      const { staking, realToken } = await loadFixture(stakingModuleFixture);
+
+      await realToken.write.mint([staking.address, parseEther("1000")]);
+
+      await expect(
+        staking.write.withdraw([parseEther("500")], { account: addr1.account }),
+      ).to.be.revertedWithCustomError(staking, "AccessControlUnauthorizedAccount");
+    });
+
+    it("should revert if trying to withdraw more than available balance", async function () {
+      const [admin] = await viem.getWalletClients();
+      const { staking, realToken } = await loadFixture(stakingModuleFixture);
+
+      await realToken.write.mint([staking.address, parseEther("1000")]);
+
+      await expect(
+        staking.write.withdraw([parseEther("1001")], { account: admin.account }),
+      ).to.be.revertedWithCustomError(staking, "NotEnoughBalance");
+    });
+  });
+  describe("pause and unpause", function () {
+    it("should allow admin to pause and unpause the contract", async function () {
+      const [admin] = await viem.getWalletClients();
+      const { staking } = await loadFixture(stakingModuleFixture);
+
+      await staking.write.pause({ account: admin.account });
+      expect(await staking.read.paused()).to.be.true;
+
+      await staking.write.unpause({ account: admin.account });
+      expect(await staking.read.paused()).to.be.false;
+    });
+
+    it("should not allow non-admin to pause or unpause the contract", async function () {
+      const [, addr1] = await viem.getWalletClients();
+      const { staking } = await loadFixture(stakingModuleFixture);
+
+      await expect(staking.write.pause({ account: addr1.account })).to.be.revertedWithCustomError(
+        staking,
+        "AccessControlUnauthorizedAccount",
+      );
+
+      await expect(staking.write.unpause({ account: addr1.account })).to.be.revertedWithCustomError(
+        staking,
+        "AccessControlUnauthorizedAccount",
+      );
+    });
+
+    it("should prevent staking when paused", async function () {
+      const [admin, addr1] = await viem.getWalletClients();
+      const { staking, realToken } = await loadFixture(stakingModuleFixture);
+
+      await realToken.write.mint([addr1.account.address, parseEther("1000")]);
+      await realToken.write.approve([staking.address, parseEther("100")], {
+        account: addr1.account,
+      });
+
+      await staking.write.pause({ account: admin.account });
+
+      await expect(
+        staking.write.stake([parseEther("100"), 0], { account: addr1.account }),
+      ).to.be.revertedWithCustomError(staking, "EnforcedPause");
+    });
+
+    it("should prevent unstaking when paused", async function () {
+      const [admin, addr1] = await viem.getWalletClients();
+      const { staking, realToken } = await loadFixture(stakingModuleFixture);
+
+      await realToken.write.mint([addr1.account.address, parseEther("1000")]);
+      await realToken.write.approve([staking.address, parseEther("100")], {
+        account: addr1.account,
+      });
+
+      await staking.write.stake([parseEther("100"), 0], { account: addr1.account });
+
+      // Fast forward time to end lock period
+      await time.increase(90n * 24n * 60n * 60n + 1n);
+
+      await staking.write.pause({ account: admin.account });
+
+      await expect(staking.write.unstake([0], { account: addr1.account })).to.be.revertedWithCustomError(
+        staking,
+        "EnforcedPause",
+      );
+    });
+  });
 });
