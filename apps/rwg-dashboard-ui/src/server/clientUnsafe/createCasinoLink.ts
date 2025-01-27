@@ -23,9 +23,9 @@ export const createCasinoLink_clientUnsafe = async ({
   realbetUserId: number;
   realbetUsername: string;
 }) => {
-  const { casinoLink, rewardsAccount } = await prisma.$transaction(
+  const { casinoLink } = await prisma.$transaction(
     async (tx) => {
-      const [casinoLink, rewardsAccount] = await Promise.all([
+      const [casinoLink] = await Promise.all([
         tx.casinoLink.create({
           data: {
             userId,
@@ -33,14 +33,9 @@ export const createCasinoLink_clientUnsafe = async ({
             realbetUsername,
           },
         }),
-        tx.rewardsAccount.create({
-          data: {
-            userId,
-          },
-        }),
       ]);
 
-      return { casinoLink, rewardsAccount };
+      return { casinoLink };
     },
     { isolationLevel: 'Serializable' },
   );
@@ -74,5 +69,5 @@ export const createCasinoLink_clientUnsafe = async ({
     }
   }
 
-  return { casinoLink, rewardsAccount };
+  return { casinoLink };
 };

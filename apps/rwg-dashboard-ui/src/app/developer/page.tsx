@@ -50,7 +50,6 @@ import {
 } from '@/components/ui/select';
 import { useCasinoLink } from '@/hooks/useCasinoLink';
 import { Loader2, X } from 'lucide-react';
-import { useRewardsAccount } from '@/hooks/useRewardsAccount';
 
 type WaveUpdate = Pick<
   RewardWave,
@@ -66,7 +65,6 @@ const useDevWave = () =>
 const DeveloperPage = () => {
   assert(isDev, 'Not in dev mode');
   const token = useToken();
-  const rewardsAccount = useRewardsAccount();
   const queryClient = useQueryClient();
   const currentWave = useDevWave();
   const { primaryWallet } = useDynamicContext();
@@ -223,10 +221,10 @@ const DeveloperPage = () => {
   return (
     <div className="p-5">
       <h2 className="mb-3 text-[2rem] font-medium">Developer Tools</h2>
-      <div className="flex gap-5">
+      <div className="flex flex-wrap gap-5">
         <div>
           <h3>Casino Link:</h3>
-          <pre className="grow">
+          <pre className="grow overflow-x-scroll">
             {casinoLink.data ? (
               JSON.stringify(casinoLink.data, null, 2)
             ) : casinoLink.isLoading ? (
@@ -237,14 +235,14 @@ const DeveloperPage = () => {
           </pre>
         </div>
         <div>
-          <h3>Wave Memberships:</h3>
-          <pre className="grow">
-            {rewardsAccount.data ? (
-              JSON.stringify(rewardsAccount.data.waveMemberships, null, 2)
-            ) : rewardsAccount.isLoading ? (
+          <h3>Wave Membership:</h3>
+          <pre className="grow overflow-x-scroll">
+            {currentWave.data?.memberships[0] ? (
+              JSON.stringify(currentWave.data?.memberships[0], null, 2)
+            ) : currentWave.isLoading ? (
               <Loader2 className="animate-spin" />
             ) : (
-              rewardsAccount.isSuccess && <X className="text-destructive" />
+              currentWave.isSuccess && <X className="text-destructive" />
             )}
           </pre>
         </div>

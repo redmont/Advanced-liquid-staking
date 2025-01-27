@@ -1,3 +1,5 @@
+'use server';
+
 import type { Prisma } from '@prisma/client';
 import prisma from '@/server/prisma/client';
 import { decodeUser } from '../../auth';
@@ -7,7 +9,7 @@ export const getCurrentWaveMembership = async (
   authToken: string,
   tx?: Prisma.TransactionClient,
 ) => {
-  const { id: userId } = await decodeUser(authToken);
+  const { id: userId, addresses } = await decodeUser(authToken);
   if (!userId) {
     throw new AuthenticationError('Invalid token');
   }
@@ -27,14 +29,27 @@ export const getCurrentWaveMembership = async (
     include: {
       memberships: {
         where: {
-          account: {
-            userId: userId,
+          address: {
+            in: addresses,
           },
+        },
+        include: {
+          rewards: true,
+          awardedTickets: true,
         },
         take: 1,
       },
     },
   });
 
-  return currentWave?.memberships[0];
+  return (
+    currentWave?.memberships[0] && {
+      ...currentWave?.memberships[0],
+      rewards: currentWave?.memberships[0]?.rewards.map((r) => ({
+        ...r,
+        amount: Number(r.amount),
+      })),
+      awardedTickets: currentWave?.memberships[0]?.awardedTickets,
+    }
+  );
 };

@@ -8,7 +8,7 @@ import { decodeUser } from '@/server/auth';
 
 export const getCurrentWave = async (authToken: string) => {
   assert(isDev, 'Not in dev mode');
-  const { id: userId } = await decodeUser(authToken);
+  const { addresses } = await decodeUser(authToken);
 
   const wave = await prisma.rewardWave.findFirst({
     where: {
@@ -23,8 +23,8 @@ export const getCurrentWave = async (authToken: string) => {
       rewardPresets: true,
       memberships: {
         where: {
-          account: {
-            userId,
+          address: {
+            in: addresses,
           },
         },
         take: 1,

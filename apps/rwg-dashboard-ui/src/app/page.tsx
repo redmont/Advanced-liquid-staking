@@ -14,6 +14,7 @@ import bonusChecker from '@/assets/images/bonus-checker-poster.png';
 import { formatBalance } from '@/utils';
 import { useStakingVault } from '@/hooks/useStakingVault';
 import RealIcon from '@/components/real-icon';
+import RealbetProgressionWidget from '@/components/realbet-progression-widget';
 
 export default function HomePage() {
   const token = useToken();
@@ -31,7 +32,7 @@ export default function HomePage() {
             Boost your rakeback and cashback rewards by owning and staking{' '}
             {token.symbol}
           </p>
-          <div className="mt-5 flex gap-5">
+          <div className="mt-5 flex flex-wrap gap-5">
             <Button asChild variant="default" size="lg">
               <Link href={'/link-to-win'}>Get {token.symbol} Rewards</Link>
             </Button>
@@ -84,6 +85,7 @@ export default function HomePage() {
           </div>
         </CardContent>
       </Card>
+      <RealbetProgressionWidget />
       <div className="z-20 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         <Card
           className="relative aspect-[6/7] overflow-hidden bg-cover transition-transform hover:scale-105"

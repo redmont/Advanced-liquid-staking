@@ -1,63 +1,97 @@
 import { useMemo } from 'react';
 import { useCurrentTicketWave } from './useCurrentTicketWave';
-import { useRewardsAccount } from './useRewardsAccount';
-import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
+import { useIsLoggedIn, useUserWallets } from '@dynamic-labs/sdk-react-core';
 import { useCasinoLink } from './useCasinoLink';
 import { useAuthenticatedMutation } from './useAuthenticatedMutation';
 import { subscribeToCurrentWave } from '@/server/actions/ticket-waves/subscribeToCurrentWave';
+import { useAuthenticatedQuery } from './useAuthenticatedQuery';
+import { getCurrentWaveMembership } from '@/server/actions/ticket-waves/getCurrentWaveMembership';
+import { AwardedTicketsType, RewardType } from '@prisma/client';
 
 export const useCurrentWaveMembership = () => {
   const loggedIn = useIsLoggedIn();
   const casinoLink = useCasinoLink();
   const accountLinked = !!casinoLink.data;
-  const rewardsAccount = useRewardsAccount();
+  const addresses = useUserWallets()?.map((w) => w.address);
   const currentWave = useCurrentTicketWave();
 
-  const calls = [rewardsAccount, currentWave];
-
-  const currentMembership = useMemo(
-    () =>
-      rewardsAccount.data?.waveMemberships.find(
-        (m) => m.waveId === currentWave.data?.id,
-      ),
-    [rewardsAccount.data, currentWave.data],
-  );
+  const membership = useAuthenticatedQuery({
+    enabled: loggedIn && accountLinked,
+    queryKey: ['currentWaveMembership', addresses],
+    queryFn: getCurrentWaveMembership,
+  });
 
   const canSubscribe = useMemo(
     () =>
       loggedIn &&
       accountLinked &&
-      rewardsAccount.isSuccess &&
-      currentWave.isSuccess &&
-      !currentMembership &&
-      !!currentWave.data?.whitelisted,
+      membership.isSuccess &&
+      !membership.data &&
+      currentWave.canSubscribe,
+
     [
       loggedIn,
       accountLinked,
-      rewardsAccount.isSuccess,
-      currentWave.isSuccess,
-      currentMembership,
-      currentWave.data?.whitelisted,
+      membership.isSuccess,
+      membership.data,
+      currentWave.canSubscribe,
     ],
   );
 
   const subscribe = useAuthenticatedMutation({
     mutationFn: subscribeToCurrentWave,
-    onSuccess: () =>
-      Promise.all([rewardsAccount.refetch(), currentWave.refetch()]),
+    onSuccess: () => Promise.all([membership.refetch(), currentWave.refetch()]),
   });
 
+  const rewardTotals = useMemo(
+    () =>
+      membership.data?.rewards.reduce(
+        (acc, reward) => ({
+          ...acc,
+          [reward.type]: (acc[reward.type] ?? 0) + reward.amount,
+        }),
+        {
+          [RewardType.None]: 0,
+          [RewardType.RealBetCredit]: 0,
+          [RewardType.TokenBonus]: 0,
+        },
+      ),
+    [membership.data],
+  );
+
+  const ticketTotals = useMemo(
+    () =>
+      membership.data?.awardedTickets?.reduce(
+        (acc, ticket) => ({
+          ...acc,
+          [ticket.type]: (acc[ticket.type] ?? 0) + ticket.amount,
+        }),
+        {
+          [AwardedTicketsType.WaveSignupBonus]: 0,
+          [AwardedTicketsType.TwitterShare]: 0,
+        },
+      ),
+    [membership.data],
+  );
+
+  const postedToTwitterAlready = useMemo(
+    () =>
+      !!membership.data?.awardedTickets.some(
+        (ticket) => ticket.type === 'TwitterShare',
+      ),
+    [membership.data],
+  );
+
   return {
-    isLoading: calls.some((call) => call.isLoading),
-    isSuccess: calls.every((call) => call.isSuccess),
-    error: calls.find((call) => call.error)?.error,
-    errors: calls.map((call) => call.error).filter(Boolean),
-    data: currentMembership,
+    ...membership,
     canSubscribe,
     subscribe,
     hasMembership:
-      currentWave.isSuccess && rewardsAccount.isSuccess && !!currentMembership,
+      currentWave.isSuccess && membership.isSuccess && !!membership.data,
     hasTicketsRemaining:
-      currentMembership && currentMembership.reedeemableTickets > 0,
+      membership.data && membership.data.reedeemableTickets > 0,
+    rewardTotals,
+    ticketTotals,
+    postedToTwitterAlready,
   };
 };

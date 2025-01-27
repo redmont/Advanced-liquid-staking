@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
   const { extUserId, userId, username } = body.data;
 
-  const { casinoLink, rewardsAccount } = await createCasinoLink_clientUnsafe({
+  const { casinoLink } = await createCasinoLink_clientUnsafe({
     userId: extUserId,
     realbetUserId: userId,
     realbetUsername: username,
@@ -89,6 +89,5 @@ export async function POST(request: Request) {
     success: true,
     error: null,
     casinoLink,
-    rewardsAccount,
   });
 }

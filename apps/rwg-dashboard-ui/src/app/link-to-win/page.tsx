@@ -12,7 +12,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrentTicketWave } from '@/hooks/useCurrentTicketWave';
 import { useDynamicAuthClickHandler } from '@/hooks/useDynamicAuthClickHandler';
-import { useRewardsAccount } from '@/hooks/useRewardsAccount';
 import {
   getAuthToken,
   useDynamicContext,
@@ -30,7 +29,6 @@ import {
 } from 'lucide-react';
 import RealIcon from '@/assets/images/R.svg';
 import GiftBoxes from '../../components/gift-boxes';
-import { useQueryClient } from '@tanstack/react-query';
 import { useCasinoLink } from '@/hooks/useCasinoLink';
 import { Progress } from '@/components/ui/progress';
 import { useToken } from '@/hooks/useToken';
@@ -47,16 +45,13 @@ import {
 import { QuestionMarkCircledIcon } from '@radix-ui/react-icons';
 
 export default function LinkToWinPage() {
-  const queryClient = useQueryClient();
   const token = useToken();
   const casinoLink = useCasinoLink();
   const { sdkHasLoaded } = useDynamicContext();
   const loggedIn = useIsLoggedIn();
   const authHandler = useDynamicAuthClickHandler();
   const currentWave = useCurrentTicketWave();
-  const rewardsAccount = useRewardsAccount();
-  const { rewardTotals, postedToTwitterAlready } = rewardsAccount;
-  const currentWaveMembership = useCurrentWaveMembership();
+  const waveMembership = useCurrentWaveMembership();
   const linkCasinoAccount = useLinkCasinoAccount();
 
   const hasSeatsRemaining =
@@ -68,16 +63,16 @@ export default function LinkToWinPage() {
     currentWave.data &&
     loggedIn &&
     casinoLink.isLinked &&
-    !currentWaveMembership.hasMembership &&
+    !waveMembership.hasMembership &&
     !hasSeatsRemaining;
   const showNotWhitelistedMessage =
     loggedIn &&
     casinoLink.isLinked &&
     currentWave.data &&
-    !currentWaveMembership.hasMembership &&
+    !waveMembership.hasMembership &&
     !currentWave.data.whitelisted;
   const showSeatData =
-    loggedIn && casinoLink.isLinked && currentWaveMembership.hasMembership;
+    loggedIn && casinoLink.isLinked && waveMembership.hasMembership;
   const showLinkButton =
     loggedIn && casinoLink.isSuccess && !casinoLink.isLinked;
   const showVIPSeatsAvailable = currentWave.isLoading || !!currentWave.data;
@@ -109,7 +104,7 @@ export default function LinkToWinPage() {
                 loading={
                   linkCasinoAccount.isPending ||
                   casinoLink.isLoading ||
-                  currentWaveMembership.isLoading
+                  waveMembership.isLoading
                 }
               >
                 Link your account
@@ -185,51 +180,44 @@ export default function LinkToWinPage() {
                 bonus tickets are not available. Please come back later.
               </p>
             )}
-            {currentWaveMembership.canSubscribe && (
+            {waveMembership.canSubscribe && (
               <>
                 <p className="text-destructive empty:hidden">
-                  {currentWaveMembership.subscribe.error?.message}
+                  {waveMembership.subscribe.error?.message}
                 </p>
                 <Button
-                  loading={currentWaveMembership.subscribe.isPending}
-                  onClick={() => currentWaveMembership.subscribe.mutate()}
+                  loading={waveMembership.subscribe.isPending}
+                  onClick={() => waveMembership.subscribe.mutate()}
                   size="lg"
                 >
                   Wave Signup
                 </Button>
               </>
             )}
-            {showSeatData && currentWaveMembership.data && (
+            {showSeatData && waveMembership.data && (
               <p className="text-2xl font-medium">
-                {currentWaveMembership.data.seatNumber === 420 && (
-                  <span> 🔥</span>
-                )}
+                {waveMembership.data.seatNumber === 420 && <span> 🔥</span>}
                 You got seat{' '}
                 <span
                   className={cn('text-primary', {
-                    'text-[#FFD700]':
-                      currentWaveMembership.data.seatNumber === 1,
-                    'text-[#C0C0C0]':
-                      currentWaveMembership.data.seatNumber === 2,
-                    'text-[#CD7F32]':
-                      currentWaveMembership.data.seatNumber === 3,
+                    'text-[#FFD700]': waveMembership.data.seatNumber === 1,
+                    'text-[#C0C0C0]': waveMembership.data.seatNumber === 2,
+                    'text-[#CD7F32]': waveMembership.data.seatNumber === 3,
                   })}
                 >
-                  #{currentWaveMembership.data.seatNumber}
+                  #{waveMembership.data.seatNumber}
                 </span>
-                {currentWaveMembership.data.seatNumber === 1 && (
+                {waveMembership.data.seatNumber === 1 && (
                   <Trophy className="mb-1 inline size-8 p-1 text-[#FFD700]" />
                 )}
-                {currentWaveMembership.data.seatNumber === 2 && (
+                {waveMembership.data.seatNumber === 2 && (
                   <Trophy className="mb-1 inline size-8 p-1 text-[#C0C0C0]" />
                 )}
-                {currentWaveMembership.data.seatNumber === 3 && (
+                {waveMembership.data.seatNumber === 3 && (
                   <Trophy className="mb-1 inline size-8 p-1 text-[#CD7F32]" />
                 )}
-                {currentWaveMembership.data.seatNumber === 69 && ', nice'}
-                {currentWaveMembership.data.seatNumber === 420 && (
-                  <span> 🔥</span>
-                )}
+                {waveMembership.data.seatNumber === 69 && ', nice'}
+                {waveMembership.data.seatNumber === 420 && <span> 🔥</span>}
               </p>
             )}
           </div>
@@ -310,7 +298,7 @@ export default function LinkToWinPage() {
           </CardContent>
         </Card>
 
-        {loggedIn && !!currentWaveMembership.data && (
+        {loggedIn && !!waveMembership.data && (
           <div className="flex w-full flex-col gap-5 xl:flex-row">
             <Card className="max-w-5xl grow">
               <CardHeader>
@@ -319,15 +307,14 @@ export default function LinkToWinPage() {
                     <span className="flex-inline items-center gap-2">
                       <Box className="inline size-6" /> A REAL Mystery
                     </span>
-                    {currentWaveMembership.isLoading ||
-                    !currentWaveMembership.data ? (
+                    {waveMembership.isLoading || !waveMembership.data ? (
                       <Skeleton className="h-6 w-40 rounded-full" />
                     ) : (
                       <span className="text-right text-sm font-medium md:text-lg">
                         You have{' '}
                         <span className="text-primary">
                           <Ticket className="mb-1 inline size-4" />{' '}
-                          {currentWaveMembership.data.reedeemableTickets}
+                          {waveMembership.data.reedeemableTickets}
                         </span>{' '}
                         tickets remaining
                         <Popover>
@@ -344,7 +331,7 @@ export default function LinkToWinPage() {
                                   Wave Signup Bonuses:{' '}
                                   <span className="text-xl font-medium text-primary">
                                     {
-                                      rewardsAccount.ticketTotals
+                                      waveMembership.ticketTotals
                                         ?.WaveSignupBonus
                                     }{' '}
                                     <Ticket className="mb-1 inline size-6 text-muted" />
@@ -357,7 +344,7 @@ export default function LinkToWinPage() {
                                 <span>
                                   Twitter Share Bonus:{' '}
                                   <span className="text-xl font-medium text-primary">
-                                    {rewardsAccount.ticketTotals?.TwitterShare}{' '}
+                                    {waveMembership.ticketTotals?.TwitterShare}{' '}
                                     <Ticket className="mb-1 inline size-6 text-muted" />
                                   </span>{' '}
                                 </span>
@@ -371,8 +358,8 @@ export default function LinkToWinPage() {
                   </div>
                 </CardTitle>
                 <CardDescription>
-                  {currentWaveMembership.data &&
-                  currentWaveMembership.data.reedeemableTickets <= 0 ? (
+                  {waveMembership.data &&
+                  waveMembership.data.reedeemableTickets <= 0 ? (
                     <p className="text-sm text-warning">
                       You&apos;re out of tickets. Wait for the next wave and
                       hang loose!
@@ -387,8 +374,8 @@ export default function LinkToWinPage() {
                   className={cn({
                     'pointer-events-none cursor-not-allowed grayscale backdrop-blur-sm':
                       !loggedIn ||
-                      !currentWaveMembership ||
-                      currentWaveMembership.data.reedeemableTickets <= 0,
+                      !waveMembership ||
+                      waveMembership.data.reedeemableTickets <= 0,
                   })}
                 >
                   <GiftBoxes />
@@ -410,14 +397,15 @@ export default function LinkToWinPage() {
                         <Rocket className="inline size-6 text-primary" /> Token
                         Sale Bonus
                       </h3>
-                      {rewardsAccount.isLoading ? (
+                      {waveMembership.isLoading ? (
                         <Skeleton className="h-6 w-48 rounded-full" />
                       ) : (
                         <span className="text-2xl font-medium leading-none">
                           <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
                             <RealIcon className="inline size-5" />
                           </span>{' '}
-                          {rewardTotals?.TokenBonus.toLocaleString() ?? 0}{' '}
+                          {waveMembership.rewardTotals?.TokenBonus.toLocaleString() ??
+                            0}{' '}
                           <span className="text-xl text-muted">
                             {token.symbol}
                           </span>
@@ -429,14 +417,15 @@ export default function LinkToWinPage() {
                         <Diamond className="inline size-6 text-primary" />{' '}
                         Realbet Credits
                       </h3>
-                      {rewardsAccount.isLoading ? (
+                      {waveMembership.isLoading ? (
                         <Skeleton className="h-6 w-48 rounded-full" />
                       ) : (
                         <span className="text-2xl font-medium leading-none">
                           <span className="inline-flex size-8 flex-col items-center justify-center rounded-full border-2 border-primary bg-black p-1.5 text-primary">
                             <RealIcon className="inline size-5" />
                           </span>{' '}
-                          {rewardTotals?.RealBetCredit.toLocaleString() ?? 0}{' '}
+                          {waveMembership.rewardTotals?.RealBetCredit.toLocaleString() ??
+                            0}{' '}
                           <span className="text-xl text-muted">
                             {token.symbol}
                           </span>
@@ -444,18 +433,16 @@ export default function LinkToWinPage() {
                       )}
                     </div>
                   </div>
-                  {!postedToTwitterAlready && (
+                  {!waveMembership.postedToTwitterAlready && (
                     <Button
-                      disabled={postedToTwitterAlready}
+                      disabled={waveMembership.postedToTwitterAlready}
                       onClick={async () => {
                         const authToken = getAuthToken();
                         if (!authToken) {
                           throw new Error('No token');
                         }
                         await awardTwitterBonus(authToken);
-                        await queryClient.invalidateQueries({
-                          queryKey: ['rewardsAccount'],
-                        });
+                        await waveMembership.refetch();
                       }}
                       variant="outline"
                       className="w-full"

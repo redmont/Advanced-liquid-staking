@@ -18,7 +18,7 @@ export const signPublicSaleClaims = async (authToken: string) => {
     new InternalServerError('No signer key'),
   );
   assert(isDev, new InternalServerError('token master not deployed to prod'));
-  const { id: userId } = await decodeUser(authToken);
+  const { id: userId, addresses } = await decodeUser(authToken);
 
   if (!userId) {
     throw new AuthenticationError('Invalid token');
@@ -82,8 +82,8 @@ export const signPublicSaleClaims = async (authToken: string) => {
           userId,
           AND: {
             membership: {
-              account: {
-                userId,
+              address: {
+                in: addresses,
               },
               wave: {
                 endTime: {

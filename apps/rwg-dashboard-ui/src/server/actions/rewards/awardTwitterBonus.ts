@@ -2,60 +2,42 @@
 
 import prisma from '@/server/prisma/client';
 import { getUserFromToken } from '../../auth';
-import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 import { TWITTER_BONUS_TICKETS } from '@/config/linkToWin';
-import {
-  AuthenticationError,
-  BadRequestError,
-  NotFoundError,
-} from '@/server/errors';
+import { AuthenticationError, BadRequestError } from '@/server/errors';
+import { getCurrentWave } from '../ticket-waves/getCurrentWave';
 
 export const awardTwitterBonus = async (authToken: string) => {
-  const { userId } = await getUserFromToken(authToken);
+  const { userId, addresses } = await getUserFromToken(authToken);
   if (!userId) {
     throw new AuthenticationError('Invalid token');
   }
 
   return prisma.$transaction(async (tx) => {
-    const account = await tx.rewardsAccount.findFirst({
+    const previouslyShared = await tx.awardedTickets.findFirst({
       where: {
-        userId,
-      },
-      include: {
-        waveMemberships: {
-          include: {
-            awardedTickets: {
-              where: {
-                type: 'TwitterShare',
-              },
-            },
+        type: 'TwitterShare',
+        membership: {
+          address: {
+            in: addresses,
           },
         },
       },
     });
 
-    const previouslyAwardedTwitterShare = account?.waveMemberships.some(
-      (membership) =>
-        membership.awardedTickets.some(
-          (ticket) => ticket.type === 'TwitterShare',
-        ),
-    );
-
-    if (previouslyAwardedTwitterShare) {
+    if (previouslyShared) {
       throw new BadRequestError('Already redeemed twitter share');
     }
 
-    const currentWave = await getCurrentWave(tx);
+    const currentWave = await getCurrentWave(tx, addresses);
+
     if (!currentWave) {
-      throw new NotFoundError('No active ticket wave');
+      throw new BadRequestError('No active ticket wave');
     }
 
-    const currentWaveMembership = account?.waveMemberships.find(
-      (membership) => membership.waveId === currentWave.id,
-    );
+    const membership = currentWave.memberships[0];
 
-    if (!currentWaveMembership) {
-      throw new NotFoundError('Not a member of the current wave');
+    if (!membership) {
+      throw new BadRequestError('Not a member of the current wave');
     }
 
     await Promise.all([
@@ -63,12 +45,13 @@ export const awardTwitterBonus = async (authToken: string) => {
         data: {
           type: 'TwitterShare',
           amount: TWITTER_BONUS_TICKETS,
-          membershipId: currentWaveMembership.accountId,
+          membershipId: membership.id,
         },
       }),
       tx.waveMembership.update({
         where: {
-          id: currentWaveMembership.id,
+          id: membership.id,
+          waveId: currentWave.id,
         },
         data: {
           reedeemableTickets: {

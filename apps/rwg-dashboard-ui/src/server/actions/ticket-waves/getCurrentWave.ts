@@ -22,6 +22,13 @@ export const getCurrentWave = async (
     },
     include: {
       rewardPresets: true,
+      memberships: {
+        where: {
+          address: {
+            in: addresses,
+          },
+        },
+      },
       whitelist: {
         where: {
           address: {

@@ -14,7 +14,7 @@ export const saveWave = async (
   > & { userTickets: number },
 ) => {
   assert(isDev, 'Not in dev mode');
-  const { userId } = await getUserFromToken(authToken);
+  const { userId, addresses } = await getUserFromToken(authToken);
   if (!userId) {
     throw new Error('No user id');
   }
@@ -26,8 +26,8 @@ export const saveWave = async (
     include: {
       memberships: {
         where: {
-          account: {
-            userId,
+          address: {
+            in: addresses,
           },
         },
       },

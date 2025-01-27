@@ -7,12 +7,13 @@ import riser from '@/assets/sounds/riser.mp3';
 import assert from 'assert';
 import { awardRandomReward } from '@/server/actions/rewards/awardRandomReward';
 import { getAuthToken } from '@dynamic-labs/sdk-react-core';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import type { ArrayElementType } from '@/utils';
 import { RewardType } from '@prisma/client';
 import { useToken } from '@/hooks/useToken';
 import { Button } from '@/components/ui/button';
 import { useCurrentWaveMembership } from '@/hooks/useCurrentWaveMembership';
+import { useCurrentTicketWave } from '@/hooks/useCurrentTicketWave';
 
 type AwardedReward = Awaited<ReturnType<typeof awardRandomReward>>;
 
@@ -35,7 +36,7 @@ const GiftBox = ({
         'group flex aspect-square size-full flex-col items-center justify-center rounded-md border border-primary transition-all',
         state === 'idle' && 'hover:bg-primary/20',
         state === 'reveal-loss' &&
-          'border-muted bg-transparent transition-colors duration-500',
+          'cursor-not-allowed border-muted bg-transparent transition-colors duration-500',
         state === 'reveal-prize' &&
           'border-primary bg-primary text-primary-foreground drop-shadow-primary transition-colors duration-500',
         state === 'waiting' && 'cursor-not-allowed border-muted bg-white/10',
@@ -97,7 +98,7 @@ const initialState: GiftBoxesState = ['idle', 'idle', 'idle'] as const;
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const GiftBoxes = () => {
-  const queryClient = useQueryClient();
+  const currentWave = useCurrentTicketWave();
   const membership = useCurrentWaveMembership();
   const remainingTickets = membership?.data?.reedeemableTickets ?? 0;
   const [playRiser] = useSound(riser, { playbackRate: 1.85 });
@@ -164,17 +165,18 @@ const GiftBoxes = () => {
       );
       await wait(timings.revealNearMisses);
       setState(initialState);
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: ['rewardsAccount'],
-        }),
-        queryClient.invalidateQueries({
-          queryKey: ['currentWave'],
-        }),
-      ]);
+      await Promise.all([membership.refetch(), currentWave.refetch()]);
       setBoxCounter((c) => c + 1);
     },
-    [states, playRiser, awardReward, queryClient, playBalloonPop, autoMode],
+    [
+      states,
+      autoMode,
+      awardReward,
+      playRiser,
+      playBalloonPop,
+      membership,
+      currentWave,
+    ],
   );
 
   useEffect(() => {

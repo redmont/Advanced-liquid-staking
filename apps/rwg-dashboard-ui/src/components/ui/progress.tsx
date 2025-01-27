@@ -20,7 +20,7 @@ const progressVariants = cva(
         primary: 'bg-primary/20',
         lightest: 'bg-lightest/20',
         foreground: 'bg-foreground/20',
-        accent: 'bg-accent/20',
+        accent: 'bg-lighter',
         teal: 'foreground',
         'accent-2': 'bg-accent-2/2',
       },

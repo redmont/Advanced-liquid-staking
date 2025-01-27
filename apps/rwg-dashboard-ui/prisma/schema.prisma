@@ -16,13 +16,7 @@ model CasinoLink {
   realbetUserId   Int      @unique
   realbetUsername String
   createdAt       DateTime @default(now())
-}
-
-model RewardsAccount {
-  id                  Int      @id @default(autoincrement())
-  userId              String   @unique
-  waveMemberships     WaveMembership[]
-  apiCalls            CasinoDepositApiCall[]
+  apiCalls        CasinoDepositApiCall[]
 }
 
 enum RewardType {
@@ -57,14 +51,13 @@ model WaveMembership {
   rewards                 Reward[]
   awardedTickets          AwardedTickets[]
   seatNumber              Int
-  accountId               Int
-  account                 RewardsAccount    @relation(fields: [accountId], references: [id])
+  address                 String
   waveId                  Int
   wave                    RewardWave        @relation(fields: [waveId], references: [id])
   reedeemableTickets      Int               @default(0)
   createdAt               DateTime          @default(now())
 
-  @@unique([accountId, waveId])
+  @@unique([address, waveId])
 }
 
 enum AwardedTicketsType {
@@ -144,7 +137,7 @@ model CasinoDepositApiCall {
   id          Int           @id @default(autoincrement())
   status      CallStatus    @default(Pending)
   totals      CasinoDepositTotal[]
-  account     RewardsAccount @relation(fields: [accountId], references: [id])
+  account     CasinoLink    @relation(fields: [accountId], references: [id])
   accountId   Int
   timestamp   DateTime      @default(now())
   reward      Reward?       @relation(fields: [rewardId], references: [id])

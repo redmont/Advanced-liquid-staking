@@ -16,6 +16,12 @@ export const rewardToBonusId: Record<number, number> = {
   500: 171,
 };
 
+export const bonusIdToReward: Record<number, number> = Object.entries(
+  rewardToBonusId,
+)
+  .map(([reward, bonusId]) => [Number(bonusId), Number(reward)] as const)
+  .reduce((acc, [bonusId, reward]) => ({ ...acc, [bonusId]: reward }), {});
+
 export const creditUserBonus = async (
   realbetUserId: number,
   bonus:

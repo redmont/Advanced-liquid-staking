@@ -16,16 +16,7 @@ export const awardRandomReward = async (
   authToken: string,
   nearWins: number,
 ) => {
-  const { userId } = await getUserFromToken(authToken);
-  const account = await prisma.rewardsAccount.findFirst({
-    where: {
-      userId,
-    },
-    include: {},
-  });
-  if (!account) {
-    throw new NotFoundError('No account');
-  }
+  const { userId, addresses } = await getUserFromToken(authToken);
 
   return await prisma.$transaction(
     async (tx) => {
@@ -36,8 +27,9 @@ export const awardRandomReward = async (
 
       const waveMembership = await tx.waveMembership.findFirst({
         where: {
-          accountId: account.id,
-          waveId: rewardWave.id,
+          address: {
+            in: addresses,
+          },
         },
       });
 

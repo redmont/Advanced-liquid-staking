@@ -33,14 +33,14 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
     throw new Error('Invalid token');
   }
 
-  const rewardsAccount = await prisma.rewardsAccount.findFirst({
+  const casinoLink = await prisma.casinoLink.findFirst({
     where: {
       userId: user.id,
     },
   });
 
-  if (!rewardsAccount) {
-    throw new Error('Rewards account required');
+  if (!casinoLink) {
+    throw new Error('Casino link required');
   }
 
   const existingCall = await prisma.casinoDepositApiCall.findFirst({
@@ -74,7 +74,7 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
     data: {
       account: {
         connect: {
-          id: rewardsAccount.id,
+          id: casinoLink.id,
         },
       },
       status: 'Pending',

@@ -100,7 +100,8 @@ export const useStakingVault = () => {
   );
 
   const isAdmin = useQuery({
-    enabled: isSuccess && !!primaryAddress && !!contractAddress,
+    enabled:
+      isSuccess && !!primaryAddress?.startsWith('0x') && !!contractAddress,
     queryKey: ['admin', contractAddress, primaryAddress],
     queryFn: () => {
       assert(contractAddress, 'Contract address not found');
