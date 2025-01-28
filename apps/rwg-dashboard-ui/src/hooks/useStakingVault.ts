@@ -246,6 +246,21 @@ export const useStakingVault = () => {
     });
   };
 
+  const setRewardForEpoch = useMutation({
+    mutationFn: ({ epoch, reward }: { epoch: number; reward: bigint }) => {
+      if (!contractAddress) {
+        throw new Error('Contract address not found');
+      }
+
+      return writeContractAsync({
+        address: contractAddress,
+        abi: tokenStakingConfig.abi,
+        functionName: 'setRewardForEpoch',
+        args: [BigInt(epoch), reward],
+      });
+    },
+  });
+
   const calculateRewards = (stakeIndex: bigint, epochs: bigint[]) => {
     if (!contractAddress) {
       throw new Error('Contract address not found');
@@ -425,6 +440,7 @@ export const useStakingVault = () => {
     currentEpoch,
     epochDuration,
     getRewardsForEpoch,
+    setRewardForEpoch,
     calculateRewards,
     claimRewards,
     lastEpochRewards,

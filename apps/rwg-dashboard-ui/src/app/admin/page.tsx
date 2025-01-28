@@ -8,6 +8,7 @@ import youGotMe from '@/assets/images/you-got-me.webp';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
+import { parseEther } from 'viem';
 
 const TierRow = ({ tier, index }: { tier: Tier; index: number }) => {
   const vault = useStakingVault();
@@ -54,6 +55,9 @@ const TierRow = ({ tier, index }: { tier: Tier; index: number }) => {
 };
 
 const AdminPage: React.FC = () => {
+  const [epoch, setEpoch] = useState(0);
+  const [reward, setReward] = useState('');
+
   const { sdkHasLoaded } = useDynamicContext();
   const vault = useStakingVault();
 
@@ -94,6 +98,50 @@ const AdminPage: React.FC = () => {
         {vault.tiers.data?.map((tier, index) => (
           <TierRow key={index} tier={tier} index={index} />
         ))}
+      </div>
+      <h2 className="text-2xl">Set reward for epoch</h2>
+      <div className="grid grid-cols-3 gap-3">
+        <div>Epoch</div>
+        <div>Reward (in ether REAL)</div>
+        <div></div>
+        <div>
+          <Input
+            type="number"
+            value={epoch}
+            onChange={(e) => {
+              setEpoch(parseInt(e.target.value));
+            }}
+            className="w-full"
+          />
+        </div>
+        <div>
+          <Input
+            value={reward}
+            onChange={(e) => setReward(e.target.value)}
+            className="w-full"
+          />
+        </div>
+        <div>
+          <Button
+            onClick={() =>
+              vault.setRewardForEpoch.mutateAsync(
+                {
+                  epoch,
+                  reward: parseEther(reward),
+                },
+                {
+                  onSuccess: () => {
+                    setReward('');
+                    setEpoch(0);
+                  },
+                },
+              )
+            }
+            loading={vault.setRewardForEpoch.isPending}
+          >
+            Set
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -182,7 +182,7 @@ const RewardComponent = () => {
       });
     },
     onError: () => userProposalVotes.refetch(),
-    onSuccess: () => userProposalVotes.refetch(),
+    onSuccess: () => [proposals.refetch(), userProposalVotes.refetch()],
   });
 
   return (
