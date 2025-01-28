@@ -1,5 +1,5 @@
 import type { TypedData, TypedDataDomain, WalletClient } from 'viem';
-import snapshot from '@snapshot-labs/snapshot.js';
+import type snapshot from '@snapshot-labs/snapshot.js';
 
 export type PrimaryType = 'Vote' | 'Proposal';
 

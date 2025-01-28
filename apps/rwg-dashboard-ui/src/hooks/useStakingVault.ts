@@ -281,6 +281,7 @@ export const useStakingVault = () => {
         shares.refetch(),
         balance.refetch(),
         allowance.refetch(),
+        totalStaked.refetch(),
       ]),
   });
 
@@ -325,7 +326,12 @@ export const useStakingVault = () => {
       await waitForTransactionReceipt(config, { hash: tx });
     },
     onSuccess: () =>
-      Promise.all([deposits.refetch(), shares.refetch(), balance.refetch()]),
+      Promise.all([
+        deposits.refetch(),
+        shares.refetch(),
+        balance.refetch(),
+        totalStaked.refetch(),
+      ]),
   });
 
   const claimRewards = useMutation({
