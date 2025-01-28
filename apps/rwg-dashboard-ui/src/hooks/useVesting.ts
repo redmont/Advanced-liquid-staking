@@ -141,25 +141,28 @@ export const useVesting = () => {
     );
   }, [vestingSchedules.data, releasableAmounts.data]);
 
-  const totalAmount = useMemo(
-    () => vestingSchedules.data?.reduce((a, b) => a + b.amountTotal, 0n) ?? 0n,
-    [vestingSchedules.data],
-  );
-
-  const releasedAmount = useMemo(
-    () => vestingSchedules.data?.reduce((a, b) => a + b.released, 0n) ?? 0n,
-    [vestingSchedules.data],
-  );
-
   const withdrawableAmount = useMemo(
     () => releasableAmounts.data?.reduce((a, b) => a + b.amount, 0n) ?? 0n,
     [releasableAmounts.data],
   );
 
-  const vestingAmount = useMemo(
-    () => totalAmount - withdrawableAmount - releasedAmount,
-    [totalAmount, withdrawableAmount, releasedAmount],
-  );
+  const vestingAmount = useQuery({
+    queryKey: ['vestingAmount'],
+    enabled: !!vestingSchedules.data && !!releasableAmounts.data,
+    queryFn: async () => {
+      assert(vestingSchedules.data, 'Vesting schedule data required');
+
+      const [totalAmount, releasedAmount] = vestingSchedules.data.reduce(
+        ([accTotal, accReleased], { amountTotal, released }) => [
+          accTotal + amountTotal,
+          accReleased + released,
+        ],
+        [0n, 0n],
+      );
+
+      return totalAmount - withdrawableAmount - releasedAmount;
+    },
+  });
 
   const nextWithdrawal = useMemo(() => {
     if (!vestingSchedulesWithAmounts?.length) {
@@ -195,6 +198,7 @@ export const useVesting = () => {
 
       await waitForTransactionReceipt(config, { hash: tx });
     },
+    onSuccess: () => [vestingSchedules.refetch(), releasableAmounts.refetch()],
   });
 
   return {

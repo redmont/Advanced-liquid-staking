@@ -11,7 +11,7 @@
     "vercel-build": "npx prisma db push && npx prisma migrate deploy && npx prisma generate && pnpm run db:seed && next build",
     "vercel-build:prod": "rm -rf ./src/app/developer && pnpm run vercel-build",
     "start": "next start",
-    "prepare": "husky && husky install",
+    "prepare": "husky",
     "scrape-icons": "npx tsx ./scripts/scrapeCoinIcons.ts",
     "wagmi:generate": "npx wagmi generate",
     "db:pull": "npx prisma db pull",
@@ -22,7 +22,7 @@
     "postinstall": "pnpm run db:generate"
   },
   "dependencies": {
-    "@bltzr-gg/realbet-api": "^1.1.5",
+    "@bltzr-gg/realbet-api": "^1.2.0",
     "@bltzr-gg/realbet-evm-contracts": "workspace:*",
     "@bltzr-gg/realbet-vesting-contracts": "workspace:*",
     "@duneanalytics/client-sdk": "^0.2.4",

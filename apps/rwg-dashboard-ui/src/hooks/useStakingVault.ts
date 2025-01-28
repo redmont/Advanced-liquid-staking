@@ -206,10 +206,10 @@ export const useStakingVault = () => {
 
     const startTime = Number(epochStartTime.data);
 
-    const epoch = Math.floor(
-      (Date.now() / 1000 - startTime) / Number(epochDuration.data),
-    );
-    const endDate = (epoch + 1) * Number(epochDuration.data) + startTime;
+    const epoch =
+      Math.floor((Date.now() / 1000 - startTime) / Number(epochDuration.data)) +
+      1;
+    const endDate = epoch * Number(epochDuration.data) + startTime;
 
     return {
       epoch,
@@ -246,6 +246,21 @@ export const useStakingVault = () => {
     });
   };
 
+  const setRewardForEpoch = useMutation({
+    mutationFn: ({ epoch, reward }: { epoch: number; reward: bigint }) => {
+      if (!contractAddress) {
+        throw new Error('Contract address not found');
+      }
+
+      return writeContractAsync({
+        address: contractAddress,
+        abi: tokenStakingConfig.abi,
+        functionName: 'setRewardForEpoch',
+        args: [BigInt(epoch), reward],
+      });
+    },
+  });
+
   const calculateRewards = (stakeIndex: bigint, epochs: bigint[]) => {
     if (!contractAddress) {
       throw new Error('Contract address not found');
@@ -281,6 +296,7 @@ export const useStakingVault = () => {
         shares.refetch(),
         balance.refetch(),
         allowance.refetch(),
+        totalStaked.refetch(),
       ]),
   });
 
@@ -325,7 +341,12 @@ export const useStakingVault = () => {
       await waitForTransactionReceipt(config, { hash: tx });
     },
     onSuccess: () =>
-      Promise.all([deposits.refetch(), shares.refetch(), balance.refetch()]),
+      Promise.all([
+        deposits.refetch(),
+        shares.refetch(),
+        balance.refetch(),
+        totalStaked.refetch(),
+      ]),
   });
 
   const claimRewards = useMutation({
@@ -419,6 +440,7 @@ export const useStakingVault = () => {
     currentEpoch,
     epochDuration,
     getRewardsForEpoch,
+    setRewardForEpoch,
     calculateRewards,
     claimRewards,
     lastEpochRewards,

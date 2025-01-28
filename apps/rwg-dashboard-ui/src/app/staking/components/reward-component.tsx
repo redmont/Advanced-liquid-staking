@@ -173,9 +173,7 @@ const RewardComponent = () => {
 
       const web3 = getSnapshotWeb3(walletClient, 'Vote');
 
-      // The snapshot.org library is basically built for ethers, so there's no type-safe way of using viem instead
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-      await client.vote(web3 as any, address!, {
+      await client.vote(web3, address!, {
         space,
         proposal: latestProposal?.id,
         type: 'single-choice',
@@ -184,7 +182,7 @@ const RewardComponent = () => {
       });
     },
     onError: () => userProposalVotes.refetch(),
-    onSuccess: () => userProposalVotes.refetch(),
+    onSuccess: () => [proposals.refetch(), userProposalVotes.refetch()],
   });
 
   return (

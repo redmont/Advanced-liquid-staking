@@ -14,18 +14,18 @@ import RealIcon from '@/assets/images/R.svg';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useClaims } from '@/hooks/useClaims';
 import { useToken } from '@/hooks/useToken';
-import { formatBalance } from '@/utils';
+import { formatBalance, formatBalanceTruncated } from '@/utils';
 import { Calendar, Check, CircleX, HandCoins } from 'lucide-react';
-import { formatUnits, parseUnits } from 'viem';
+import { parseUnits } from 'viem';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import dayjs from '@/dayjs';
-import { Progress } from '@/components/ui/progress';
 import { isDev } from '@/env';
 import { cn } from '@/lib/cn';
-
-const nextUnlockDate = new Date('2023-01-01');
-const progress = 0;
-const unvested = 0n;
+import { useVesting } from '@/hooks/useVesting';
+import { useAnimatedNumber } from '@/hooks/useAnimatedNumber';
+import { useMemo } from 'react';
+import assert from 'assert';
+import VestingIndicator from './components/vesting-indicator';
 
 const ClaimPage = () => {
   const { sdkHasLoaded } = useDynamicContext();
@@ -33,6 +33,34 @@ const ClaimPage = () => {
     useClaims();
   const token = useToken();
   const showPeriod = claims.isLoading || claims.data?.period;
+
+  const {
+    withdrawableAmount,
+    releasableAmounts,
+    vestingAmount,
+    vestingSchedulesWithAmounts,
+    nextWithdrawal,
+    release,
+  } = useVesting();
+
+  const withdrawableAmountAnimated = useAnimatedNumber(
+    formatBalanceTruncated(withdrawableAmount),
+    {
+      decimals: 0,
+      duration: 300,
+    },
+  );
+
+  const fullyUnlockedDate = useMemo(() => {
+    const timestamps = vestingSchedulesWithAmounts
+      .filter((v) => !v.revoked)
+      .map((v) => Number(v.start + v.duration));
+
+    if (timestamps.length > 0) {
+      return new Date(Math.max(...timestamps) * 1000);
+    }
+    return null;
+  }, [vestingSchedulesWithAmounts]);
 
   return (
     <div className="space-y-8 p-3 sm:p-5">
@@ -226,54 +254,70 @@ const ClaimPage = () => {
       </Card>
       <Card>
         <CardHeader>
-          <div className="flex flex-wrap justify-between gap-5">
+          <CardTitle className="flex flex-wrap justify-between gap-5">
             <span className="uppercase">Vesting</span>
-            <span>
-              Next unlock date:{' '}
-              {!sdkHasLoaded ? (
-                <Skeleton className="-mb-1 inline-block h-4 w-24" />
-              ) : (
-                <Button variant="ghost" size="sm">
-                  {dayjs(nextUnlockDate).format('DD/MM/YYYY')}
-                </Button>
-              )}
-            </span>
-          </div>
+            {fullyUnlockedDate !== null && (
+              <span className="text-sm">
+                Fully unlocked:{' '}
+                {!sdkHasLoaded ? (
+                  <Skeleton className="-mb-1 inline-block h-4 w-24" />
+                ) : (
+                  <Button variant="ghost" size="sm">
+                    {dayjs(fullyUnlockedDate).format('DD/MM/YYYY')}
+                  </Button>
+                )}
+              </span>
+            )}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
-              <h3 className="mb-2 text-xl">Vested</h3>
+              <h3 className="mb-2 text-xl">Vesting</h3>
               <span className="inline-flex items-center gap-1 text-2xl">
                 <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                   <RealIcon className="size-full" />
                 </span>
-                {token.isLoading ? (
+                {token.isLoading || vestingAmount.isLoading ? (
                   <Skeleton className="h-6 w-24 rounded-full" />
                 ) : (
-                  <span>{formatUnits(0n, token.decimals)}</span>
+                  <span>
+                    {formatBalanceTruncated(vestingAmount.data ?? 0n)}
+                  </span>
                 )}
               </span>
             </div>
             <div>
-              <h3 className="mb-2 text-xl">Available to vest</h3>
+              <h3 className="mb-2 text-xl">Vested</h3>
               <div className="flex items-center gap-5">
                 <span className="inline-flex items-center gap-1 text-2xl">
                   <span className="m-1.5 inline-flex size-8 flex-col items-center justify-center rounded-full bg-black p-1.5 text-primary">
                     <RealIcon className="size-full" />
                   </span>
-                  {token.isLoading ? (
+                  {token.isLoading || releasableAmounts.isLoading ? (
                     <Skeleton className="h-6 w-24 rounded-full" />
                   ) : (
-                    <span>{formatUnits(0n, token.decimals)}</span>
+                    withdrawableAmountAnimated
                   )}
                 </span>
                 <Button
-                  disabled={unvested <= 0}
-                  loading={!sdkHasLoaded}
+                  disabled={withdrawableAmount <= 0n || !nextWithdrawal}
+                  loading={!sdkHasLoaded || release.isPending}
                   size="sm"
+                  onClick={async () => {
+                    assert(nextWithdrawal?.id, 'nextWithdrawal.id is required');
+                    await release.mutateAsync({
+                      amount: nextWithdrawal.releasableAmount ?? 0n,
+                      vestingScheduleId: nextWithdrawal.id,
+                    });
+                  }}
                 >
-                  Vest
+                  Withdraw{' '}
+                  {nextWithdrawal
+                    ? `${formatBalanceTruncated(
+                        nextWithdrawal?.releasableAmount,
+                      )} ${token.symbol}`
+                    : ''}
                 </Button>
               </div>
             </div>
@@ -282,24 +326,8 @@ const ClaimPage = () => {
             {!sdkHasLoaded ? (
               <Skeleton className="h-4 w-full" />
             ) : (
-              <Progress variant="foreground" value={progress} />
+              <VestingIndicator />
             )}
-            <div className="mt-2 flex justify-between text-sm text-foreground">
-              {token.isLoading ? (
-                <>
-                  <Skeleton className="inline-block h-4 w-32" />
-                  <Skeleton className="inline-block h-4 w-32" />
-                </>
-              ) : (
-                <>
-                  <span>{progress.toFixed(0)}% vested</span>
-                  <span className="text-sm text-muted">
-                    {formatUnits(0n, token.decimals)} /{' '}
-                    {formatUnits(0n, token.decimals)}
-                  </span>
-                </>
-              )}
-            </div>
           </div>
         </CardContent>
       </Card>
