@@ -65,6 +65,7 @@ async function main() {
       claims: {
         createMany: {
           data: (await readClaims()).map(({ address, amount }) => ({
+            blockchain: 'ethereum',
             address,
             amount: BigInt(amount).toString(),
             status: 'Pending',

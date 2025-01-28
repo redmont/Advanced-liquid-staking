@@ -27,7 +27,6 @@ model LinkedWallet {
   dynamicUserId         String
   casinoDepositTotals   CasinoDepositTotal[]
   memberships           WaveMembership[]
-  claims                Claim[]
 
   @@unique([address, dynamicUserId, chain])
 }
@@ -137,7 +136,7 @@ enum ClaimStatus {
 model Claim {
   id          Int           @id @default(autoincrement())
   address     String  
-  wallet      LinkedWallet  @relation(fields: [address], references: [address])
+  blockchain  String
   amount      Decimal       @db.Decimal(30, 0)
   bonus       Decimal?      @db.Decimal(30, 0)
   signature   String?
@@ -149,7 +148,7 @@ model Claim {
   createdAt   DateTime      @default(now())
   claimedAt   DateTime?
 
-  @@unique([address, periodId])
+  @@unique([address, blockchain, periodId])
 }
 
 enum CallStatus {
