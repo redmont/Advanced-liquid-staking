@@ -8,11 +8,11 @@ const verifySignature = ({
 }: {
   secret: string;
   signature: string;
-  payload: unknown;
+  payload: string;
 }) => {
   const payloadSignature = crypto
     .createHmac('sha256', secret)
-    .update(JSON.stringify(payload))
+    .update(payload)
     .digest('hex');
   const trusted = Buffer.from(`sha256=${payloadSignature}`, 'ascii');
   const untrusted = Buffer.from(signature, 'ascii');
