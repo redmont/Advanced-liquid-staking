@@ -103,7 +103,8 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const startTime = Number(epochStartTime) + epoch * Number(epochDuration);
+  const startTime =
+    Number(epochStartTime) + (epoch - 1) * Number(epochDuration);
   const endTime = startTime + Number(epochDuration);
   const blockNumber = await getNearestBlockForTimestamp(
     publicClient,
@@ -112,10 +113,7 @@ export async function GET(request: NextRequest) {
 
   const web3 = getSnapshotWeb3(walletClient, 'Proposal');
 
-  // web3 is supposed to be of an ethers.js type
-  // but we're using viem, so we have to cast to any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-  await client.proposal(web3 as any, account.address, {
+  await client.proposal(web3, account.address, {
     from: account.address,
     space: snapshotSpace,
     timestamp: Math.floor(new Date().getTime() / 1000),

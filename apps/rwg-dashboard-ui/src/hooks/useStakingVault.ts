@@ -206,10 +206,10 @@ export const useStakingVault = () => {
 
     const startTime = Number(epochStartTime.data);
 
-    const epoch = Math.floor(
-      (Date.now() / 1000 - startTime) / Number(epochDuration.data),
-    );
-    const endDate = (epoch + 1) * Number(epochDuration.data) + startTime;
+    const epoch =
+      Math.floor((Date.now() / 1000 - startTime) / Number(epochDuration.data)) +
+      1;
+    const endDate = epoch * Number(epochDuration.data) + startTime;
 
     return {
       epoch,
