@@ -16,7 +16,7 @@ export const getRealbetProgression = async (authToken: string) => {
 
   const link = await prisma.casinoLink.findFirst({
     where: {
-      userId,
+      dynamicUserId: userId,
     },
   });
 

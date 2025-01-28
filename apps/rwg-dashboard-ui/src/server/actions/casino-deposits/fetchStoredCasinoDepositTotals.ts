@@ -14,9 +14,7 @@ export const fetchCasinoDepositTotals = async (authToken: string) => {
 
   const apiCall = await prisma.casinoDepositApiCall.findFirst({
     where: {
-      account: {
-        userId: user.id,
-      },
+      dynamicUserId: user.id,
     },
     include: {
       totals: {

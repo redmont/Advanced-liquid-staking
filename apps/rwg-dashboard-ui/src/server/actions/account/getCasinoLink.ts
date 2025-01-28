@@ -12,7 +12,7 @@ export const getCasinoLink = async (token: string) => {
 
   const casinoLink = await prisma.casinoLink.findFirst({
     where: {
-      userId,
+      dynamicUserId: userId,
     },
   });
 

@@ -10,14 +10,37 @@ datasource db {
   directUrl = env("SUPABASE_DB_POSTGRES_URL_NON_POOLING")
 }
 
-model CasinoLink {
-  id              Int      @id @default(autoincrement())
-  userId          String   @unique 
-  realbetUserId   Int      @unique
-  realbetUsername String
-  createdAt       DateTime @default(now())
-  apiCalls        CasinoDepositApiCall[]
+model DynamicUser {
+  id          String                @id
+  username    String
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  casinoLink  CasinoLink?
+  wallets     LinkedWallet[]
+  apiCall     CasinoDepositApiCall?
 }
+
+model LinkedWallet {
+  address               String                      @id
+  chain                 String
+  dynamicUser           DynamicUser                 @relation(fields: [dynamicUserId], references: [id])
+  dynamicUserId         String
+  casinoDepositTotals   CasinoDepositTotal[]
+  memberships           WaveMembership[]
+  claims                Claim[]
+
+  @@unique([address, dynamicUserId, chain])
+}
+
+model CasinoLink {
+  id              Int                       @id @default(autoincrement())
+  dynamicUser     DynamicUser               @relation(fields: [dynamicUserId], references: [id])
+  dynamicUserId   String                    @unique
+  realbetUserId   Int                       @unique         
+  realbetUsername String
+  createdAt       DateTime                  @default(now())       
+}
+
 
 enum RewardType {
   TokenBonus
@@ -41,9 +64,9 @@ model RewardWave {
 }
 
 model Whitelist {
-  address String @id
-  rewardWaveId Int
-  rewardWave RewardWave @relation(fields: [rewardWaveId], references: [id])
+  address       String      @id
+  rewardWaveId  Int
+  rewardWave    RewardWave  @relation(fields: [rewardWaveId], references: [id])
 }
 
 model WaveMembership {
@@ -52,6 +75,7 @@ model WaveMembership {
   awardedTickets          AwardedTickets[]
   seatNumber              Int
   address                 String
+  wallet                  LinkedWallet      @relation(fields: [address], references: [address])
   waveId                  Int
   wave                    RewardWave        @relation(fields: [waveId], references: [id])
   reedeemableTickets      Int               @default(0)
@@ -63,35 +87,36 @@ model WaveMembership {
 enum AwardedTicketsType {
   WaveSignupBonus
   TwitterShare
+  AdminCredit
 }
 
 model AwardedTickets {
-  id              Int      @id @default(autoincrement())
+  id              Int                       @id @default(autoincrement())
   type            AwardedTicketsType
   membershipId    Int
-  membership      WaveMembership @relation(fields: [membershipId], references: [id])
+  membership      WaveMembership            @relation(fields: [membershipId], references: [id])
   amount          Int
-  createdAt       DateTime @default(now())
+  createdAt       DateTime                  @default(now())
 }
 
 model RewardPresets {
-  id              Int    @id @default(autoincrement())
+  id              Int         @id @default(autoincrement())
   prize           Decimal
   remaining       Int
   type            RewardType
   waveId          Int
-  wave            RewardWave @relation(fields: [waveId], references: [id])
+  wave            RewardWave  @relation(fields: [waveId], references: [id])
 }
 
 model Reward {
-  id                    Int      @id @default(autoincrement())
+  id                    Int                       @id @default(autoincrement())
   userId                String
   type                  RewardType
   amount                Decimal?
-  redeemed              Boolean  @default(false)
+  redeemed              Boolean                   @default(false)
   membershipId          Int?
-  membership            WaveMembership? @relation(fields: [membershipId], references: [id])
-  createdAt             DateTime @default(now())
+  membership            WaveMembership?           @relation(fields: [membershipId], references: [id])
+  createdAt             DateTime                  @default(now())
   CasinoDepositApiCall  CasinoDepositApiCall?
 }
 
@@ -112,6 +137,7 @@ enum ClaimStatus {
 model Claim {
   id          Int           @id @default(autoincrement())
   address     String  
+  wallet      LinkedWallet  @relation(fields: [address], references: [address])
   amount      Decimal       @db.Decimal(30, 0)
   bonus       Decimal?      @db.Decimal(30, 0)
   signature   String?
@@ -134,29 +160,28 @@ enum CallStatus {
 }
 
 model CasinoDepositApiCall {
-  id          Int           @id @default(autoincrement())
-  status      CallStatus    @default(Pending)
-  totals      CasinoDepositTotal[]
-  account     CasinoLink    @relation(fields: [accountId], references: [id])
-  accountId   Int
-  timestamp   DateTime      @default(now())
-  reward      Reward?       @relation(fields: [rewardId], references: [id])
-  rewardId    Int?          @unique
-
-  @@unique([id, accountId])
+  id            Int                       @id @default(autoincrement())
+  status        CallStatus                @default(Pending)
+  totals        CasinoDepositTotal[]
+  user          DynamicUser               @relation(fields: [dynamicUserId], references: [id])
+  dynamicUserId String                    @unique
+  timestamp     DateTime                  @default(now())
+  reward        Reward?                   @relation(fields: [rewardId], references: [id])
+  rewardId      Int?                      @unique
 }
 
 model CasinoDepositTotal {
-  id          Int           @id @default(autoincrement())
+  id          Int                       @id @default(autoincrement())
   apiCallId   Int
-  apiCall     CasinoDepositApiCall @relation(fields: [apiCallId], references: [id], onDelete: Cascade)
+  apiCall     CasinoDepositApiCall      @relation(fields: [apiCallId], references: [id], onDelete: Cascade)
   casino      String
   blockchain  String
+  wallet      LinkedWallet              @relation(fields: [address], references: [address])
   address     String
   symbol      String
   amount      Decimal
 
-  @@unique([apiCallId, casino, blockchain, address, symbol])
+  @@unique([casino, blockchain, address, symbol])
 }
 
 model StakingVoteMerkleTree {

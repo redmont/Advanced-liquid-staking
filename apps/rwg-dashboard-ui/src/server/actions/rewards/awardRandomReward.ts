@@ -77,7 +77,7 @@ export const awardRandomReward = async (
       if (reward.type === 'RealBetCredit') {
         const casinoLink = await tx.casinoLink.findFirst({
           where: {
-            userId,
+            dynamicUserId: userId,
           },
         });
 

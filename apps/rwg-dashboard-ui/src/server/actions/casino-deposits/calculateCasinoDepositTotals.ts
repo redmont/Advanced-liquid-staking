@@ -8,7 +8,7 @@ import { decodeUser } from '../../auth';
 import { env } from '@/env';
 import { toCamel } from '@/lib/utils';
 import prisma from '../../prisma/client';
-import { BadRequestError, GenericError } from '@/server/errors';
+import { BadRequestError, InternalServerError } from '@/server/errors';
 
 const QUERY_ID = 4537410;
 
@@ -29,27 +29,21 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
   assert(!!env.DUNE_API_KEY, 'DUNE_API_KEY is required');
   const user = await decodeUser(authToken);
 
-  if (!user) {
-    throw new Error('Invalid token');
-  }
-
-  const casinoLink = await prisma.casinoLink.findFirst({
+  const dynamicUser = await prisma.dynamicUser.findFirst({
     where: {
-      userId: user.id,
+      id: user.id,
+    },
+    include: {
+      casinoLink: true,
+      apiCall: true,
     },
   });
 
-  if (!casinoLink) {
-    throw new Error('Casino link required');
+  if (!dynamicUser?.casinoLink) {
+    throw new BadRequestError('Casino link required');
   }
 
-  const existingCall = await prisma.casinoDepositApiCall.findFirst({
-    where: {
-      account: {
-        userId: user.id,
-      },
-    },
-  });
+  const existingCall = dynamicUser.apiCall;
 
   if (
     existingCall?.status === 'Pending' &&
@@ -64,20 +58,14 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
 
   await prisma.casinoDepositApiCall.deleteMany({
     where: {
-      account: {
-        userId: user.id,
-      },
+      dynamicUserId: user.id,
     },
   });
 
   const pendingCall = await prisma.casinoDepositApiCall.create({
     data: {
-      account: {
-        connect: {
-          id: casinoLink.id,
-        },
-      },
       status: 'Pending',
+      dynamicUserId: user.id,
     },
   });
 
@@ -137,7 +125,9 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
         },
       },
     });
-  } catch {
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error(error);
     await prisma.casinoDepositApiCall.update({
       where: {
         id: pendingCall.id,
@@ -147,6 +137,6 @@ export const calculateCasinoDepositTotals = async (authToken: string) => {
       },
     });
 
-    throw new GenericError('Error calculating deposits.');
+    throw new InternalServerError('Error calculating deposits.');
   }
 };

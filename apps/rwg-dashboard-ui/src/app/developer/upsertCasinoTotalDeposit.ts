@@ -19,9 +19,7 @@ export const upsertCasinoTotalDeposit = async (
 
   const existingRecord = await prisma.casinoDepositApiCall.findFirst({
     where: {
-      account: {
-        userId: user.id,
-      },
+      dynamicUserId: user.id,
     },
   });
 
@@ -51,9 +49,7 @@ export const upsertCasinoTotalDeposit = async (
   } else {
     await prisma.casinoDepositApiCall.create({
       data: {
-        account: {
-          connect: { userId: user.id },
-        },
+        dynamicUserId: user.id,
         status: 'Success',
         totals: {
           createMany: {

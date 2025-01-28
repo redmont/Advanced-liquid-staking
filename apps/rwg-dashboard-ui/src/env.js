@@ -22,6 +22,7 @@ export const env = createEnv({
     REALBET_API_SECRET_KEY: z.string(),
     DYNAMIC_API_KEY: z.string(),
     CRON_SECRET: z.string(),
+    DYNAMIC_WEBHOOK_SECRET: z.string(),
   },
 
   /**
@@ -74,6 +75,7 @@ export const env = createEnv({
     DUNE_API_KEY: process.env.DUNE_API_KEY,
     REALBET_API_SECRET_KEY: process.env.REALBET_API_SECRET_KEY,
     DYNAMIC_API_KEY: process.env.DYNAMIC_API_KEY,
+    DYNAMIC_WEBHOOK_SECRET: process.env.DYNAMIC_WEBHOOK_SECRET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

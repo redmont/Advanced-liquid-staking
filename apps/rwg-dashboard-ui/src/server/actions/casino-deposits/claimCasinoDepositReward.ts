@@ -5,42 +5,46 @@ import { decodeUser } from '../../auth';
 import { creditUserBonus } from '../updateRealbetCredits';
 import assert from 'assert';
 import { calculateDepositsScore } from '@/server/utils';
-import { BadRequestError, RealbetApiError } from '@/server/errors';
+import {
+  BadRequestError,
+  NotFoundError,
+  RealbetApiError,
+} from '@/server/errors';
 
 export const claimCasinoDepositReward = async (authToken: string) => {
   const user = await decodeUser(authToken);
-  if (!user) {
-    throw new Error('Invalid token');
-  }
 
   return prisma.$transaction(
     async (tx) => {
-      const apiCall = await prisma.casinoDepositApiCall.findFirst({
+      const dynamicUser = await tx.dynamicUser.findFirst({
         where: {
-          account: {
-            userId: user.id,
-          },
+          id: user.id,
         },
         include: {
-          totals: true,
+          apiCall: {
+            include: {
+              totals: true,
+            },
+          },
+          casinoLink: true,
         },
       });
+
+      if (!dynamicUser?.casinoLink) {
+        throw new BadRequestError('Casino link required');
+      }
+
+      const apiCall = dynamicUser.apiCall;
 
       if (!apiCall) {
-        throw new BadRequestError('Api call not found');
+        throw new NotFoundError('Api call not found');
       }
 
-      if (apiCall.status === 'Claimed') {
-        throw new BadRequestError('Casino deposits already claimed');
+      if (apiCall.status !== 'Success' || apiCall.totals.length === 0) {
+        throw new BadRequestError('API Call in an invalid state to claim');
       }
 
-      const casinoLink = await prisma.casinoLink.findFirst({
-        where: {
-          userId: user.id,
-        },
-      });
-
-      assert(casinoLink, 'Casino link not found');
+      assert(dynamicUser.casinoLink, 'Casino link not found');
 
       const amount = calculateDepositsScore(apiCall.totals);
 
@@ -64,7 +68,7 @@ export const claimCasinoDepositReward = async (authToken: string) => {
       assert(updatedCall?.rewardId, 'Reward id not found');
 
       try {
-        await creditUserBonus(casinoLink.realbetUserId, {
+        await creditUserBonus(dynamicUser.casinoLink.realbetUserId, {
           name: 'Casino Deposits Bonus Claim',
           amount: Number(amount),
           description:

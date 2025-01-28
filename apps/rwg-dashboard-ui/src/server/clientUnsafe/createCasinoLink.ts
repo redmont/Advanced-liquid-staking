@@ -9,6 +9,7 @@ const WalletResponseSchema = z.object({
   wallets: z.array(
     z.object({
       publicKey: z.string(),
+      chain: z.string(),
     }),
   ),
 });
@@ -23,51 +24,84 @@ export const createCasinoLink_clientUnsafe = async ({
   realbetUserId: number;
   realbetUsername: string;
 }) => {
-  const { casinoLink } = await prisma.$transaction(
+  const dynamicUser = await prisma.$transaction(
     async (tx) => {
-      const [casinoLink] = await Promise.all([
-        tx.casinoLink.create({
-          data: {
-            userId,
-            realbetUserId,
-            realbetUsername,
+      const wallets =
+        (await fetch(
+          `https://app.dynamicauth.com/api/v0/users/${userId}/wallets`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${env.DYNAMIC_API_KEY}`,
+            },
           },
-        }),
-      ]);
+        )
+          .then(
+            async (response) =>
+              WalletResponseSchema.parse(await response.json()).wallets,
+          )
+          // eslint-disable-next-line no-console
+          .catch((err) => console.error(err))) ?? [];
+      const dynamicUser = await tx.dynamicUser.upsert({
+        where: { id: userId },
+        update: {
+          casinoLink: {
+            create: {
+              realbetUserId,
+              realbetUsername,
+            },
+          },
+          wallets: {
+            deleteMany: {
+              address: {
+                notIn: wallets.map(({ publicKey }) => publicKey),
+              },
+            },
+            createMany: {
+              data: wallets.map(({ publicKey, chain }) => ({
+                chain,
+                address: publicKey,
+              })),
+            },
+          },
+        },
+        create: {
+          id: userId,
+          username: realbetUsername,
+          casinoLink: {
+            create: {
+              realbetUserId,
+              realbetUsername,
+            },
+          },
+          wallets: {
+            createMany: {
+              data: wallets.map(({ publicKey, chain }) => ({
+                chain,
+                address: publicKey,
+              })),
+            },
+          },
+        },
+        include: {
+          casinoLink: true,
+          wallets: true,
+        },
+      });
 
-      return { casinoLink };
+      return dynamicUser;
     },
     { isolationLevel: 'Serializable' },
   );
-
-  const addresses = await fetch(
-    `https://app.dynamicauth.com/api/v0/users/${userId}/wallets`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${env.DYNAMIC_API_KEY}`,
-      },
-    },
-  )
-    .then(async (response) =>
-      WalletResponseSchema.parse(await response.json()).wallets.map(
-        (w) => w.publicKey,
-      ),
-    )
+  try {
+    await subscribeToWave_clientUnsafe({
+      id: userId,
+      addresses: dynamicUser.wallets.map((w) => w.address),
+    });
+  } catch (error) {
     // eslint-disable-next-line no-console
-    .catch((err) => console.error(err));
-
-  if (addresses) {
-    try {
-      await subscribeToWave_clientUnsafe({
-        id: userId,
-        addresses,
-      });
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Couldnt subscribe to wave', error);
-    }
+    console.error('Couldnt subscribe to wave', error);
   }
 
-  return { casinoLink };
+  return dynamicUser;
 };
