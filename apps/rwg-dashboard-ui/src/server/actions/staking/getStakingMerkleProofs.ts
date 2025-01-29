@@ -2,6 +2,7 @@
 
 import prisma from '@/server/prisma/client';
 import { getUserFromToken } from '../../auth';
+import { NotFoundError } from '@/server/errors';
 
 export const getStakingMerkleProofs = async (
   authToken: string,
@@ -14,7 +15,7 @@ export const getStakingMerkleProofs = async (
   );
 
   if (!walletAddress) {
-    throw new Error('No wallet address found');
+    throw new NotFoundError('No wallet address found');
   }
 
   const proofs = await prisma.stakingVoteMerkleProof.findMany({

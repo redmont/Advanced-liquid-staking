@@ -20,7 +20,7 @@ const verifySignature = ({
 };
 
 export async function POST(request: Request) {
-  const signature = request.headers.get('x-dynamic-signature');
+  const signature = request.headers.get('x-dynamic-signature-256');
   const rawBody = await request.text();
   // eslint-disable-next-line no-console
   console.log(

@@ -35,3 +35,24 @@ export const EventSchema = z.object({
     message: 'Invalid timestamp',
   }),
 });
+
+const WalletTransferredDataSchema = z.object({
+  publicKey: z.string(),
+  chain: z.string(),
+  userId: z.string().uuid(),
+  walletAdditionalAddresses: z.array(z.unknown()), // TODO: define
+});
+
+export const WalletTransferredEventSchema = z.object({
+  eventName: z.literal('wallet.transferred'),
+  eventId: z.string().uuid(),
+  webhookId: z.string().uuid(),
+  environmentId: z.string().uuid(),
+  data: WalletTransferredDataSchema,
+  environmentName: z.string(),
+  messageId: z.string().uuid(),
+  userId: z.string().uuid(),
+  timestamp: z.string().refine((val) => !isNaN(Date.parse(val)), {
+    message: 'Invalid timestamp',
+  }),
+});
