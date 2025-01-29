@@ -20,7 +20,7 @@ const RealbetProgressionWidget = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="">
+        <CardTitle className="flex justify-between">
           <span>
             <span className="h-8">
               <Link
