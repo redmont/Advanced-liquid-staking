@@ -2,7 +2,7 @@ import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { readContract, waitForTransactionReceipt } from '@wagmi/core';
 import config from '@/config/wagmi';
-import { useWriteContract } from 'wagmi';
+import { usePublicClient, useWriteContract } from 'wagmi';
 import { useMemo } from 'react';
 import { useToken } from './useToken';
 import useNetworkId from './useNetworkId';
@@ -15,6 +15,7 @@ import { mainnet, sepolia } from 'viem/chains';
 import { tokenAddress } from '@/config/realToken';
 import { useAuthenticatedQuery } from './useAuthenticatedQuery';
 import { getStakingMerkleProofs } from '@/server/actions/staking/getStakingMerkleProofs';
+import { uniqBy } from 'lodash';
 
 const chainId = isDev ? sepolia.id : mainnet.id;
 const contractAddress = tokenStakingConfig.address[chainId];
@@ -31,6 +32,7 @@ export const useStakingVault = () => {
   } = useToken();
   const { primaryWallet, setShowAuthFlow } = useDynamicContext();
   const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
   const primaryAddress = usePrimaryAddress();
 
   const tiers = useQuery({
@@ -324,6 +326,9 @@ export const useStakingVault = () => {
 
   const unstake = useMutation({
     mutationFn: async ({ stakeIndex }: { stakeIndex: bigint }) => {
+      if (!publicClient) {
+        throw new Error('Public client not found');
+      }
       if (!primaryWallet) {
         throw new Error('Wallet required');
       }
@@ -331,12 +336,14 @@ export const useStakingVault = () => {
         throw new Error('Contract address not found');
       }
 
-      const tx = await writeContractAsync({
+      const { request } = await publicClient.simulateContract({
         address: contractAddress,
         abi: tokenStakingConfig.abi,
         functionName: 'unstake',
         args: [stakeIndex],
       });
+
+      const tx = await writeContractAsync(request);
 
       await waitForTransactionReceipt(config, { hash: tx });
     },
@@ -419,8 +426,10 @@ export const useStakingVault = () => {
 
   const merkleProofs = useAuthenticatedQuery({
     queryKey: ['merkleProofs', minLastClaimEpoch],
-    queryFn: (token) => {
-      return getStakingMerkleProofs(token, minLastClaimEpoch);
+    queryFn: async (token) => {
+      const proofs = await getStakingMerkleProofs(token, minLastClaimEpoch);
+      // Make sure we only have 1 proof per epoch
+      return uniqBy(proofs, 'epoch');
     },
   });
 
