@@ -44,21 +44,26 @@ const RealbetProgressionWidget = () => {
               </>
             )}
           </span>
+          {!loggedIn && sdkHasLoaded ? (
+            <Button asChild className="ml-1">
+              <ConnectWallet />
+            </Button>
+          ) : (
+            !link.isLinked &&
+            link.isSuccess && (
+              <Button asChild className="ml-1">
+                <Link href={'/link-to-win'}>Link your account</Link>
+              </Button>
+            )
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-destructive">{progression.error?.message}</p>
         {!loggedIn && sdkHasLoaded ? (
-          <p>
-            You must be logged in to see your progression. <ConnectWallet />
-          </p>
+          <p>You must be logged in to see your progression.</p>
         ) : !link.isLinked && link.isSuccess ? (
-          <p>
-            Link your realbet account to start tracking your progression.{' '}
-            <Button asChild className="ml-1">
-              <Link href={'/link-to-win'}>Link your account</Link>
-            </Button>
-          </p>
+          <p>Link your realbet account to start tracking your progression. </p>
         ) : (
           <div className="flex gap-3">
             <div className="shrink-0">
