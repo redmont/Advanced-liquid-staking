@@ -69,6 +69,7 @@ export const useCurrentWaveMembership = () => {
         {
           [AwardedTicketsType.WaveSignupBonus]: 0,
           [AwardedTicketsType.TwitterShare]: 0,
+          [AwardedTicketsType.AdminCredit]: 0,
         },
       ),
     [membership.data],
