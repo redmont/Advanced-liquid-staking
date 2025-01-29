@@ -6,13 +6,13 @@ import { useIsLoggedIn } from '@dynamic-labs/sdk-react-core';
 import { Wallet2 } from 'lucide-react';
 import usePrimaryAddress from '@/hooks/usePrimaryAddress';
 
-export default function ConnectWallet() {
+const ConnectWallet = ({ className }: { className?: string }) => {
   const authHandler = useDynamicAuthClickHandler();
   const isAuthenticated = useIsLoggedIn();
   const primaryAddress = usePrimaryAddress();
 
   return (
-    <Button onClick={authHandler} variant="default" className="w-full max-w-64">
+    <Button onClick={authHandler} variant="default" className={className}>
       {isAuthenticated ? (
         <>
           <Wallet2 className="size-4 shrink-0" />
@@ -26,4 +26,6 @@ export default function ConnectWallet() {
       )}
     </Button>
   );
-}
+};
+
+export default ConnectWallet;

@@ -115,7 +115,7 @@ const Navbar: React.FC<{ className?: string }> = ({ className }) => {
         <ul className="flex flex-col gap-3">
           <hr className="hidden h-px border-none bg-lighter lg:block" />
           <li>
-            <ConnectWallet />
+            <ConnectWallet className="w-full max-w-64" />
             {hasOverride && (
               <button
                 className="text-accent"
