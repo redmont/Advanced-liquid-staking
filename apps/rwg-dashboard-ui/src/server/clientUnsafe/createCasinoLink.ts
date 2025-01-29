@@ -53,6 +53,7 @@ export const createCasinoLink_clientUnsafe = async ({
           },
           wallets: {
             deleteMany: {
+              dynamicUserId: userId,
               address: {
                 notIn: wallets.map(({ publicKey }) => publicKey),
               },

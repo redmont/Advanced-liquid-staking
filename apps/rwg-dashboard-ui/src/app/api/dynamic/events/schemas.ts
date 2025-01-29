@@ -1,24 +1,5 @@
 import { z } from 'zod';
 
-export const EventTypeEnum = z.enum([
-  'ping',
-  'user.created',
-  'user.updated',
-  'user.deleted',
-  'user.passkeyRecovery.started',
-  'user.passkeyRecovery.completed',
-  'user.session.created',
-  'user.session.revoked',
-  'user.social.linked',
-  'user.social.unlinked',
-  'wallet.created',
-  'wallet.linked',
-  'wallet.unlinked',
-  'wallet.exported',
-  'wallet.transferred',
-  'visit.created',
-]);
-
 export const TestEventSchema = z.object({
   eventName: z.literal('ping'),
 });
@@ -56,6 +37,7 @@ export const UserCreatedEventSchema = GenericEventSchema.extend({
     firstVisit: z.string().refine((val) => !isNaN(Date.parse(val)), {
       message: 'Invalid timestamp for firstVisit',
     }),
+    email: z.string().email(),
   }),
 });
 
@@ -93,7 +75,7 @@ export const WalletTransferredEventSchema = GenericEventSchema.extend({
     publicKey: z.string(),
     chain: z.string(),
     userId: z.string().uuid(),
-    walletAdditionalAddresses: z.array(z.unknown()), // TODO: define
+    id: z.string().uuid(),
   }),
 });
 
@@ -111,3 +93,45 @@ export const WalletLinkedEventSchema = GenericEventSchema.extend({
     id: z.string().uuid(),
   }),
 });
+
+export const WalletCreatedEventSchema = GenericEventSchema.extend({
+  eventName: z.literal('wallet.created'), // Ensure the eventName is 'wallet.created'
+  data: z.object({
+    chain: z.string(),
+    publicKey: z.string(),
+    userId: z.string().uuid(),
+    createdAt: z.string().refine((val) => !isNaN(Date.parse(val)), {
+      message: 'Invalid timestamp for createdAt',
+    }),
+    projectEnvironmentId: z.string().uuid(),
+    provider: z.string(),
+    name: z.string(),
+    id: z.string().uuid(),
+  }),
+});
+
+export const WalletUnlinkedEventSchema = GenericEventSchema.extend({
+  eventName: z.literal('wallet.unlinked'),
+  data: z.object({
+    chain: z.string(),
+    address: z.string(),
+    walletName: z.string(),
+    format: z.string(),
+    id: z.string().uuid(),
+    lastSelectedAt: z.string().refine((val) => !isNaN(Date.parse(val)), {
+      message: 'Invalid timestamp for lastSelectedAt',
+    }),
+    walletProvider: z.string(),
+  }),
+});
+
+export const EventsSchema = z.union([
+  TestEventSchema,
+  UserCreatedEventSchema,
+  UserDeletedEventSchema,
+  UserUpdatedEventSchema,
+  WalletTransferredEventSchema,
+  WalletLinkedEventSchema,
+  WalletCreatedEventSchema,
+  WalletUnlinkedEventSchema,
+]);
