@@ -23,7 +23,11 @@ export async function POST(request: Request) {
   const signature = request.headers.get('x-dynamic-signature');
   const rawBody = await request.text();
   // eslint-disable-next-line no-console
-  console.log('DYNAMIC EVENT:', JSON.stringify(JSON.parse(rawBody), null, 2));
+  console.log(
+    'DYNAMIC EVENT:',
+    signature,
+    JSON.stringify(JSON.parse(rawBody), null, 2),
+  );
 
   if (
     !signature ||
@@ -43,9 +47,6 @@ export async function POST(request: Request) {
       },
     );
   }
-
-  // eslint-disable-next-line no-console
-  console.log('DYNAMIC EVENT:', JSON.stringify(JSON.parse(rawBody), null, 2));
 
   return Response.json({
     message: 'pong',
