@@ -12,11 +12,11 @@ Audit Report:
 
 <h3>Key Features</h3>
 
-- <b>Liquid Staking</b>: Stakers receive an ERC20 token (sREAL) representing their staked position, allowing them to utilize their capital elsewhere in DeFi while still earning rewards.
+- <b>Liquid Staking</b>: Stakers receive an ERC20 token (sREAL) representing their staked position, allowing them to utilize their capital elsewhere (DeFi, Govenance) while still earning rewards.
 
 - <b>Tiered Staking System</b>: Multiple tiers with different lock-up periods and reward multipliers, incentivizing long-term commitment.
 
-- <b>Epoch-Based Rewards</b>: Rewards are calculated and distributed on a per-epoch basis, a common pattern in robust DeFi protocols.
+- <b>Epoch-Based Rewards</b>: Rewards are calculated and distributed on a per-epoch basis (e.g., weekly, monthly, etc.), allowing for more frequent and consistent rewards.
 
 - <b>Vote-Coupled Rewards</b>: Integrates a voting mechanism where users must participate in governance to claim their rewards for a given epoch, preventing passive farming and encouraging active participation.
 
